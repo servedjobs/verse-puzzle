@@ -1,0 +1,11 @@
+{
+  "appId": "com.shortroundgaming.versepuzzle",
+  "appName": "Verse Puzzle",
+  "webDir": "www",
+  "backgroundColor": "#fbf7ef",
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_verse", "iconColor": "#c08a2e" }
+  },
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never" }
+}

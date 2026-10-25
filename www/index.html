@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d2b4a">
+<meta name="color-scheme" content="light dark">
+<title>Verse Puzzle</title>
+<style>
+/* phone-first single column; cards on warm paper, midnight + gold */
+:root{
+  --paper:#fbf7ef; --card:#ffffff; --ink:#1f2433; --muted:#6b6f7c; --line:#e7e0d2;
+  --night:#1d2b4a; --gold:#c08a2e; --gold-soft:#f3e6cc; --sage:#5f8a6e; --sage-soft:#e2eee5; --red:#b4483a;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --fs:1;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#121621; --card:#1b2030; --ink:#ece8de; --muted:#a1a5b2; --line:#2c3245;
+  --night:#0d1322; --gold:#d9a648; --gold-soft:#3a3020; --sage:#7fb08f; --sage-soft:#1f3328; --red:#e07a6a;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+button,.tile,.kb button,.cc{touch-action:manipulation}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:calc(16px*var(--fs))/1.45 var(--sans);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+.app{max-width:560px;margin:0 auto;min-height:100%;padding:calc(env(safe-area-inset-top,0px) + 12px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 24px) max(16px,env(safe-area-inset-left,0px))}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+header.top h1{font:600 calc(24px*var(--fs))/1.1 var(--serif);margin:0;letter-spacing:.01em}
+.iconbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;min-width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;padding:0 12px;gap:6px;font-family:var(--sans)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:calc(13px*var(--fs));font-weight:600;color:var(--gold);background:var(--gold-soft);border-radius:99px;padding:5px 10px}
+.daily{background:var(--night);color:#f6f1e4;border-radius:20px;padding:20px 18px;display:grid;gap:10px;margin-bottom:16px;position:relative;overflow:hidden}
+.daily::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;border:1.5px solid rgba(217,166,72,.35)}
+.daily .eyebrow{font-size:calc(12px*var(--fs));letter-spacing:.12em;text-transform:uppercase;color:#d9a648;font-weight:700}
+.daily h2{font:600 calc(22px*var(--fs))/1.2 var(--serif);margin:0}
+.daily p{margin:0;color:#cfd3dd;font-size:calc(14px*var(--fs))}
+.btn{appearance:none;border:0;border-radius:14px;padding:14px 18px;font:600 calc(16px*var(--fs))/1 var(--sans);cursor:pointer;min-height:48px}
+.btn.gold{background:var(--gold);color:#1b1408}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.night{background:var(--night);color:#fff}
+.btn:disabled{opacity:.45}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:left;display:grid;gap:6px;cursor:pointer;color:var(--ink);font-family:var(--sans)}
+.mode .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font:700 18px var(--serif)}
+.mode b{font:600 calc(17px*var(--fs))/1.2 var(--serif)}
+.mode span{font-size:calc(13px*var(--fs));color:var(--muted)}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--sage);border-radius:3px}
+.section-h{font:600 calc(13px*var(--fs))/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:22px 2px 10px}
+.foot{margin-top:22px;color:var(--muted);font-size:calc(12px*var(--fs));text-align:center}
+/* play screens */
+.play-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.play-head .t{flex:1;min-width:0}
+.play-head .t b{display:block;font:600 calc(18px*var(--fs))/1.2 var(--serif)}
+.play-head .t span{font-size:calc(13px*var(--fs));color:var(--muted)}
+.ref{font:600 calc(15px*var(--fs)) var(--serif);color:var(--gold);text-align:center;margin:4px 0 12px}
+.board{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;min-height:120px}
+.slots{display:flex;flex-wrap:wrap;gap:6px 6px;min-height:60px;font:calc(19px*var(--fs))/1.5 var(--serif)}
+.slot{border-bottom:2px dashed var(--line);min-width:42px;height:1.6em}
+.word{padding:2px 2px}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
+.tile{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 13px;font:calc(17px*var(--fs))/1 var(--serif);cursor:pointer;min-height:44px;box-shadow:0 1px 0 var(--line)}
+.tile.used{visibility:hidden}
+.shake{animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.toolbar{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+/* cryptogram */
+.crypto{display:flex;flex-wrap:wrap;gap:10px 8px;justify-content:flex-start}
+.cw{display:flex;gap:2px}
+.cc{display:grid;grid-template-rows:auto auto;justify-items:center;min-width:calc(22px*var(--fs))}
+.cc .l{width:calc(22px*var(--fs));height:calc(30px*var(--fs));border-bottom:2px solid var(--ink);font:600 calc(20px*var(--fs))/calc(30px*var(--fs)) var(--serif);text-align:center;border-radius:4px 4px 0 0}
+.cc .n{font-size:calc(11px*var(--fs));color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+.cc.p .l{border:0}
+.cc.sel .l{background:var(--gold-soft)}
+.cc.same .l{background:color-mix(in srgb,var(--gold-soft) 55%,transparent)}
+.cc.given .l{color:var(--sage)}
+.cc.bad .l{color:var(--red)}
+.kb{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:14px}
+.kb button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;height:calc(46px*var(--fs));font:600 calc(16px*var(--fs)) var(--sans);padding:0;cursor:pointer}
+.kb button.usedk{opacity:.4}
+.kb .wide{grid-column:span 2}
+/* word search */
+.ws-grid{display:grid;gap:3px;touch-action:none;margin:0 auto}
+.ws-grid div{aspect-ratio:1;display:grid;place-items:center;font:600 calc(18px*var(--fs)) var(--serif);border-radius:8px;background:var(--paper);text-transform:uppercase}
+.ws-grid div.on{background:var(--gold-soft)}
+.ws-grid div.found{background:var(--sage-soft);color:var(--sage)}
+.ws-words{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;margin-top:14px;font:calc(15px*var(--fs)) var(--serif)}
+.ws-words .f{text-decoration:line-through;color:var(--muted)}
+/* done */
+.done{text-align:center;display:grid;gap:14px;padding-top:24px}
+.done .seal{width:72px;height:72px;margin:0 auto;border-radius:50%;background:var(--gold);color:#1b1408;display:grid;place-items:center;font:700 34px var(--serif)}
+.done blockquote{margin:0;font:calc(21px*var(--fs))/1.5 var(--serif);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.done cite{display:block;margin-top:10px;font-style:normal;color:var(--gold);font-weight:600}
+/* settings sheet */
+.sheet{position:fixed;inset:0;background:rgba(10,12,20,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet .in{background:var(--paper);width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:20px max(16px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 20px);display:grid;gap:14px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.toggle{width:52px;height:32px;border-radius:16px;background:var(--line);position:relative;border:0;cursor:pointer}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:left .15s}
+.toggle[aria-pressed="true"]{background:var(--sage)}.toggle[aria-pressed="true"]::after{left:23px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);background:var(--night);color:#fff;padding:12px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:90%}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+/* juice */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
+.tile{transition:transform .08s}.tile:active{transform:scale(.94)}
+.word.pop,.ws-grid div.found,.cc.pop .l{animation:pop .32s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.done .seal{animation:seal .6s cubic-bezier(.3,1.7,.5,1)}
+@keyframes seal{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1) rotate(0)}}
+.pill.glow{animation:glow 1.2s ease-out}
+@keyframes glow{0%{box-shadow:0 0 0 0 rgba(217,166,72,.7)}100%{box-shadow:0 0 0 18px rgba(217,166,72,0)}}
+.coach{position:fixed;inset:0;background:rgba(10,12,20,.55);z-index:25;display:flex;align-items:flex-end;justify-content:center}
+.coach .in{background:var(--paper);max-width:560px;width:100%;border-radius:22px 22px 0 0;padding:22px max(18px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 22px);display:grid;gap:12px}
+.coach h3{margin:0;font:600 calc(21px*var(--fs)) var(--serif)}
+.coach .dots{display:flex;gap:6px;justify-content:center}.coach .dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.coach .dots i.on{background:var(--gold)}
+.coach .demo{font-size:42px;text-align:center}
+@media (prefers-reduced-motion:reduce){.shake,.word.pop,.ws-grid div.found,.cc.pop .l,.done .seal,.pill.glow{animation:none}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div><canvas id="fx"></canvas>
+<script>
+const VERSES = [{"r":"1 Thessalonians 5:16","t":"Rejoice evermore."},{"r":"1 Thessalonians 5:17","t":"Pray without ceasing."},{"r":"Numbers 6:24","t":"The LORD bless thee, and keep thee:"},{"r":"2 Corinthians 5:7","t":"(For we walk by faith, not by sight:)"},{"r":"1 John 4:19","t":"We love him, because he first loved us."},{"r":"Luke 1:37","t":"For with God nothing shall be impossible."},{"r":"1 Corinthians 16:14","t":"Let all your things be done with charity."},{"r":"Psalm 23:1","t":"The LORD is my shepherd; I shall not want."},{"r":"Psalm 56:3","t":"What time I am afraid, I will trust in thee."},{"r":"Philippians 4:4","t":"Rejoice in the Lord alway: and again I say, Rejoice."},{"r":"1 John 4:8","t":"He that loveth not knoweth not God; for God is love."},{"r":"Genesis 1:1","t":"In the beginning God created the heaven and the earth."},{"r":"Genesis 1:3","t":"And God said, Let there be light: and there was light."},{"r":"Lamentations 3:23","t":"They are new every morning: great is thy faithfulness."},{"r":"1 Peter 5:7","t":"Casting all your care upon him; for he careth for you."},{"r":"Romans 3:23","t":"For all have sinned, and come short of the glory of God;"},{"r":"1 Chronicles 16:11","t":"Seek the LORD and his strength, seek his face continually."},{"r":"Psalm 119:105","t":"Thy word is a lamp unto my feet, and a light unto my path."},{"r":"Psalm 121:2","t":"My help cometh from the LORD, which made heaven and earth."},{"r":"Matthew 6:21","t":"For where your treasure is, there will your heart be also."},{"r":"Luke 12:34","t":"For where your treasure is, there will your heart be also."},{"r":"Philippians 4:13","t":"I can do all things through Christ which strengtheneth me."},{"r":"Hebrews 13:8","t":"Jesus Christ the same yesterday, and to day, and for ever."},{"r":"Exodus 14:14","t":"The LORD shall fight for you, and ye shall hold your peace."},{"r":"Psalm 147:3","t":"He healeth the broken in heart, and bindeth up their wounds."},{"r":"Psalm 62:1","t":"Truly my soul waiteth upon God: from him cometh my salvation."},{"r":"Psalm 46:1","t":"God is our refuge and strength, a very present help in trouble."},{"r":"Proverbs 3:6","t":"In all thy ways acknowledge him, and he shall direct thy paths."},{"r":"John 8:32","t":"And ye shall know the truth, and the truth shall make you free."},{"r":"Colossians 3:2","t":"Set your affection on things above, not on things on the earth."},{"r":"Numbers 6:26","t":"The LORD lift up his countenance upon thee, and give thee peace."},{"r":"Proverbs 16:9","t":"A man’s heart deviseth his way: but the LORD directeth his steps."},{"r":"Numbers 6:25","t":"The LORD make his face shine upon thee, and be gracious unto thee:"},{"r":"Proverbs 17:17","t":"A friend loveth at all times, and a brother is born for adversity."},{"r":"James 1:2","t":"My brethren, count it all joy when ye fall into divers temptations;"},{"r":"Psalm 121:1","t":"I will lift up mine eyes unto the hills, from whence cometh my help."},{"r":"Psalm 119:11","t":"Thy word have I hid in mine heart, that I might not sin against thee."},{"r":"Psalm 150:6","t":"Let every thing that hath breath praise the LORD. Praise ye the LORD."},{"r":"Psalm 51:10","t":"Create in me a clean heart, O God; and renew a right spirit within me."},{"r":"Proverbs 16:3","t":"Commit thy works unto the LORD, and thy thoughts shall be established."},{"r":"John 14:1","t":"Let not your heart be troubled: ye believe in God, believe also in me."},{"r":"Luke 6:31","t":"And as ye would that men should do to you, do ye also to them likewise."},{"r":"Colossians 3:23","t":"And whatsoever ye do, do it heartily, as to the Lord, and not unto men;"},{"r":"Proverbs 4:23","t":"Keep thy heart with all diligence; for out of it are the issues of life."},{"r":"Proverbs 27:17","t":"Iron sharpeneth iron; so a man sharpeneth the countenance of his friend."},{"r":"John 1:5","t":"And the light shineth in darkness; and the darkness comprehended it not."},{"r":"Romans 12:12","t":"Rejoicing in hope; patient in tribulation; continuing instant in prayer;"},{"r":"Revelation 22:13","t":"I am Alpha and Omega, the beginning and the end, the first and the last."},{"r":"Jeremiah 17:7","t":"Blessed is the man that trusteth in the LORD, and whose hope the LORD is."},{"r":"Ecclesiastes 4:9","t":"Two are better than one; because they have a good reward for their labour."},{"r":"Matthew 5:9","t":"Blessed are the peacemakers: for they shall be called the children of God."},{"r":"Matthew 5:14","t":"Ye are the light of the world. A city that is set on an hill cannot be hid."},{"r":"Ephesians 6:10","t":"Finally, my brethren, be strong in the Lord, and in the power of his might."},{"r":"Psalm 118:24","t":"This is the day which the LORD hath made; we will rejoice and be glad in it."},{"r":"Proverbs 31:25","t":"Strength and honour are her clothing; and she shall rejoice in time to come."},{"r":"1 Chronicles 16:34","t":"O give thanks unto the LORD; for he is good; for his mercy endureth for ever."},{"r":"Psalm 107:1","t":"O give thanks unto the LORD, for he is good: for his mercy endureth for ever."},{"r":"Psalm 136:1","t":"O give thanks unto the LORD; for he is good: for his mercy endureth for ever."},{"r":"Psalm 19:1","t":"The heavens declare the glory of God; and the firmament sheweth his handywork."},{"r":"Psalm 34:8","t":"O taste and see that the LORD is good: blessed is the man that trusteth in him."},{"r":"Psalm 37:5","t":"Commit thy way unto the LORD; trust also in him; and he shall bring it to pass."},{"r":"Ecclesiastes 3:1","t":"To every thing there is a season, and a time to every purpose under the heaven:"},{"r":"Matthew 11:28","t":"Come unto me, all ye that labour and are heavy laden, and I will give you rest."},{"r":"John 1:1","t":"In the beginning was the Word, and the Word was with God, and the Word was God."},{"r":"Romans 8:31","t":"What shall we then say to these things? If God be for us, who can be against us?"},{"r":"Hebrews 11:1","t":"Now faith is the substance of things hoped for, the evidence of things not seen."},{"r":"John 15:13","t":"Greater love hath no man than this, that a man lay down his life for his friends."},{"r":"Proverbs 3:5","t":"Trust in the LORD with all thine heart; and lean not unto thine own understanding."},{"r":"Proverbs 18:10","t":"The name of the LORD is a strong tower: the righteous runneth into it, and is safe."},{"r":"Jeremiah 29:13","t":"And ye shall seek me, and find me, when ye shall search for me with all your heart."},{"r":"Psalm 37:4","t":"Delight thyself also in the LORD; and he shall give thee the desires of thine heart."},{"r":"Isaiah 40:29","t":"He giveth power to the faint; and to them that have no might he increaseth strength."},{"r":"Psalm 91:2","t":"I will say of the LORD, He is my refuge and my fortress: my God; in him will I trust."},{"r":"Isaiah 40:8","t":"The grass withereth, the flower fadeth: but the word of our God shall stand for ever."},{"r":"Isaiah 55:8","t":"For my thoughts are not your thoughts, neither are your ways my ways, saith the LORD."},{"r":"Psalm 103:12","t":"As far as the east is from the west, so far hath he removed our transgressions from us."},{"r":"Lamentations 3:22","t":"It is of the LORD’s mercies that we are not consumed, because his compassions fail not."},{"r":"Philippians 4:19","t":"But my God shall supply all your need according to his riches in glory by Christ Jesus."},{"r":"1 Thessalonians 5:18","t":"In every thing give thanks: for this is the will of God in Christ Jesus concerning you."},{"r":"Acts 16:31","t":"And they said, Believe on the Lord Jesus Christ, and thou shalt be saved, and thy house."},{"r":"1 Corinthians 13:13","t":"And now abideth faith, hope, charity, these three; but the greatest of these is charity."},{"r":"Galatians 6:9","t":"And let us not be weary in well doing: for in due season we shall reap, if we faint not."},{"r":"Psalm 1:2","t":"But his delight is in the law of the LORD; and in his law doth he meditate day and night."},{"r":"Proverbs 22:6","t":"Train up a child in the way he should go: and when he is old, he will not depart from it."},{"r":"Mark 9:23","t":"Jesus said unto him, If thou canst believe, all things are possible to him that believeth."},{"r":"Ephesians 2:8","t":"For by grace are ye saved through faith; and that not of yourselves: it is the gift of God:"},{"r":"Psalm 4:8","t":"I will both lay me down in peace, and sleep: for thou, LORD, only makest me dwell in safety."},{"r":"Psalm 73:26","t":"My flesh and my heart faileth: but God is the strength of my heart, and my portion for ever."},{"r":"Galatians 5:22","t":"But the fruit of the Spirit is love, joy, peace, longsuffering, gentleness, goodness, faith,"},{"r":"Job 19:25","t":"For I know that my redeemer liveth, and that he shall stand at the latter day upon the earth:"},{"r":"Nahum 1:7","t":"The LORD is good, a strong hold in the day of trouble; and he knoweth them that trust in him."},{"r":"2 Timothy 1:7","t":"For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind."},{"r":"Romans 5:8","t":"But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us."},{"r":"Isaiah 26:3","t":"Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee."},{"r":"Matthew 7:7","t":"Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you:"},{"r":"Romans 6:23","t":"For the wages of sin is death; but the gift of God is eternal life through Jesus Christ our Lord."},{"r":"Psalm 34:18","t":"The LORD is nigh unto them that are of a broken heart; and saveth such as be of a contrite spirit."},{"r":"Psalm 91:1","t":"He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty."},{"r":"Psalm 27:14","t":"Wait on the LORD: be of good courage, and he shall strengthen thine heart: wait, I say, on the LORD."},{"r":"Jeremiah 33:3","t":"Call unto me, and I will answer thee, and shew thee great and mighty things, which thou knowest not."},{"r":"Psalm 46:10","t":"Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth."},{"r":"John 14:6","t":"Jesus saith unto him, I am the way, the truth, and the life: no man cometh unto the Father, but by me."},{"r":"1 Corinthians 13:4","t":"Charity suffereth long, and is kind; charity envieth not; charity vaunteth not itself, is not puffed up,"},{"r":"Genesis 1:27","t":"So God created man in his own image, in the image of God created he him; male and female created he them."},{"r":"Deuteronomy 6:5","t":"And thou shalt love the LORD thy God with all thine heart, and with all thy soul, and with all thy might."},{"r":"Psalm 55:22","t":"Cast thy burden upon the LORD, and he shall sustain thee: he shall never suffer the righteous to be moved."},{"r":"Matthew 6:33","t":"But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you."},{"r":"John 3:17","t":"For God sent not his Son into the world to condemn the world; but that the world through him might be saved."},{"r":"Exodus 20:12","t":"Honour thy father and thy mother: that thy days may be long upon the land which the LORD thy God giveth thee."},{"r":"2 Samuel 22:31","t":"As for God, his way is perfect; the word of the LORD is tried: he is a buckler to all them that trust in him."},{"r":"Matthew 19:26","t":"But Jesus beheld them, and said unto them, With men this is impossible; but with God all things are possible."},{"r":"Philippians 4:7","t":"And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus."},{"r":"John 13:34","t":"A new commandment I give unto you, That ye love one another; as I have loved you, that ye also love one another."},{"r":"1 John 4:7","t":"Beloved, let us love one another: for love is of God; and every one that loveth is born of God, and knoweth God."},{"r":"Matthew 11:29","t":"Take my yoke upon you, and learn of me; for I am meek and lowly in heart: and ye shall find rest unto your souls."},{"r":"Psalm 100:4","t":"Enter into his gates with thanksgiving, and into his courts with praise: be thankful unto him, and bless his name."},{"r":"Matthew 5:16","t":"Let your light so shine before men, that they may see your good works, and glorify your Father which is in heaven."},{"r":"1 John 1:9","t":"If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness."},{"r":"Mark 10:27","t":"And Jesus looking upon them saith, With men it is impossible, but not with God: for with God all things are possible."},{"r":"Ephesians 4:32","t":"And be ye kind one to another, tenderhearted, forgiving one another, even as God for Christ’s sake hath forgiven you."},{"r":"Psalm 23:6","t":"Surely goodness and mercy shall follow me all the days of my life: and I will dwell in the house of the LORD for ever."},{"r":"Matthew 22:37","t":"Jesus said unto him, Thou shalt love the Lord thy God with all thy heart, and with all thy soul, and with all thy mind."},{"r":"2 Corinthians 5:17","t":"Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new."},{"r":"Matthew 28:19","t":"Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost:"},{"r":"Psalm 27:1","t":"The LORD is my light and my salvation; whom shall I fear? the LORD is the strength of my life; of whom shall I be afraid?"},{"r":"James 4:8","t":"Draw nigh to God, and he will draw nigh to you. Cleanse your hands, ye sinners; and purify your hearts, ye double minded."},{"r":"Psalm 16:11","t":"Thou wilt shew me the path of life: in thy presence is fulness of joy; at thy right hand there are pleasures for evermore."},{"r":"Psalm 30:5","t":"For his anger endureth but a moment; in his favour is life: weeping may endure for a night, but joy cometh in the morning."},{"r":"John 11:25","t":"Jesus said unto her, I am the resurrection, and the life: he that believeth in me, though he were dead, yet shall he live:"},{"r":"Psalm 139:14","t":"I will praise thee; for I am fearfully and wonderfully made: marvellous are thy works; and that my soul knoweth right well."},{"r":"Mark 11:24","t":"Therefore I say unto you, What things soever ye desire, when ye pray, believe that ye receive them, and ye shall have them."},{"r":"Psalm 19:14","t":"Let the words of my mouth, and the meditation of my heart, be acceptable in thy sight, O LORD, my strength, and my redeemer."},{"r":"Romans 8:1","t":"There is therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit."},{"r":"Romans 8:28","t":"And we know that all things work together for good to them that love God, to them who are the called according to his purpose."},{"r":"Philippians 1:6","t":"Being confident of this very thing, that he which hath begun a good work in you will perform it until the day of Jesus Christ:"},{"r":"Ephesians 3:20","t":"Now unto him that is able to do exceeding abundantly above all that we ask or think, according to the power that worketh in us,"},{"r":"James 1:5","t":"If any of you lack wisdom, let him ask of God, that giveth to all men liberally, and upbraideth not; and it shall be given him."},{"r":"Matthew 7:12","t":"Therefore all things whatsoever ye would that men should do to you, do ye even so to them: for this is the law and the prophets."},{"r":"Ephesians 2:10","t":"For we are his workmanship, created in Christ Jesus unto good works, which God hath before ordained that we should walk in them."},{"r":"1 Kings 8:61","t":"Let your heart therefore be perfect with the LORD our God, to walk in his statutes, and to keep his commandments, as at this day."},{"r":"Jeremiah 29:11","t":"For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end."},{"r":"Romans 8:18","t":"For I reckon that the sufferings of this present time are not worthy to be compared with the glory which shall be revealed in us."},{"r":"Philippians 4:6","t":"Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God."},{"r":"Mark 12:31","t":"And the second is like, namely this, Thou shalt love thy neighbour as thyself. There is none other commandment greater than these."},{"r":"Romans 15:13","t":"Now the God of hope fill you with all joy and peace in believing, that ye may abound in hope, through the power of the Holy Ghost."},{"r":"Psalm 127:1","t":"Except the LORD build the house, they labour in vain that build it: except the LORD keep the city, the watchman waketh but in vain."},{"r":"1 John 4:18","t":"There is no fear in love; but perfect love casteth out fear: because fear hath torment. He that feareth is not made perfect in love."},{"r":"Genesis 2:7","t":"And the LORD God formed man of the dust of the ground, and breathed into his nostrils the breath of life; and man became a living soul."},{"r":"Genesis 50:20","t":"But as for you, ye thought evil against me; but God meant it unto good, to bring to pass, as it is this day, to save much people alive."},{"r":"Matthew 28:20","t":"Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, even unto the end of the world. Amen."},{"r":"2 Timothy 3:16","t":"All scripture is given by inspiration of God, and is profitable for doctrine, for reproof, for correction, for instruction in righteousness:"},{"r":"John 3:16","t":"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life."},{"r":"John 15:5","t":"I am the vine, ye are the branches: He that abideth in me, and I in him, the same bringeth forth much fruit: for without me ye can do nothing."},{"r":"Psalm 1:1","t":"Blessed is the man that walketh not in the counsel of the ungodly, nor standeth in the way of sinners, nor sitteth in the seat of the scornful."},{"r":"Psalm 23:4","t":"Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me."},{"r":"Deuteronomy 31:8","t":"And the LORD, he it is that doth go before thee; he will be with thee, he will not fail thee, neither forsake thee: fear not, neither be dismayed."},{"r":"Matthew 6:34","t":"Take therefore no thought for the morrow: for the morrow shall take thought for the things of itself. Sufficient unto the day is the evil thereof."},{"r":"Revelation 3:20","t":"Behold, I stand at the door, and knock: if any man hear my voice, and open the door, I will come in to him, and will sup with him, and he with me."},{"r":"John 1:14","t":"And the Word was made flesh, and dwelt among us, (and we beheld his glory, the glory as of the only begotten of the Father,) full of grace and truth."},{"r":"John 14:27","t":"Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid."},{"r":"John 10:10","t":"The thief cometh not, but for to steal, and to kill, and to destroy: I am come that they might have life, and that they might have it more abundantly."},{"r":"Micah 6:8","t":"He hath shewed thee, O man, what is good; and what doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?"},{"r":"Romans 10:9","t":"That if thou shalt confess with thy mouth the Lord Jesus, and shalt believe in thine heart that God hath raised him from the dead, thou shalt be saved."},{"r":"Hebrews 13:5","t":"Let your conversation be without covetousness; and be content with such things as ye have: for he hath said, I will never leave thee, nor forsake thee."},{"r":"John 8:12","t":"Then spake Jesus again unto them, saying, I am the light of the world: he that followeth me shall not walk in darkness, but shall have the light of life."},{"r":"James 1:17","t":"Every good gift and every perfect gift is from above, and cometh down from the Father of lights, with whom is no variableness, neither shadow of turning."},{"r":"Psalm 28:7","t":"The LORD is my strength and my shield; my heart trusted in him, and I am helped: therefore my heart greatly rejoiceth; and with my song will I praise him."},{"r":"Exodus 15:2","t":"The LORD is my strength and song, and he is become my salvation: he is my God, and I will prepare him an habitation; my father’s God, and I will exalt him."},{"r":"Isaiah 53:5","t":"But he was wounded for our transgressions, he was bruised for our iniquities: the chastisement of our peace was upon him; and with his stripes we are healed."},{"r":"John 16:33","t":"These things I have spoken unto you, that in me ye might have peace. In the world ye shall have tribulation: but be of good cheer; I have overcome the world."},{"r":"Psalm 18:2","t":"The LORD is my rock, and my fortress, and my deliverer; my God, my strength, in whom I will trust; my buckler, and the horn of my salvation, and my high tower."},{"r":"Joshua 1:9","t":"Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest."},{"r":"Zephaniah 3:17","t":"The LORD thy God in the midst of thee is mighty; he will save, he will rejoice over thee with joy; he will rest in his love, he will joy over thee with singing."},{"r":"Hebrews 11:6","t":"But without faith it is impossible to please him: for he that cometh to God must believe that he is, and that he is a rewarder of them that diligently seek him."},{"r":"Deuteronomy 31:6","t":"Be strong and of a good courage, fear not, nor be afraid of them: for the LORD thy God, he it is that doth go with thee; he will not fail thee, nor forsake thee."},{"r":"Romans 12:2","t":"And be not conformed to this world: but be ye transformed by the renewing of your mind, that ye may prove what is that good, and acceptable, and perfect, will of God."},{"r":"Habakkuk 3:19","t":"The LORD God is my strength, and he will make my feet like hinds’ feet, and he will make me to walk upon mine high places. To the chief singer on my stringed instruments."},{"r":"Acts 2:38","t":"Then Peter said unto them, Repent, and be baptized every one of you in the name of Jesus Christ for the remission of sins, and ye shall receive the gift of the Holy Ghost."},{"r":"Numbers 23:19","t":"God is not a man, that he should lie; neither the son of man, that he should repent: hath he said, and shall he not do it? or hath he spoken, and shall he not make it good?"},{"r":"Isaiah 40:31","t":"But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint."},{"r":"1 Peter 5:10","t":"But the God of all grace, who hath called us unto his eternal glory by Christ Jesus, after that ye have suffered a while, make you perfect, stablish, strengthen, settle you."},{"r":"Isaiah 41:10","t":"Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee; yea, I will help thee; yea, I will uphold thee with the right hand of my righteousness."},{"r":"2 Peter 3:9","t":"The Lord is not slack concerning his promise, as some men count slackness; but is longsuffering to us-ward, not willing that any should perish, but that all should come to repentance."},{"r":"Revelation 21:4","t":"And God shall wipe away all tears from their eyes; and there shall be no more death, neither sorrow, nor crying, neither shall there be any more pain: for the former things are passed away."},{"r":"Acts 1:8","t":"But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me both in Jerusalem, and in all Judæa, and in Samaria, and unto the uttermost part of the earth."},{"r":"2 Corinthians 12:9","t":"And he said unto me, My grace is sufficient for thee: for my strength is made perfect in weakness. Most gladly therefore will I rather glory in my infirmities, that the power of Christ may rest upon me."},{"r":"Genesis 28:15","t":"And, behold, I am with thee, and will keep thee in all places whither thou goest, and will bring thee again into this land; for I will not leave thee, until I have done that which I have spoken to thee of."},{"r":"Galatians 2:20","t":"I am crucified with Christ: nevertheless I live; yet not I, but Christ liveth in me: and the life which I now live in the flesh I live by the faith of the Son of God, who loved me, and gave himself for me."},{"r":"Ruth 1:16","t":"And Ruth said, Intreat me not to leave thee, or to return from following after thee: for whither thou goest, I will go; and where thou lodgest, I will lodge: thy people shall be my people, and thy God my God:"},{"r":"2 Chronicles 7:14","t":"If my people, which are called by my name, shall humble themselves, and pray, and seek my face, and turn from their wicked ways; then will I hear from heaven, and will forgive their sin, and will heal their land."},{"r":"Isaiah 9:6","t":"For unto us a child is born, unto us a son is given: and the government shall be upon his shoulder: and his name shall be called Wonderful, Counsellor, The mighty God, The everlasting Father, The Prince of Peace."},{"r":"Hebrews 12:1","t":"Wherefore seeing we also are compassed about with so great a cloud of witnesses, let us lay aside every weight, and the sin which doth so easily beset us, and let us run with patience the race that is set before us,"},{"r":"Isaiah 43:2","t":"When thou passest through the waters, I will be with thee; and through the rivers, they shall not overflow thee: when thou walkest through the fire, thou shalt not be burned; neither shall the flame kindle upon thee."},{"r":"Luke 6:38","t":"Give, and it shall be given unto you; good measure, pressed down, and shaken together, and running over, shall men give into your bosom. For with the same measure that ye mete withal it shall be measured to you again."},{"r":"Nehemiah 8:10","t":"Then he said unto them, Go your way, eat the fat, and drink the sweet, and send portions unto them for whom nothing is prepared: for this day is holy unto our Lord: neither be ye sorry; for the joy of the LORD is your strength."},{"r":"Hebrews 4:12","t":"For the word of God is quick, and powerful, and sharper than any twoedged sword, piercing even to the dividing asunder of soul and spirit, and of the joints and marrow, and is a discerner of the thoughts and intents of the heart."},{"r":"Isaiah 54:17","t":"No weapon that is formed against thee shall prosper; and every tongue that shall rise against thee in judgment thou shalt condemn. This is the heritage of the servants of the LORD, and their righteousness is of me, saith the LORD."},{"r":"1 Samuel 16:7","t":"But the LORD said unto Samuel, Look not on his countenance, or on the height of his stature; because I have refused him: for the LORD seeth not as man seeth; for man looketh on the outward appearance, but the LORD looketh on the heart."},{"r":"1 Corinthians 10:13","t":"There hath no temptation taken you but such as is common to man: but God is faithful, who will not suffer you to be tempted above that ye are able; but will with the temptation also make a way to escape, that ye may be able to bear it."},{"r":"Joshua 1:8","t":"This book of the law shall not depart out of thy mouth; but thou shalt meditate therein day and night, that thou mayest observe to do according to all that is written therein: for then thou shalt make thy way prosperous, and then thou shalt have good success."},{"r":"Malachi 3:10","t":"Bring ye all the tithes into the storehouse, that there may be meat in mine house, and prove me now herewith, saith the LORD of hosts, if I will not open you the windows of heaven, and pour you out a blessing, that there shall not be room enough to receive it."},{"r":"Philippians 4:8","t":"Finally, brethren, whatsoever things are true, whatsoever things are honest, whatsoever things are just, whatsoever things are pure, whatsoever things are lovely, whatsoever things are of good report; if there be any virtue, and if there be any praise, think on these things."},{"r":"Joshua 24:15","t":"And if it seem evil unto you to serve the LORD, choose you this day whom ye will serve; whether the gods which your fathers served that were on the other side of the flood, or the gods of the Amorites, in whose land ye dwell: but as for me and my house, we will serve the LORD."}];
+(function(){
+'use strict';
+const $=(s,el=document)=>el.querySelector(s);
+const app=$('#app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY='versepuzzle.v1';
+const S=(()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}})();
+S.lv=S.lv||{order:0,crypto:0,search:0}; S.hints=S.hints??5; S.streak=S.streak||0; S.last=S.last||''; S.large=!!S.large; S.haptics=S.haptics!==false; S.solved=S.solved||0; S.dailyDone=S.dailyDone||''; S.sound=S.sound!==false; S.freezes=S.freezes??1; S.best=S.best||S.streak||0; S.coached=!!S.coached; S.remind=!!S.remind;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+document.documentElement.style.setProperty('--fs',S.large?1.22:1);
+const Cap=window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?Capacitor:null;
+const Haptics=Cap?Cap.registerPlugin('Haptics'):null, Share=Cap?Cap.registerPlugin('Share'):null, LN=Cap?Cap.registerPlugin('LocalNotifications'):null;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ---- sound: synthesized with Web Audio, no files, no licenses ---- */
+let AC=null;
+function tone(f,t0,d,type,vol){const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,AC.currentTime+t0);g.gain.setValueAtTime(0.0001,AC.currentTime+t0);g.gain.exponentialRampToValueAtTime(vol||0.18,AC.currentTime+t0+0.012);g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+t0+d);o.connect(g).connect(AC.destination);o.start(AC.currentTime+t0);o.stop(AC.currentTime+t0+d+0.05)}
+function sfx(kind){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+  if(kind==='tap')tone(660,0,.07,'triangle',.08);
+  else if(kind==='place'){tone(784,0,.12,'sine',.14);tone(1175,.03,.1,'sine',.05)}
+  else if(kind==='bad'){tone(196,0,.16,'square',.05);tone(165,.07,.18,'square',.04)}
+  else if(kind==='word'){[659,784,988].forEach((f,i)=>tone(f,i*.06,.18,'sine',.13))}
+  else if(kind==='win'){[523,659,784,1047,1319].forEach((f,i)=>tone(f,i*.09,.5,'sine',.15));tone(262,0,.9,'triangle',.07)}
+}catch(e){}}
+/* ---- particles ---- */
+const fx=document.getElementById('fx'),cx=fx.getContext('2d');let parts=[],raf=0;
+function sizeFx(){fx.width=innerWidth*devicePixelRatio;fx.height=innerHeight*devicePixelRatio;cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}sizeFx();addEventListener('resize',sizeFx);
+function burst(x,y,n,spread){if(reduced)return;const cols=['#c08a2e','#d9a648','#5f8a6e','#f3e6cc','#ffffff'];for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=(spread||4)*(0.4+Math.random());parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-(spread||4)*.6,g:.18,life:60+Math.random()*40,t:0,s:3+Math.random()*4,c:cols[i%cols.length],r:Math.random()*6})}if(!raf)raf=requestAnimationFrame(tick)}
+function burstAt(el,n){if(!el)return;const b=el.getBoundingClientRect();burst(b.left+b.width/2,b.top+b.height/2,n||10,3)}
+function confetti(){if(reduced)return;for(let k=0;k<3;k++)setTimeout(()=>burst(innerWidth*(.2+.3*k),innerHeight*.35,45,7),k*140)}
+function tick(){cx.clearRect(0,0,innerWidth,innerHeight);parts=parts.filter(p=>p.t<p.life);for(const p of parts){p.t++;p.vy+=p.g;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=.1;cx.globalAlpha=Math.max(0,1-p.t/p.life);cx.fillStyle=p.c;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore()}cx.globalAlpha=1;raf=parts.length?requestAnimationFrame(tick):0}
+/* ---- daily reminder (native only) ---- */
+async function scheduleReminder(){if(!LN)return false;try{let p=await LN.checkPermissions();if(p.display!=='granted')p=await LN.requestPermissions();if(p.display!=='granted')return false;
+  await LN.cancel({notifications:[{id:1}]}).catch(()=>{});await LN.schedule({notifications:[{id:1,title:'Your daily verse is ready',body:'Keep your streak going. One verse, one minute.',schedule:{on:{hour:8,minute:0},repeats:true,allowWhileIdle:true}}]});return true}catch(e){return false}}
+async function cancelReminder(){if(LN)try{await LN.cancel({notifications:[{id:1}]})}catch(e){}}
+function buzz(kind){ sfx(kind==='ok'?'word':kind==='bad'?'bad':'tap'); if(!S.haptics)return; try{ if(Haptics){ kind==='ok'?Haptics.notification({type:'SUCCESS'}):kind==='bad'?Haptics.notification({type:'ERROR'}):Haptics.impact({style:'LIGHT'}); } else if(navigator.vibrate){ navigator.vibrate(kind==='bad'?[30,40,30]:12); } }catch(e){} }
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const dayNum=()=>Math.floor(new Date(today()+'T12:00:00').getTime()/864e5);
+function rng(seed){let h=seed>>>0||1;return()=>{h^=h<<13;h^=h>>>17;h^=h<<5;return((h>>>0)%1e6)/1e6}}
+function shuffle(a,r=Math.random){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+// difficulty pools (verses are pre-sorted short to long)
+const POOL={
+  order: VERSES.filter(v=>v.t.split(' ').length>=5&&v.t.split(' ').length<=34),
+  crypto: VERSES.filter(v=>v.t.length>=30&&v.t.length<=150),
+  search: VERSES.filter(v=>longWords(v.t).length>=5)
+};
+function longWords(t){const seen=new Set();return t.toUpperCase().replace(/[^A-Z ]/g,' ').split(/\s+/).filter(w=>w.length>=4&&w.length<=8&&!['THAT','THIS','WITH','UNTO','THEE','THOU','THEY','THEM','THEIR','FROM','HAVE','SHALL','WHICH','WHAT','WILL','YOUR','BEEN','WERE','THERE'].includes(w)&&!seen.has(w)&&seen.add(w))}
+const MODES={
+  order:{name:'Verse Builder',sub:'Put the words back in order',ic:'Aa',bg:'var(--gold-soft)',fg:'var(--gold)'},
+  crypto:{name:'Cryptogram',sub:'Crack the coded verse',ic:'?',bg:'var(--sage-soft)',fg:'var(--sage)'},
+  search:{name:'Word Search',sub:'Find the words of the verse',ic:'#',bg:'#e7e9f3',fg:'var(--night)'}
+};
+function dailyPlan(){const n=dayNum();const kinds=['order','crypto','search'];const kind=kinds[n%3];const pool=POOL[kind];return{kind,verse:pool[(n*7919)%pool.length]}}
+
+/* ---------- home ---------- */
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function checkStreak(){ // runs on open: uses a freeze for one missed day, otherwise resets
+  if(!S.last||S.streak===0)return; const y=ymd(new Date(Date.now()-864e5)), y2=ymd(new Date(Date.now()-2*864e5));
+  if(S.last===today()||S.last===y)return;
+  if(S.last===y2&&S.freezes>0){S.freezes--;S.last=y;save();setTimeout(()=>toast('Streak saved! A streak freeze covered yesterday.'),400);return}
+  S.streak=0;save();
+}
+checkStreak();
+function home(){
+  const d=dailyPlan(), doneToday=S.dailyDone===today();
+  const mode=k=>{const tot=POOL[k].length,lv=Math.min(S.lv[k],tot),m=MODES[k];return `<button class="mode" data-mode="${k}"><div class="ic" style="background:${m.bg};color:${m.fg}">${m.ic}</div><b>${m.name}</b><span>${m.sub}</span><div class="bar"><i style="width:${Math.max(3,lv/tot*100)}%"></i></div><span>Level ${lv+1} of ${tot}</span></button>`};
+  app.innerHTML=`<header class="top"><h1>Verse Puzzle</h1><div style="display:flex;gap:8px"><span class="pill" title="Day streak · best ${S.best}">🔥 ${S.streak}${S.freezes?` · ❄︎${S.freezes}`:''}</span><button class="iconbtn" id="set" aria-label="Settings">⚙︎</button></div></header>
+  <div class="daily"><div class="eyebrow">Daily verse · ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}</div>
+  <h2>${doneToday?'You finished today’s verse':'Today’s '+MODES[d.kind].name.toLowerCase()}</h2>
+  <p>${doneToday?esc(d.verse.r)+' · come back tomorrow to keep your streak':'One verse a day. Solve it to grow your streak.'}</p>
+  <div><button class="btn gold" id="daily">${doneToday?'See today’s verse':'Play today’s verse'}</button></div></div>
+  <div class="section-h">Puzzles</div>
+  <div class="modes">${mode('order')}${mode('crypto')}${mode('search')}
+   <button class="mode" id="hintsInfo"><div class="ic" style="background:var(--gold-soft);color:var(--gold)">✦</div><b>${S.hints} hints</b><span>Earn one every 3 puzzles you solve</span></button></div>
+  <div class="foot">King James Version · works offline · ${S.solved} puzzles solved</div>`;
+  $('#daily').onclick=()=>doneToday?showDone(d.verse,'daily',true):play(d.kind,d.verse,'daily');
+  app.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{const k=b.dataset.mode;const pool=POOL[k];play(k,pool[Math.min(S.lv[k],pool.length-1)],'level')});
+  $('#set').onclick=settings; $('#hintsInfo').onclick=()=>toast('Hints reveal a word or letter. You earn one every 3 puzzles.');
+}
+function head(kind,ctx,v){return `<div class="play-head"><button class="iconbtn" id="back" aria-label="Back">‹</button><div class="t"><b>${ctx==='daily'?'Daily verse':MODES[kind].name}</b><span>${ctx==='daily'?MODES[kind].name:'Level '+(S.lv[kind]+1)}</span></div><button class="iconbtn" id="hint">✦ ${S.hints}</button></div>`}
+function useHint(){if(S.hints<=0){toast('No hints left. Solve 3 puzzles to earn one.');return false}S.hints--;save();const h=$('#hint');if(h)h.textContent='✦ '+S.hints;return true}
+let puzzleId=0,solvedId=-1;
+function play(kind,v,ctx){puzzleId++;({order:playOrder,crypto:playCrypto,search:playSearch})[kind](v,ctx)}
+function solved(kind,v,ctx){
+  if(solvedId===puzzleId)return; solvedId=puzzleId;
+  buzz('ok'); S.solved++; if(S.solved%3===0){S.hints++;}
+  if(ctx==='daily'&&S.dailyDone!==today()){const y=new Date(Date.now()-864e5);const ys=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');S.streak=S.last===ys?S.streak+1:1;S.last=today();S.dailyDone=today();S.best=Math.max(S.best,S.streak);if(S.streak%7===0&&S.freezes<2){S.freezes++;setTimeout(()=>toast('7-day streak! You earned a streak freeze ❄︎'),1600)}}
+  if(ctx==='level'){if(S.lv[kind]>=POOL[kind].length-1)setTimeout(()=>toast('You finished every '+MODES[kind].name+' level!'),1600);S.lv[kind]=Math.min(S.lv[kind]+1,POOL[kind].length-1);}
+  save(); sfx('win'); confetti(); setTimeout(()=>showDone(v,ctx,false,kind),650);
+}
+function showDone(v,ctx,review,kind){
+  app.innerHTML=`<div class="done"><div class="seal">✓</div><div style="font:600 calc(22px*var(--fs)) var(--serif)">${review?'Today’s verse':ctx==='daily'?'Daily verse complete':'Well done'}</div>
+  ${ctx==='daily'&&!review?`<div class="pill glow" style="justify-self:center">🔥 ${S.streak} day streak</div>`:''}
+  <blockquote>${esc(v.t)}<cite>${esc(v.r)} KJV</cite></blockquote>
+  <div class="toolbar">${ctx==='level'?`<button class="btn gold" id="next">Next puzzle</button>`:''}<button class="btn ghost" id="share">Share verse</button><button class="btn ghost" id="home">Home</button></div></div>`;
+  $('#home').onclick=home; if($('#next'))$('#next').onclick=()=>{const pool=POOL[kind];play(kind,pool[S.lv[kind]],'level')};
+  $('#share').onclick=async()=>{const text=ctx==='daily'?`Verse Puzzle · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}\n🔥 ${S.streak} day streak ${'🟨'.repeat(Math.min(S.streak,7))}\n\n“${v.t}”\n${v.r} KJV`:`“${v.t}” ${v.r} KJV`;try{if(Share)await Share.share({text});else if(navigator.share)await navigator.share({text});else{await navigator.clipboard.writeText(text);toast('Verse copied')}}catch(e){if(e&&e.name==='AbortError')return;try{await navigator.clipboard.writeText(text);toast('Verse copied')}catch(_){toast('Sharing is not available here')}}};
+}
+
+/* ---------- verse builder ---------- */
+function playOrder(v,ctx){
+  const words=v.t.split(' '); const n=words.length;
+  const pre=n>22?Math.floor(n*0.35):n>14?Math.floor(n*0.2):0; // longer verses start partly filled
+  const fixed=new Set(shuffle([...Array(n).keys()],rng(v.t.length*31)).slice(0,pre));
+  let pos=0; const placed=Array(n).fill(false); fixed.forEach(i=>placed[i]=true);
+  const tiles=shuffle([...Array(n).keys()].filter(i=>!fixed.has(i)));
+  const bare=w=>w.replace(/[^A-Za-z’']/g,'');const same=(a,b)=>bare(a)===bare(b);
+  const advance=()=>{while(pos<n&&placed[pos])pos++;};
+  app.innerHTML=head('order',ctx,v)+`<div class="ref">${esc(v.r)}</div><div class="board"><div class="slots" id="slots">${words.map((w,i)=>`<span class="${placed[i]?'word':'slot'}" data-i="${i}">${placed[i]?esc(w):''}</span>`).join('')}</div></div>
+  <div class="tiles" id="tiles">${tiles.map(i=>`<button class="tile" data-i="${i}">${esc(words[i])}</button>`).join('')}</div>`;
+  advance(); markNext();
+  function markNext(){app.querySelectorAll('.slot').forEach(s=>s.style.borderBottomColor='');const s=app.querySelector(`.slot[data-i="${pos}"]`);if(s)s.style.borderBottomColor='var(--gold)';}
+  $('#tiles').onclick=e=>{const t=e.target.closest('.tile');if(!t)return;const i=+t.dataset.i;
+    if(pos<n&&same(words[i],words[pos])){ // same word, any punctuation, is interchangeable
+      placed[pos]=true;const s=app.querySelector(`[data-i="${pos}"].slot`);s.className='word pop';s.textContent=words[pos];burstAt(s,6);t.classList.add('used');sfx('place');if(S.haptics)try{Haptics?Haptics.impact({style:'LIGHT'}):navigator.vibrate&&navigator.vibrate(10)}catch(e){};advance();markNext();
+      if(pos>=n)solved('order',v,ctx);
+    } else {t.classList.remove('shake');void t.offsetWidth;t.classList.add('shake');buzz('bad');}
+  };
+  $('#hint').onclick=()=>{if(pos>=n||!useHint())return;const t=[...app.querySelectorAll('.tile:not(.used)')].find(b=>same(words[+b.dataset.i],words[pos]));if(t)t.click();};
+  $('#back').onclick=home;
+}
+
+/* ---------- cryptogram ---------- */
+function playCrypto(v,ctx){
+  const r=rng(v.t.length*97+v.r.length);
+  const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const nums=shuffle([...Array(26).keys()].map(x=>x+1),r); const code={};A.forEach((c,i)=>code[c]=nums[i]);
+  const txt=v.t.toUpperCase(); const letters=[...new Set(txt.replace(/[^A-Z]/g,''))];
+  const freq={};for(const c of txt)if(/[A-Z]/.test(c))freq[c]=(freq[c]||0)+1;
+  const giveN=Math.max(2,Math.round(letters.length*(txt.length>100?0.3:0.22)));
+  const given=new Set(shuffle(letters,r).sort((a,b)=>freq[b]-freq[a]).slice(0,giveN));
+  const guess={};given.forEach(c=>guess[c]=c);
+  let sel=null;
+  const cells=[];let idx=0;
+  const wordsHtml=txt.split(' ').map(w=>`<span class="cw">${[...w].map(ch=>{if(/[A-Z]/.test(ch)){const i=idx++;cells.push(ch);return `<span class="cc${given.has(ch)?' given':''}" data-k="${i}" data-c="${ch}"><span class="l"></span><span class="n">${code[ch]}</span></span>`}return `<span class="cc p"><span class="l">${esc(ch)}</span><span class="n">&nbsp;</span></span>`}).join('')}</span>`).join('');
+  app.innerHTML=head('crypto',ctx,v)+`<div class="ref">${esc(v.r)}</div><div class="board"><div class="crypto" id="cg">${wordsHtml}</div></div>
+  <div class="kb" id="kb">${'QWERTYUIOPASDFGHJKLZXCVBNM'.split('').map(c=>`<button data-l="${c}">${c}</button>`).join('')}<button class="wide" data-l="DEL">⌫</button></div>`;
+  function render(){app.querySelectorAll('#cg .cc[data-c]').forEach(el=>{const c=el.dataset.c;el.querySelector('.l').textContent=guess[c]||'';el.classList.toggle('sel',sel!==null&&el.dataset.k==sel);el.classList.toggle('same',sel!==null&&cells[sel]===c&&el.dataset.k!=sel);el.classList.remove('bad')});
+    const used=new Set(Object.values(guess));app.querySelectorAll('#kb [data-l]').forEach(b=>b.classList.toggle('usedk',used.has(b.dataset.l)));}
+  function nextOpen(from){for(let k=1;k<=cells.length;k++){const j=(from+k)%cells.length;if(!guess[cells[j]])return j}return null}
+  sel=nextOpen(-1); render();
+  $('#cg').onclick=e=>{const el=e.target.closest('.cc[data-c]');if(!el||given.has(el.dataset.c))return;sel=+el.dataset.k;buzz();render();};
+  $('#kb').onclick=e=>{const b=e.target.closest('[data-l]');if(!b||sel===null||solvedId===puzzleId)return;const c=cells[sel];const L=b.dataset.l;
+    if(L!=='DEL'&&[...given].some(k=>k!==c&&guess[k]===L)){buzz('bad');toast(L+' is already used in green');return}
+    if(L==='DEL'){delete guess[c];render();return}
+    for(const k in guess)if(guess[k]===L&&!given.has(k))delete guess[k];
+    guess[c]=L;buzz();
+    const full=letters.every(x=>guess[x]);
+    if(full){ render(); if(letters.every(x=>guess[x]===x)){solved('crypto',v,ctx);return}
+      app.querySelectorAll('#cg .cc[data-c]').forEach(el=>{if(guess[el.dataset.c]!==el.dataset.c)el.classList.add('bad')});buzz('bad');toast('Almost. Letters in red are wrong.');return }
+    const nx=nextOpen(sel);sel=nx===null?sel:nx;render();
+  };
+  $('#hint').onclick=()=>{const wrong=letters.filter(x=>guess[x]!==x);if(!wrong.length||!useHint())return;const c=sel!==null&&guess[cells[sel]]!==cells[sel]?cells[sel]:wrong[0];for(const k in guess)if(guess[k]===c&&k!==c)delete guess[k];guess[c]=c;given.add(c);app.querySelectorAll(`.cc[data-c="${c}"]`).forEach(el=>el.classList.add('given'));
+    if(letters.every(x=>guess[x]===x)){render();solved('crypto',v,ctx);return}sel=nextOpen(sel??-1);render();};
+  $('#back').onclick=home;
+}
+
+/* ---------- word search ---------- */
+function playSearch(v,ctx){
+  const r=rng(v.t.length*53+7);
+  const N=S.large?8:9;
+  let words=shuffle(longWords(v.t),r).filter(w=>w.length<=N).slice(0,S.large?5:7).sort((a,b)=>b.length-a.length);
+  const dirs=[[0,1],[1,0],[1,1],[-1,1]];
+  let grid,placedW;
+  for(let attempt=0;attempt<40;attempt++){
+    grid=Array.from({length:N},()=>Array(N).fill(''));placedW=[];
+    for(const w of words){let ok=false;for(let t=0;t<200&&!ok;t++){const [dr,dc]=dirs[Math.floor(r()*dirs.length)];const r0=Math.floor(r()*N),c0=Math.floor(r()*N);const cellsW=[];
+      for(let k=0;k<w.length;k++){const rr=r0+dr*k,cc=c0+dc*k;if(rr<0||cc<0||rr>=N||cc>=N||(grid[rr][cc]&&grid[rr][cc]!==w[k])){cellsW.length=0;break}cellsW.push([rr,cc])}
+      if(cellsW.length===w.length){cellsW.forEach(([rr,cc],k)=>grid[rr][cc]=w[k]);placedW.push({w,cells:cellsW});ok=true}}
+      if(!ok)break;}
+    if(placedW.length===words.length)break;
+  }
+  words=placedW.map(p=>p.w);
+  const AL='EEEAAIIOOTTNNSSRRHHLLDDUMWYFGCBPKV';
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(!grid[i][j])grid[i][j]=AL[Math.floor(r()*AL.length)];
+  const found=new Set();
+  app.innerHTML=head('search',ctx,v)+`<div class="ref">${esc(v.r)}</div><div class="board"><div class="ws-grid" id="g" style="grid-template-columns:repeat(${N},1fr);max-width:${Math.min(520,N*52)}px">${grid.flat().map((ch,k)=>`<div data-k="${k}">${ch}</div>`).join('')}</div>
+  <div class="ws-words" id="wl">${words.map(w=>`<span data-w="${w}">${w[0]+w.slice(1).toLowerCase()}</span>`).join('')}</div></div>
+  <p class="foot" style="margin-top:12px">Drag across a word, in any straight line.</p>`;
+  const g=$('#g');let start=null,cur=[];
+  const cellAt=e=>{const el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.parentNode===g?+el.dataset.k:null};
+  const line=(a,b)=>{const r1=Math.floor(a/N),c1=a%N,r2=Math.floor(b/N),c2=b%N;const dr=Math.sign(r2-r1),dc=Math.sign(c2-c1);const len=Math.max(Math.abs(r2-r1),Math.abs(c2-c1));
+    if(!(r1===r2||c1===c2||Math.abs(r2-r1)===Math.abs(c2-c1)))return[a];const out=[];for(let k=0;k<=len;k++)out.push((r1+dr*k)*N+(c1+dc*k));return out};
+  const paint=()=>g.querySelectorAll('div').forEach(d=>d.classList.toggle('on',cur.includes(+d.dataset.k)));
+  g.addEventListener('pointerdown',e=>{const k=cellAt(e);if(k===null)return;start=k;cur=[k];paint();g.setPointerCapture(e.pointerId)});
+  g.addEventListener('pointermove',e=>{if(start===null)return;const k=cellAt(e);if(k===null)return;const nl=line(start,k);if(nl.join()!==cur.join()){cur=nl;paint();buzz()}});
+  const end=()=>{if(start===null)return;const s=cur.map(k=>grid[Math.floor(k/N)][k%N]).join('');const rev=[...s].reverse().join('');
+    const hit=placedW.find(p=>!found.has(p.w)&&(p.w===s||p.w===rev)&&p.cells.length===cur.length);
+    if(hit){found.add(hit.w);hit.cells.forEach(([rr,cc])=>g.children[rr*N+cc].classList.add('found'));burstAt(g.children[hit.cells[Math.floor(hit.cells.length/2)][0]*N+hit.cells[Math.floor(hit.cells.length/2)][1]],14);$('#wl').querySelector(`[data-w="${hit.w}"]`).classList.add('f');buzz('ok');if(found.size===words.length)solved('search',v,ctx)}
+    start=null;cur=[];paint()};
+  g.addEventListener('pointerup',end);g.addEventListener('pointercancel',end);
+  $('#hint').onclick=()=>{const p=placedW.find(p=>!found.has(p.w));if(!p||!useHint())return;const [rr,cc]=p.cells[0];const el=g.children[rr*N+cc];el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1600);};
+  $('#back').onclick=home;
+}
+
+/* ---------- settings ---------- */
+function settings(){
+  const sh=document.createElement('div');sh.className='sheet';
+  sh.innerHTML=`<div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:600 20px var(--serif)">Settings</b><button class="iconbtn" id="x" aria-label="Close">✕</button></div>
+  <div class="row"><span>Large text</span><button class="toggle" id="tLarge" aria-pressed="${S.large}" aria-label="Large text"></button></div>
+  <div class="row"><span>Vibration</span><button class="toggle" id="tHap" aria-pressed="${S.haptics}" aria-label="Vibration"></button></div>
+  <div class="row"><span>Sound effects</span><button class="toggle" id="tSnd" aria-pressed="${S.sound}" aria-label="Sound effects"></button></div>
+  ${LN?`<div class="row"><span>Daily reminder (8am)</span><button class="toggle" id="tRem" aria-pressed="${S.remind}" aria-label="Daily reminder"></button></div>`:''}
+  <div class="row"><span>How to play</span><button class="btn ghost" id="howto" style="min-height:36px;padding:8px 12px">Show</button></div>
+  <div class="row" style="display:block;color:var(--muted);font-size:14px">Verse Puzzle uses the King James Version (public domain). Your progress stays on this device. No account, no tracking.</div></div>`;
+  document.body.appendChild(sh);
+  const close=()=>{sh.remove();home()};
+  $('#x',sh).onclick=close;sh.onclick=e=>{if(e.target===sh)close()};
+  $('#tLarge',sh).onclick=e=>{S.large=!S.large;save();e.target.setAttribute('aria-pressed',S.large);document.documentElement.style.setProperty('--fs',S.large?1.22:1)};
+  $('#tHap',sh).onclick=e=>{S.haptics=!S.haptics;save();e.target.setAttribute('aria-pressed',S.haptics)};
+  $('#tSnd',sh).onclick=e=>{S.sound=!S.sound;save();e.target.setAttribute('aria-pressed',S.sound);sfx('place')};
+  if($('#tRem',sh))$('#tRem',sh).onclick=async e=>{if(!S.remind){const ok=await scheduleReminder();if(!ok){toast('Turn on notifications for Verse Puzzle in Settings');return}S.remind=true}else{await cancelReminder();S.remind=false}save();e.target.setAttribute('aria-pressed',S.remind)};
+  $('#howto',sh).onclick=()=>{sh.remove();coach()};
+}
+function coach(){
+  const steps=[['📖','One verse a day','Each day brings a new verse puzzle. Solve it to grow your 🔥 streak. Miss a day? A ❄︎ streak freeze saves it, and you earn one every 7 days.'],
+    ['Aa','Three kinds of puzzles','Verse Builder: tap the words in order. Cryptogram: crack the number code. Word Search: drag across the hidden words.'],
+    ['✦','Stuck? Use a hint','Hints reveal a word or letter. You start with 5 and earn one for every 3 puzzles you solve.']];
+  let i=0;const el=document.createElement('div');el.className='coach';document.body.appendChild(el);
+  const draw=()=>{const [ic,h,t]=steps[i];el.innerHTML=`<div class="in"><div class="demo">${ic}</div><h3>${h}</h3><p style="margin:0;color:var(--muted)">${t}</p><div class="dots">${steps.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><button class="btn gold" id="cn">${i<steps.length-1?'Next':'Start playing'}</button></div>`;
+    $('#cn',el).onclick=()=>{sfx('tap');if(i<steps.length-1){i++;draw()}else{el.remove();S.coached=true;save();home()}}};
+  draw();
+}
+let lastDay=today();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'||today()===lastDay)return;lastDay=today();checkStreak();if(document.querySelector('header.top'))home();});
+home(); if(!S.coached)coach();
+})();
+</script>
+</body>
+</html>

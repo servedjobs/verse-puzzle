@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Verse Puzzle</string>
+    <string name="title_activity_main">Verse Puzzle</string>
+    <string name="package_name">com.shortroundgaming.versepuzzle</string>
+    <string name="custom_url_scheme">com.shortroundgaming.versepuzzle</string>
+</resources>

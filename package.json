@@ -1,0 +1,22 @@
+{
+  "name": "verse-puzzle",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Verse Puzzle by Shortround Gaming: daily KJV Bible verse puzzles, offline.",
+  "scripts": {
+    "sync": "cap sync",
+    "icons": "capacitor-assets generate --android --ios --iconBackgroundColor '#1d2b4a' --iconBackgroundColorDark '#1d2b4a' --splashBackgroundColor '#1d2b4a' --splashBackgroundColorDark '#0d1322'"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3"
+  }
+}
