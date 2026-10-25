@@ -9,3 +9,4 @@ ios/App/build/
 *.keystore
 *.jks
 .DS_Store
+design/
