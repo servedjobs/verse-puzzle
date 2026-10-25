@@ -205,6 +205,19 @@ input{font:inherit; color:inherit}
 .welcome .btn.outline{background:transparent; border-color:rgba(255,255,255,.28); color:#fff}
 .welcome .link{background:none; border:0; color:var(--brand-bright); font-weight:600; font-size:var(--t-sm); padding:8px}
 
+/* intro */
+.intro-slide{display:grid; gap:14px}
+.intro-ico{width:52px; height:52px; border-radius:16px; background:rgba(251,191,36,.14); color:var(--brand-bright); display:flex; align-items:center; justify-content:center}
+.intro-step{font-size:var(--t-xs); font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94A3B8}
+.ib-card{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:14px 16px; display:grid; gap:8px}
+.ib-card p{margin:0; font-family:var(--read); font-size:16px; line-height:1.5; color:#E2E8F0}
+.ib-card .label{color:#94A3B8}
+.ib-card .ref{color:var(--brand-bright)}
+.ib-card .mini{background:rgba(255,255,255,.12)}
+.ib-note{border-left:3px solid var(--brand-bright)}
+.welcome .dots{display:flex; gap:6px; justify-content:center; margin-bottom:6px}
+.welcome .dots i{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.25)}
+.welcome .dots i.on{background:var(--brand-bright); width:22px; border-radius:4px}
 /* deck */
 .deck-top{display:flex; align-items:center; gap:12px; padding:12px max(16px, env(safe-area-inset-right,0px)) 8px max(16px, env(safe-area-inset-left,0px))}
 .deck-top .grow{flex:1; min-width:0; display:grid; gap:8px}
@@ -475,7 +488,7 @@ const FS = [1, 1.1, 1.22, 1.36];
 /* ---------- state ---------- */
 const KEY = "prayerchair.v1";
 const DEF = {welcomed:false, name:"", need:null, status:null, remind:"07:00", fs:1, saved:[], read:[], streak:0, best:0, freezes:2, lastDone:null,
-  daily:{date:null, seq:[], seen:0}, keep:0, last:null, coach:false, testament:"ot", nudges:true, remindOn:true, pane:"cw", view:"christian", saints:false, start:null};
+  daily:{date:null, seq:[], seen:0}, keep:0, last:null, coach:false, testament:"ot", nudges:true, remindOn:true, pane:"cw", view:"christian", saints:false, start:null, people:[], hope:"", nudgeAsk:null, nudgeAsks:0};
 let S = JSON.parse(JSON.stringify(DEF));
 try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
 if(!S.daily) S.daily = {date:null, seq:[], seen:0};
@@ -577,6 +590,59 @@ function nudgesFor(d){
   const doy = Math.floor((d - new Date(d.getFullYear(),0,0)) / 864e5), v = verseOfDay(d);
   return [`${v.holy ? v.holy + ": " : "Carry this today: "}“${shortLine(v.text)}” (${v.ref})`, NUDGE_STRUGGLE[doy % NUDGE_STRUGGLE.length], NUDGE_THANKS[doy % NUDGE_THANKS.length], NUDGE_EVENING[doy % NUDGE_EVENING.length]];
 }
+/* ---------- a personal prayer for today: verse prayer + your struggle, your people, your hopes ---------- */
+const PRAY_NEED = {
+ loneliness:"You know how alone I have felt. Please be near me, and help me reach out to someone today.",
+ emptiness:"You see the emptiness I carry. Fill what only You can fill, as You will.",
+ anxiety:"You know the anxious thoughts that crowd my mind. I place them in Your hands and ask, if it is Your will, for Your peace.",
+ grief:"You see the loss I am carrying. Please hold my heart in this grief, and comfort me as only You can.",
+ rest:"I am tired. I ask for the rest I need, and the humility to stop and receive it.",
+ doubt:"Some days my faith feels weak. I am still here, asking You to help my unbelief.",
+ purpose:"Show me, step by step, what You would have me do with this day.",
+ gratitude:"My heart is full of thanks today. Help me never take Your gifts for granted.",
+ connection:"I long to belong. Lead me to people I can love and walk with.",
+ anger:"You know the anger I have been holding. Soften my heart before I speak or act.",
+ forgiveness:"There is someone I struggle to forgive. Give me a heart that can begin to let go, as You have forgiven me.",
+ guilt_shame:"I bring You what I am ashamed of, and I ask for Your mercy, which I could never earn.",
+ insecurity:"When I feel I am not enough, help me remember that I am Yours.",
+ overwhelm:"There is so much in front of me. Help me take the next small step and leave the rest with You.",
+ temptation:"You know what pulls at me. Please give me the strength to turn away from it today.",
+ disappointment:"Things have not gone the way I hoped. Help me trust You with what I cannot understand.",
+ rejection:"I have felt pushed aside. Help me rest in Your love, which does not depend on anyone's approval.",
+ failure:"I have fallen short again. Help me get up, learn, and try again with You.",
+ waiting:"I am waiting, and it is hard. Grant me patience and a heart that trusts Your timing.",
+ change:"So much is changing. Steady me, and help me follow where You lead.",
+ sickness:"I bring You the sickness weighing on me and the people I love. If it is Your will, bring healing, and give us strength either way.",
+ financial:"You know my worries about money. Help me be wise, generous and trusting, and, if it is Your will, provide what we truly need.",
+ joy:"Thank You for the joy in my life right now. Help me share it with others.",
+ discouragement:"I feel discouraged. Lift my eyes to You and give me strength for today.",
+ comparison:"Forgive me for measuring my life against others. Help me be grateful for the path You have given me.",
+ confidence:"Give me quiet courage, rooted in You and not in myself.",
+ letting_go:"Help me loosen my grip on what I cannot control and place it in Your hands.",
+ hope:"Please renew my hope in You today.",
+ relationships:"Bless the relationships in my life, and help me love the people around me with patience.",
+ decisions:"I have a decision in front of me. Give me wisdom, and help me choose what pleases You."
+};
+const PRAY_STATUS = {couple:"Bless my marriage today, and help us love each other the way You love us.", single_male:"Help me use this season of my life to grow into the man You are calling me to be.", single_female:"Help me use this season of my life to grow into the woman You are calling me to be."};
+const PRAY_JOURNEY = ["Draw me a little closer to You today.", "Help me know You better through Your word.", "Teach me to listen for Your voice today.", "Let me notice You in the ordinary moments of this day.", "Make my heart a little more like Yours today.", "Help me walk with You, one step at a time.", "Keep me close to You, even when I forget You."];
+const PRAY_CLOSE = ["Thank You for every gift of this day, and above all for Jesus, who gave His life for me. Amen.", "I am grateful for Your love, which I never earned. Thank You, Jesus. Amen.", "Thank You for hearing me. Your will be done in my life today. Amen."];
+const PRAY_OPEN = ["Lord, it's me, {n}. Thank You for this new day.", "Father, here I am, {n}, grateful for another day.", "Jesus, it's {n}. Thank You for being here with me.", "Lord, thank You for waking me to this day. It's {n}, and I come to You as I am."];
+const PRAY_OPEN_NONAME = ["Lord, thank You for this new day.", "Father, here I am, grateful for another day.", "Jesus, thank You for being here with me.", "Lord, I come to You as I am, grateful for this day."];
+function joinNames(a){ return a.length <= 1 ? (a[0] || "") : a.slice(0,-1).join(", ") + " and " + a[a.length-1]; }
+function personalPrayer(core, d){
+  const doy = Math.floor((d - new Date(d.getFullYear(),0,0)) / 864e5), nm = (S.name || "").trim();
+  const open = nm ? PRAY_OPEN[doy % PRAY_OPEN.length].replace("{n}", nm) : PRAY_OPEN_NONAME[doy % PRAY_OPEN_NONAME.length];
+  let c = (core || "").replace(/\s*Amen\.?\s*$/i, "").replace(/^(Lord Jesus|Lord|Father|Jesus|God|Dear Lord|Heavenly Father),\s*/i, "");
+  if(c) c = c[0].toUpperCase() + c.slice(1);
+  const ppl = (S.people || []).map(p => p.trim()).filter(Boolean).slice(0,3);
+  const p1 = [open, c].filter(Boolean).join(" ");
+  const p2 = [S.need && PRAY_NEED[S.need], S.status && PRAY_STATUS[S.status]].filter(Boolean).join(" ");
+  const p3 = [ppl.length ? `Please watch over ${joinNames(ppl)} today. Bless them in whatever they are facing, and help me love them well.` : "Bless the people You place in my path today, and help me love them well.",
+              (S.hope || "").trim() ? `I also bring You my hope: ${S.hope.trim().replace(/[.!]+$/, "")}. Let it be according to Your will, not mine.` : ""].filter(Boolean).join(" ");
+  const p4 = PRAY_JOURNEY[doy % PRAY_JOURNEY.length] + " " + PRAY_CLOSE[doy % PRAY_CLOSE.length];
+  return [p1, p2, p3, p4].filter(Boolean);
+}
+
 const CAP = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? window.Capacitor : null;
 const LN = CAP ? CAP.registerPlugin("LocalNotifications") : null;
 async function scheduleAlerts(ask){
@@ -701,8 +767,9 @@ function renderToday(){
     </section>
 
     <section class="card stack">
-      <span class="label" style="display:flex; gap:6px; align-items:center">${ic("hands","sm")}Today’s prayer · ${esc(r.prayer.title)}</span>
-      <p class="prose" style="font-style:italic">${esc(r.prayer.text)}</p>
+      <span class="label" style="display:flex; gap:6px; align-items:center">${ic("hands","sm")}Your prayer for today · ${esc(r.prayer.title)}</span>
+      ${personalPrayer(r.prayer.text, new Date()).map(x => `<p class="prose" style="font-style:italic">${esc(x)}</p>`).join("")}
+      <button class="linkbtn" id="editPeople">${(S.people || []).filter(Boolean).length ? `Praying for ${esc(joinNames(S.people.filter(Boolean)))} · edit` : "Add the people you pray for"} ${ic("chev","sm")}</button>
     </section>
 
     <section class="card stack">
@@ -723,6 +790,8 @@ function renderToday(){
   $("#shuffle").onclick = () => { let n; do{ n = REFL[Math.floor(Math.random()*REFL.length)]; }while(n === vd.i && REFL.length > 1); votdPick = {i:n}; moreOpen = false; renderToday(); };
   if($("#saintCard")){ $("#saintCard").onclick = () => { const g = refGi(saint.ref); if(g != null) openChapter(ALL[g].book, ALL[g].ch, g); }; }
   if($("#more")) $("#more").onclick = () => { moreOpen = true; renderToday(); };
+  if($("#editPeople")) $("#editPeople").onclick = () => onboard(3, true);
+  maybeAskNudges();
   if(vg != null){
     $("#saveV").onclick = () => { toggleSave(vg); renderToday(); };
     $("#shareV").onclick = () => shareVerse(vg);
@@ -732,6 +801,19 @@ function renderToday(){
   view.querySelectorAll("#statusChips .chip").forEach(c => c.onclick = () => { S.status = c.dataset.s; save(); renderToday(); });
   view.querySelectorAll("#feelChips .chip").forEach(c => c.onclick = () => openDeck("need", c.dataset.k));
   $("#goPlay").onclick = () => { tab = "play"; S.pane = "cw"; render(); };
+}
+
+function maybeAskNudges(){
+  if(S.nudges || !S.welcomed || (S.nudgeAsks || 0) >= 8 || deck || document.querySelector(".sheet")) return;
+  if(S.nudgeAsk && daysBetween(S.nudgeAsk, todayKey()) < 4) return;
+  S.nudgeAsk = todayKey(); S.nudgeAsks = (S.nudgeAsks || 0) + 1; save();
+  setTimeout(() => {
+    if(document.querySelector(".sheet") || deck || tab !== "today") return;
+    sheet("Don’t leave God in the PrayerChair today", `<p class="prose">Would you like a few gentle reminders through the day to keep Him with you? Four short lines, like “Give God one small struggle right now.”</p>
+      <div class="nudge-list">${nudgesFor(new Date()).map((x,k) => `<div class="nudge"><time>${fmtTime(NUDGE_TIMES[k])}</time><span>${esc(x)}</span></div>`).join("")}</div>
+      <div class="row-btns"><button class="btn primary" id="naYes" style="flex:1">${ic("bell","sm")}Turn on reminders</button><button class="btn quiet" id="naNo">Not now</button></div>`,
+    (sh, close) => { $("#naYes", sh).onclick = async () => { close(); await setNudges(true); }; $("#naNo", sh).onclick = close; });
+  }, 1800);
 }
 
 /* ---------- DECK (today's seven, a feeling, keep reading) ---------- */
@@ -1240,7 +1322,8 @@ function afterFill(wordDone){
 function openSettings(){
   const needLabel = S.need ? (NEEDS.find(n => n.key === S.need) || {}).label : "Not set";
   sheet("Settings", `
-    <div class="field"><label for="setName">Your first name</label><input class="input" id="setName" value="${esc(S.name)}" placeholder="Optional" autocomplete="given-name"></div>
+    <div class="field"><label for="setName">Your first name</label><input class="input" id="setName" value="${esc(S.name)}" placeholder="First name" autocomplete="given-name"></div>
+    <button class="li card flat" id="setPeople" style="border-top:1px solid var(--line)"><div class="txt"><b>People I pray for</b><span class="sub">${(S.people || []).length ? esc(joinNames(S.people)) : "Add up to three"}${S.hope ? " · Hoping for: " + esc(S.hope) : ""}</span></div>${ic("chev","chev")}</button>
     <div class="card flat stack"><div><b>Teaching view</b><p class="muted small" style="margin:2px 0 0">${isCatholic() ? "Full Catholic view: names the Catechism, the sacraments, Mary and the saints." : "General Christian view, rooted in the same teaching."}</p></div><div class="segctl"><button id="viewChr" class="${isCatholic() ? "" : "on"}">Christian</button><button id="viewCat" class="${isCatholic() ? "on" : ""}">Catholic</button></div></div>
     <div class="list">
       <div class="li"><div class="txt"><b>Highlight saints’ days</b><span class="sub">A short card on Today with the saint and a verse</span></div><button class="switch" id="setSaints" role="switch" aria-checked="${S.saints ? "true" : "false"}" aria-label="Highlight saints' days"></button></div>
@@ -1257,7 +1340,8 @@ function openSettings(){
     <p class="muted small" style="margin:0; text-align:center">PrayerChair · Scripture: Douay-Rheims Bible, Challoner revision (public domain). ${isCatholic() ? "“What this means” draws on the Catechism of the Catholic Church and Catholic commentaries such as Haydock; sources are listed under each one." : "“What this means” draws on the Catechism and classic Christian commentaries; sources are listed under each one."} Psalms use the traditional numbering; the newer number is shown in brackets. Everything stays on this device.</p>`,
   (sh, close) => {
     const nm = $("#setName", sh); nm.oninput = () => { S.name = nm.value.trim().slice(0, 30); save(); };
-    $("#setNeed", sh).onclick = () => { close(); onboard(0, true); };
+    $("#setNeed", sh).onclick = () => { close(); onboard(1, true); };
+    $("#setPeople", sh).onclick = () => { close(); onboard(3, true); };
     const setView = v => { S.view = v; save(); buildNotes(); close(); render(); openSettings(); toast(v === "catholic" ? "Catholic view on" : "Christian view on"); };
     $("#viewChr", sh).onclick = () => setView("christian"); $("#viewCat", sh).onclick = () => setView("catholic");
     $("#setWho", sh).onclick = () => { close(); onboard(2, true); };
@@ -1277,34 +1361,45 @@ function openSettings(){
   });
 }
 let obDraft = null;
+const OB_STEPS = ["What’s your first name?", "What are you carrying right now?", "Who’s reading?", "Who do you pray for?", "Don’t leave God in the PrayerChair"];
 function onboard(step, single){
-  obDraft = obDraft || {need:S.need, name:S.name, status:S.status, remind:S.remind, nudges: single ? S.nudges : true};
-  const steps = ["What are you carrying right now?", "What should we call you?", "Who’s reading?", "When should we remind you?"];
-  const segs = `<div class="seg">${steps.map((_,i) => `<i class="${i < step ? "on" : i === step ? "cur" : ""}"></i>`).join("")}</div>`;
+  obDraft = obDraft || {need:S.need, name:S.name, status:S.status, remind:S.remind, nudges: single ? S.nudges : true, people:(S.people || []).slice(), hope:S.hope || ""};
+  while(obDraft.people.length < 3) obDraft.people.push("");
+  const segs = `<div class="seg">${OB_STEPS.map((_,i) => `<i class="${i < step ? "on" : i === step ? "cur" : ""}"></i>`).join("")}</div>`;
   let body = single ? "" : segs;
-  if(step === 0) body += `<p class="muted" style="margin:0">Pick the closest. Three of your seven verses each day will come from it. You can change it any time.</p><div class="need-grid">${NEEDS.map(n => `<button class="need ${obDraft.need === n.key ? "on" : ""}" data-k="${n.key}"><b>${esc(n.label)}</b><span>${esc(n.sub)}</span></button>`).join("")}</div>`;
-  if(step === 1) body += `<p class="muted" style="margin:0">Used only for your greeting, on this device. Leave it blank if you like.</p><input class="input" id="obName" value="${esc(obDraft.name || "")}" placeholder="First name" autocomplete="given-name">`;
-  if(step === 2) body += `<p class="muted" style="margin:0">Each day’s small step is written three ways. This picks yours.</p><div class="list">${Object.keys(STATUS).map(k => `<button class="li" data-s="${k}"><div class="txt"><b>${STATUS[k]}</b></div>${obDraft.status === k ? ic("check") : ""}</button>`).join("")}</div>`;
-  if(step === 3) body += `<p class="muted" style="margin:0">When should today’s seven be waiting for you?</p><div class="chips" style="flex-wrap:wrap">${["06:00","07:00","08:00","12:00","21:00"].map(t => `<button class="chip ${obDraft.remind === t ? "on" : ""}" data-t="${t}">${fmtTime(t)}</button>`).join("")}</div>
-    <div class="card flat setrow"><div style="min-width:0"><b>Don’t leave God in the PrayerChair</b><p class="muted small" style="margin:2px 0 0">Four one-line reminders through the day, like “Give God one small struggle right now.”</p></div><button class="switch" id="obNudge" role="switch" aria-checked="${obDraft.nudges ? "true" : "false"}" aria-label="Reminders through the day"></button></div>`;
-  const last = single || step === 3;
-  body += `<div class="row-btns" style="margin-top:4px">${!single && step > 0 ? `<button class="btn quiet" id="obBack">${ic("back","sm")}Back</button>` : ""}<button class="btn primary" id="obNext" style="flex:1" ${step === 0 && !obDraft.need || step === 2 && !obDraft.status ? "disabled" : ""}>${last ? "Done" : "Continue"}</button></div>`;
+  if(step === 0) body += `<p class="muted" style="margin:0">So your greeting and your daily prayer can be yours. It stays on this phone.</p><input class="input" id="obName" value="${esc(obDraft.name || "")}" placeholder="First name" autocomplete="given-name" enterkeyhint="next">`;
+  if(step === 1) body += `<p class="muted" style="margin:0">Pick the closest. Three of your seven verses each day, and part of your prayer, will come from it. Change it any time.</p><div class="need-grid">${NEEDS.map(n => `<button class="need ${obDraft.need === n.key ? "on" : ""}" data-k="${n.key}"><b>${esc(n.label)}</b><span>${esc(n.sub)}</span></button>`).join("")}</div>`;
+  if(step === 2) body += `<p class="muted" style="margin:0">Your daily step and prayer are written for your life. This picks yours.</p><div class="list">${Object.keys(STATUS).map(k => `<button class="li" data-s="${k}"><div class="txt"><b>${STATUS[k]}</b></div>${obDraft.status === k ? ic("check") : ""}</button>`).join("")}</div>`;
+  if(step === 3) body += `<p class="muted" style="margin:0">Add up to three people. They’ll be named in your prayer each day. Optional, and it stays on this phone.</p>
+    ${[0,1,2].map(i => `<input class="input" id="obP${i}" value="${esc(obDraft.people[i] || "")}" placeholder="${["e.g. Mom","e.g. my husband Dan","e.g. Ana, who is sick"][i]}" maxlength="40" autocomplete="off">`).join("")}
+    <div class="field"><label for="obHope">Something you’re hoping for or working toward (optional)</label><input class="input" id="obHope" value="${esc(obDraft.hope || "")}" placeholder="e.g. a new job, healing for my dad" maxlength="80" autocomplete="off"></div>`;
+  if(step === 4) body += `<p class="prose" style="margin:0">A few gentle reminders through the day help you keep God with you, not just in the morning.</p>
+    <div class="card flat setrow"><div style="min-width:0"><b>Daily reminders</b><p class="muted small" style="margin:2px 0 0">Four one-line reminders, like “Give God one small struggle right now.” Turn them off anytime in your profile.</p></div><button class="switch" id="obNudge" role="switch" aria-checked="${obDraft.nudges ? "true" : "false"}" aria-label="Daily reminders"></button></div>
+    <p class="muted small" style="margin:0">Your seven verses will be waiting each morning at:</p><div class="chips" style="flex-wrap:wrap">${["06:00","07:00","08:00","12:00","21:00"].map(t => `<button class="chip ${obDraft.remind === t ? "on" : ""}" data-t="${t}">${fmtTime(t)}</button>`).join("")}</div>`;
+  const last = single || step === OB_STEPS.length - 1;
+  const blocked = (step === 0 && !(obDraft.name || "").trim()) || (step === 1 && !obDraft.need) || (step === 2 && !obDraft.status);
+  body += `<div class="row-btns" style="margin-top:4px">${!single && step > 0 ? `<button class="btn quiet" id="obBack">${ic("back","sm")}Back</button>` : ""}<button class="btn primary" id="obNext" style="flex:1" ${blocked ? "disabled" : ""}>${last ? (single ? "Save" : "Start today’s seven") : "Continue"}</button></div>`;
   document.querySelectorAll(".sheet,.backdrop").forEach(e => e.remove());
-  sheet(steps[step], body, (sh, close) => {
+  sheet(OB_STEPS[step], body, (sh, close) => {
+    const keep = () => { [0,1,2].forEach(i => { const el = $("#obP"+i, sh); if(el) obDraft.people[i] = el.value; }); const h = $("#obHope", sh); if(h) obDraft.hope = h.value; const n = $("#obName", sh); if(n) obDraft.name = n.value; };
     sh.querySelectorAll(".need").forEach(b => b.onclick = () => { obDraft.need = b.dataset.k; onboard(step, single); });
     sh.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { obDraft.status = b.dataset.s; onboard(step, single); });
     sh.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { obDraft.remind = b.dataset.t; onboard(step, single); });
     if($("#obNudge", sh)) $("#obNudge", sh).onclick = () => { obDraft.nudges = !obDraft.nudges; onboard(step, single); };
-    const nm = $("#obName", sh); if(nm){ nm.oninput = () => obDraft.name = nm.value; nm.onkeydown = e => { if(e.key === "Enter") $("#obNext", sh).click(); }; }
-    if($("#obBack", sh)) $("#obBack", sh).onclick = () => onboard(step-1, false);
-    const nx = $("#obNext", sh); if(nx.disabled) nx.style.opacity = ".45";
+    const nx = $("#obNext", sh);
+    const nm = $("#obName", sh);
+    if(nm){ setTimeout(() => nm.focus(), 250); nm.oninput = () => { obDraft.name = nm.value; const ok = !!nm.value.trim(); nx.disabled = !ok; nx.style.opacity = ok ? "1" : ".45"; }; nm.onkeydown = e => { if(e.key === "Enter") nx.click(); }; }
+    if($("#obBack", sh)) $("#obBack", sh).onclick = () => { keep(); onboard(step-1, false); };
+    if(nx.disabled) nx.style.opacity = ".45";
     nx.onclick = () => {
-      if(nx.disabled) return;
+      if(nx.disabled) return; keep();
       if(last){
         const needChanged = obDraft.need !== S.need;
-        S.need = obDraft.need; S.name = (obDraft.name || "").trim().slice(0,30); S.status = obDraft.status; S.remind = obDraft.remind; S.welcomed = true; if(!single || step === 3) S.nudges = !!obDraft.nudges; scheduleAlerts(true);
+        S.need = obDraft.need; S.name = (obDraft.name || "").trim().slice(0,30); S.status = obDraft.status; S.remind = obDraft.remind;
+        S.people = obDraft.people.map(p => p.trim().slice(0,40)).filter(Boolean); S.hope = (obDraft.hope || "").trim().slice(0,80);
+        S.welcomed = true; if(!single || step === 4) S.nudges = !!obDraft.nudges;
         if(needChanged && S.daily.seen === 0) buildDaily(true);
-        save(); obDraft = null; close(); render();
+        save(); obDraft = null; close(); render(); scheduleAlerts(true);
         if(!single) setTimeout(() => openDeck("seven"), 250);
         return;
       }
@@ -1314,30 +1409,50 @@ function onboard(step, single){
 }
 
 /* ---------- WELCOME ---------- */
+const INTRO = [
+  {icon:"sun", title:"Daily verses, tailored to you", text:"Each morning, seven short verses chosen for what you’re carrying right now. About a minute.",
+   demo:`<div class="ib-card"><span class="ref">Philippians 4:6</span><p>Be nothing solicitous: but in every thing, by prayer and supplication, with thanksgiving, let your petitions be made known to God.</p><div class="seg"><i class="on"></i><i class="cur"></i><i></i><i></i><i></i><i></i><i></i></div></div>`},
+  {icon:"light", title:"A quick study on what it means", text:"A short, plain explanation of every verse, rooted in centuries of Christian teaching, with sources you can check.",
+   demo:`<div class="ib-card"><span class="label">What this means</span><p>Paul tells us to bring every worry to God in prayer, with thanks, instead of carrying it alone.</p></div>`},
+  {icon:"hands", title:"A daily prayer, written for you", text:"Your prayer names your day, the people you love and what you’re walking through, with one small step to focus on.",
+   demo:`<div class="ib-card"><span class="label">Your prayer for today</span><p><i>Lord, it’s me. Please watch over Mom and Dan today… Your will be done. Amen.</i></p></div>`},
+  {icon:"book", title:"Read it all, share it, play", text:"Track your reading through the whole Bible, share verses with the people you love, and enjoy word games built from Scripture.",
+   demo:`<div class="ib-card"><span class="label">Your reading</span><div class="mini" style="height:8px"><i style="width:34%"></i></div><p class="small">412 of 1,334 chapters · Crossword solved</p></div>`},
+  {icon:"bell", title:"Don’t leave God in the PrayerChair", text:"Gentle one-line reminders through the day help you keep Him with you, not just in the morning.",
+   demo:`<div class="ib-card ib-note"><span class="label">PrayerChair · 12:30 pm</span><p>Give God one small struggle right now.</p></div>`}
+];
 function welcome(){
   const ov = document.createElement("div"); ov.className = "overlay welcome"; ov.id = "welcome";
-  ov.innerHTML = `<div class="in">
-    <div class="logo"><div class="logo-tile">${ic("chair")}</div><div class="wordmark">Prayer<span>Chair</span></div></div>
-    <div class="art" aria-hidden="true"><canvas id="lamp" width="300" height="150" style="width:300px; max-width:100%; height:auto"></canvas></div>
-    <h1>Sit with God for <em>one minute</em> a day.</h1>
-    <p class="lead">Seven verses, one prayer and one small step for today. Then a puzzle that helps the words stay with you.</p>
-    <div class="wl">
-      <div><span class="ib">${ic("book")}</span><span><b>Seven verses a day</b><span>Picked for what you’re carrying. About a minute.</span></span></div>
-      <div><span class="ib">${ic("hands")}</span><span><b>A prayer and one small step</b><span>Written for your life: married, single man or single woman.</span></span></div>
-      <div><span class="ib">${ic("bell")}</span><span><b>Don’t leave God in the chair</b><span>Four one-line reminders through the day. Turn them off anytime in your profile.</span></span></div>
-      <div><span class="ib">${ic("puzzle")}</span><span><b>Puzzles from Scripture</b><span>A daily crossword, verse builder, cryptogram and word search.</span></span></div>
-    </div>
-    <div class="cta">
-      <button class="btn primary block" id="wStart">${ic("arrow","sm")}Start today’s seven</button>
-      <button class="btn outline block" id="wPick">Pick what I’m carrying first</button>
-      <button class="link" id="wLook">Just look around</button>
-    </div></div>`;
   app.appendChild(ov);
-  drawLamp($("#lamp", ov));
-  const done = () => { S.welcomed = true; save(); ov.remove(); render(); scheduleAlerts(true); };
-  $("#wStart", ov).onclick = () => { done(); openDeck("seven"); };
-  $("#wPick", ov).onclick = () => { ov.remove(); onboard(0, false); };
-  $("#wLook", ov).onclick = done;
+  let i = 0;
+  const draw = () => {
+    const s = INTRO[i], lastSlide = i === INTRO.length - 1;
+    ov.innerHTML = `<div class="in">
+      <div class="logo" style="justify-content:space-between"><div class="logo"><div class="logo-tile">${ic("chair")}</div><div class="wordmark">Prayer<span>Chair</span></div></div>
+        ${lastSlide ? "" : `<button class="link" id="iSkip">Skip</button>`}</div>
+      ${i === 0 ? `<div class="art" aria-hidden="true"><canvas id="lamp" width="300" height="150" style="width:300px; max-width:100%; height:auto"></canvas></div>` : ""}
+      <div class="intro-slide" aria-live="polite">
+        <div class="intro-ico">${ic(s.icon, "lg")}</div>
+        <span class="intro-step">${i+1} of ${INTRO.length}</span>
+        <h1>${i === 0 ? `Sit with God for <em>one minute</em> a day.` : esc(s.title)}</h1>
+        ${i === 0 ? `<p class="lead"><b style="color:#fff">${esc(s.title)}.</b> ${esc(s.text)}</p>` : `<p class="lead">${esc(s.text)}</p>`}
+        ${s.demo}
+      </div>
+      <div class="cta">
+        <div class="dots" aria-hidden="true">${INTRO.map((_,k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>
+        <button class="btn primary block" id="iNext">${lastSlide ? `${ic("arrow","sm")}Set up PrayerChair` : "Next"}</button>
+        ${i > 0 ? `<button class="link" id="iBack">Back</button>` : ""}
+      </div></div>`;
+    if(i === 0) drawLamp($("#lamp", ov));
+    $("#iNext", ov).onclick = () => { if(lastSlide){ ov.remove(); onboard(0, false); } else { i++; draw(); } };
+    if($("#iBack", ov)) $("#iBack", ov).onclick = () => { i--; draw(); };
+    if($("#iSkip", ov)) $("#iSkip", ov).onclick = () => { ov.remove(); onboard(0, false); };
+  };
+  let x0 = null;
+  ov.addEventListener("pointerdown", e => { x0 = e.clientX; });
+  ov.addEventListener("pointerup", e => { if(x0 == null) return; const dx = e.clientX - x0; x0 = null;
+    if(Math.abs(dx) > 60){ if(dx < 0 && i < INTRO.length - 1){ i++; draw(); } else if(dx > 0 && i > 0){ i--; draw(); } } });
+  draw();
 }
 function drawLamp(c){ // a chair by a window of light, drawn once
   const x = c.getContext("2d"), W = 300, H = 150, dpr = Math.min(2, window.devicePixelRatio || 1);
