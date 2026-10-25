@@ -24,7 +24,10 @@ jobs:
 
       - name: Test app (debug APK)
         working-directory: android
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon -PversionCode=${{ github.run_number }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon -PversionCode=${{ github.run_number }} 2>&1 | tee ../gradle-debug.log
+          test ${PIPESTATUS[0]} -eq 0
 
       - name: Load upload key
         if: env.HAS_KEY == 'true'
@@ -38,7 +41,9 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew bundleRelease --no-daemon -PversionCode=${{ github.run_number }}
+        run: |
+          ./gradlew bundleRelease --no-daemon -PversionCode=${{ github.run_number }} 2>&1 | tee ../gradle-release.log
+          test ${PIPESTATUS[0]} -eq 0
 
       - name: Name the outputs
         run: |
@@ -46,6 +51,16 @@ jobs:
           cp android/app/build/outputs/apk/debug/app-debug.apk out/verse-puzzle-test.apk
           cp android/app/build/outputs/bundle/release/app-release.aab out/verse-puzzle.aab
           if [ "$HAS_KEY" != "true" ]; then echo "UNSIGNED: add the upload key secrets before sending this bundle to Play." > out/README-UNSIGNED.txt; fi
+
+      - name: Report build errors as annotations
+        if: failure()
+        run: |
+          for f in gradle-debug.log gradle-release.log; do
+            [ -f "$f" ] || continue
+            grep -E "e: |error:|ERROR|What went wrong|FAILURE|Could not|> " "$f" | head -30 | while IFS= read -r line; do
+              echo "::error title=$f::${line//%/%25}"
+            done
+          done
 
       - uses: actions/upload-artifact@v4
         with:
