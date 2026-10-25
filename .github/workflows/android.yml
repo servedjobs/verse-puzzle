@@ -1,0 +1,78 @@
+name: Android build
+# Every push to main builds:
+#   - prayerchair-test.apk  : install straight on an Android phone to try it
+#   - prayerchair.aab       : the bundle Google Play wants (signed once the upload key secrets exist)
+# Nothing is uploaded to Google Play from here.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.KEYSTORE_PASSWORD != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm }
+      - run: npm ci
+      - run: npx cap sync android
+
+      - name: Test app (debug APK)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon -PversionCode=${{ github.run_number }} 2>&1 | tee ../gradle-debug.log
+          test ${PIPESTATUS[0]} -eq 0
+
+      - name: Load upload key
+        if: env.HAS_KEY == 'true'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          # The upload key lives in the repo encrypted; KEYSTORE_PASSWORD (a repo secret) unlocks it.
+          printf '%s' "$KEYSTORE_PASSWORD" | openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass stdin \
+            -in android/keys/upload.jks.enc -out "$RUNNER_TEMP/upload.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+
+      - name: Play bundle (AAB)
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: upload
+          KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          ./gradlew bundleRelease --no-daemon -PversionCode=${{ github.run_number }} 2>&1 | tee ../gradle-release.log
+          test ${PIPESTATUS[0]} -eq 0
+
+      - name: Name the outputs
+        run: |
+          mkdir out
+          cp android/app/build/outputs/apk/debug/app-debug.apk out/prayerchair-test.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab out/prayerchair.aab
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "UNSIGNED: add the KEYSTORE_PASSWORD secret before sending this bundle to Play." > out/README-UNSIGNED.txt
+            echo "::warning title=Unsigned bundle::KEYSTORE_PASSWORD secret not set; the AAB is unsigned."
+          else
+            FP=$(keytool -printcert -jarfile out/prayerchair.aab | grep -m1 "SHA256:" | sed 's/.*SHA256: //')
+            echo "::notice title=Signed bundle::prayerchair.aab versionCode ${{ github.run_number }} signed with upload key SHA-256 $FP"
+          fi
+
+      - name: Report build errors as annotations
+        if: failure()
+        run: |
+          for f in gradle-debug.log gradle-release.log; do
+            [ -f "$f" ] || continue
+            grep -E "e: |error:|ERROR|What went wrong|FAILURE|Could not|> " "$f" | head -30 | while IFS= read -r line; do
+              echo "::error title=$f::${line//%/%25}"
+            done
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prayerchair-android-${{ github.run_number }}
+          path: out/

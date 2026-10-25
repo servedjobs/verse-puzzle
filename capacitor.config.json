@@ -1,0 +1,11 @@
+{
+  "appId": "com.vandelaylabs.prayerchair",
+  "appName": "PrayerChair",
+  "webDir": "www",
+  "backgroundColor": "#F8FAFC",
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_chair", "iconColor": "#B45309" }
+  },
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never" }
+}
