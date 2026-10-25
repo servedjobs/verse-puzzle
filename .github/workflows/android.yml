@@ -54,7 +54,13 @@ jobs:
           mkdir out
           cp android/app/build/outputs/apk/debug/app-debug.apk out/verse-puzzle-test.apk
           cp android/app/build/outputs/bundle/release/app-release.aab out/verse-puzzle.aab
-          if [ "$HAS_KEY" != "true" ]; then echo "UNSIGNED: add the KEYSTORE_PASSWORD secret before sending this bundle to Play." > out/README-UNSIGNED.txt; fi
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "UNSIGNED: add the KEYSTORE_PASSWORD secret before sending this bundle to Play." > out/README-UNSIGNED.txt
+            echo "::warning title=Unsigned bundle::KEYSTORE_PASSWORD secret not set; the AAB is unsigned."
+          else
+            FP=$(keytool -printcert -jarfile out/verse-puzzle.aab | grep -m1 "SHA256:" | sed 's/.*SHA256: //')
+            echo "::notice title=Signed bundle::verse-puzzle.aab versionCode ${{ github.run_number }} signed with upload key SHA-256 $FP"
+          fi
 
       - name: Report build errors as annotations
         if: failure()
