@@ -631,7 +631,7 @@ const PRAY_OPEN_NONAME = ["Lord, thank You for this new day.", "Father, here I a
 function joinNames(a){ return a.length <= 1 ? (a[0] || "") : a.slice(0,-1).join(", ") + " and " + a[a.length-1]; }
 function personalPrayer(core, d){
   const doy = Math.floor((d - new Date(d.getFullYear(),0,0)) / 864e5), nm = (S.name || "").trim();
-  const open = nm ? PRAY_OPEN[doy % PRAY_OPEN.length].replace("{n}", nm) : PRAY_OPEN_NONAME[doy % PRAY_OPEN_NONAME.length];
+  const open = PRAY_OPEN_NONAME[doy % PRAY_OPEN_NONAME.length]; // He knows who we are: no name in the prayer
   let c = (core || "").replace(/\s*Amen\.?\s*$/i, "").replace(/^(Lord Jesus|Lord|Father|Jesus|God|Dear Lord|Heavenly Father),\s*/i, "");
   if(c) c = c[0].toUpperCase() + c.slice(1);
   const ppl = (S.people || []).map(p => p.trim()).filter(Boolean).slice(0,3);
@@ -1367,7 +1367,7 @@ function onboard(step, single){
   while(obDraft.people.length < 3) obDraft.people.push("");
   const segs = `<div class="seg">${OB_STEPS.map((_,i) => `<i class="${i < step ? "on" : i === step ? "cur" : ""}"></i>`).join("")}</div>`;
   let body = single ? "" : segs;
-  if(step === 0) body += `<p class="muted" style="margin:0">So your greeting and your daily prayer can be yours. It stays on this phone.</p><input class="input" id="obName" value="${esc(obDraft.name || "")}" placeholder="First name" autocomplete="given-name" enterkeyhint="next">`;
+  if(step === 0) body += `<p class="muted" style="margin:0">So PrayerChair can greet you by name. It stays on this phone.</p><input class="input" id="obName" value="${esc(obDraft.name || "")}" placeholder="First name" autocomplete="given-name" enterkeyhint="next">`;
   if(step === 1) body += `<p class="muted" style="margin:0">Pick the closest. Three of your seven verses each day, and part of your prayer, will come from it. Change it any time.</p><div class="need-grid">${NEEDS.map(n => `<button class="need ${obDraft.need === n.key ? "on" : ""}" data-k="${n.key}"><b>${esc(n.label)}</b><span>${esc(n.sub)}</span></button>`).join("")}</div>`;
   if(step === 2) body += `<p class="muted" style="margin:0">Your daily step and prayer are written for your life. This picks yours.</p><div class="list">${Object.keys(STATUS).map(k => `<button class="li" data-s="${k}"><div class="txt"><b>${STATUS[k]}</b></div>${obDraft.status === k ? ic("check") : ""}</button>`).join("")}</div>`;
   if(step === 3) body += `<p class="muted" style="margin:0">Add up to three people. They’ll be named in your prayer each day. Optional, and it stays on this phone.</p>
@@ -1415,7 +1415,7 @@ const INTRO = [
   {icon:"light", title:"A quick study on what it means", text:"A short, plain explanation of every verse, rooted in centuries of Christian teaching, with sources you can check.",
    demo:`<div class="ib-card"><span class="label">What this means</span><p>Paul tells us to bring every worry to God in prayer, with thanks, instead of carrying it alone.</p></div>`},
   {icon:"hands", title:"A daily prayer, written for you", text:"Your prayer names your day, the people you love and what you’re walking through, with one small step to focus on.",
-   demo:`<div class="ib-card"><span class="label">Your prayer for today</span><p><i>Lord, it’s me. Please watch over Mom and Dan today… Your will be done. Amen.</i></p></div>`},
+   demo:`<div class="ib-card"><span class="label">Your prayer for today</span><p><i>Lord, I come to You as I am. Please watch over Mom and Dan today… Your will be done. Amen.</i></p></div>`},
   {icon:"book", title:"Read it all, share it, play", text:"Track your reading through the whole Bible, share verses with the people you love, and enjoy word games built from Scripture.",
    demo:`<div class="ib-card"><span class="label">Your reading</span><div class="mini" style="height:8px"><i style="width:34%"></i></div><p class="small">412 of 1,334 chapters · Crossword solved</p></div>`},
   {icon:"bell", title:"Don’t leave God in the PrayerChair", text:"Gentle one-line reminders through the day help you keep Him with you, not just in the morning.",
