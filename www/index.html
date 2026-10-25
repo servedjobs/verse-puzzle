@@ -226,7 +226,9 @@ input{font:inherit; color:inherit}
 .dcard{position:absolute; inset:0; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-xl); box-shadow:var(--sh-2); padding:24px 22px; display:flex; flex-direction:column; gap:16px; touch-action:pan-y; user-select:none; -webkit-user-select:none; overflow:hidden}
 .dcard.back{transform:scale(.95) translateY(14px); opacity:.7; box-shadow:none}
 .dcard .eyebrow{display:flex; justify-content:space-between; align-items:center; gap:8px}
-.dcard .body{flex:1; display:flex; flex-direction:column; justify-content:center; gap:18px; overflow-y:auto; min-height:0}
+.dcard .body{flex:1; display:flex; flex-direction:column; justify-content:flex-start; gap:18px; overflow-y:auto; min-height:0}
+.dcard .body > :first-child{margin-top:auto}
+.dcard .body > :last-child{margin-bottom:auto}
 .dcard .verse{font-size:calc(25px * var(--rs)); line-height:1.45}
 .dcard .note{display:flex; gap:10px; padding:12px 14px; border-radius:var(--r-md); background:var(--brand-soft); border:1px solid var(--brand-line); color:var(--ink-2); font-size:var(--t-base)}
 .dcard .note .ico{color:var(--brand-text); margin-top:1px}
@@ -1029,11 +1031,11 @@ function renderChapter(book, ch, hl){
   const prev = ch > 1 ? [book, ch-1] : (BOOK_ORDER.indexOf(book) > 0 ? [BOOK_ORDER[BOOK_ORDER.indexOf(book)-1], BIBLE[BOOK_ORDER[BOOK_ORDER.indexOf(book)-1]].length] : null);
   const nb = BOOK_ORDER[BOOK_ORDER.indexOf(book)+1];
   const next = ch < BIBLE[book].length ? [book, ch+1] : (nb ? [nb, 1] : null);
-  bar({back: () => { sub = {type:"book", book}; renderBible(); }, title: `${book} ${ch}`,
+  bar({back: () => { sub = {type:"book", book}; renderBible(); }, title: `${bookLabel(book)} ${ch}`,
        right: `<button class="icon-btn plain" id="fsBtn" aria-label="Text size">${ic("type")}</button>`});
   const isRead = readSet.has(key);
   view.innerHTML = `<article class="reader">
-    <h1>${esc(book)} ${ch}</h1><div class="meta">${verses.length} verses · Douay-Rheims${book === "Psalms" && hebPs(ch) !== ch ? ` · Psalm ${hebPs(ch)} in newer Bibles` : ""} · tap a verse to save or share</div>
+    <h1>${esc(bookLabel(book))} ${ch}</h1><div class="meta">${verses.length} verses · Douay-Rheims${book === "Psalms" && hebPs(ch) !== ch ? ` · Psalm ${hebPs(ch)} in newer Bibles` : ""} · tap a verse to save or share</div>
     <div class="vtext">${verses.map((t,i) => `<span class="v ${gi0+i === hl ? "hl" : ""}" data-g="${gi0+i}" id="v${gi0+i}"><sup>${i+1}</sup>${esc(t)}</span> `).join("")}</div>
     <div class="reader-foot">
       <button class="btn ${isRead ? "ghost" : "primary"} block" id="markRead">${ic("check","sm")}${isRead ? "Read · tap to undo" : "Mark as read"}</button>
