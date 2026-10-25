@@ -483,7 +483,6 @@ let saveT = null;
 function save(){ clearTimeout(saveT); saveT = setTimeout(() => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 120); }
 const saved = new Set(S.saved), readSet = new Set(S.read);
 function persist(){ S.saved = [...saved]; S.read = [...readSet]; save(); }
-if(!S.start){ S.start = todayKey(); save(); }
 buildNotes();
 function applyFs(){ document.documentElement.style.setProperty("--rs", FS[S.fs] || 1); }
 applyFs();
@@ -1354,6 +1353,7 @@ function drawLamp(c){ // a chair by a window of light, drawn once
 }
 
 /* ---------- boot ---------- */
+if(!S.start){ S.start = todayKey(); save(); }
 buildDaily(false);
 scheduleAlerts(false);
 render();
