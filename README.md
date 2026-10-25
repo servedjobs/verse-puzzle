@@ -10,8 +10,7 @@ Daily King James Version verse puzzles (Verse Builder, Cryptogram, Word Search).
 ## Build
 GitHub Actions → **Android build** runs on every push to `main` and produces a test APK and a Play bundle (AAB).
 
-Signing the AAB needs four repository secrets (Settings → Secrets and variables → Actions):
-`ANDROID_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`. Keep an offline backup of the keystore. Turn on Play App Signing so Google holds the app key.
+Signing: the upload key is committed encrypted at `android/keys/upload.jks.enc` (AES-256, alias `upload`). One repository secret, `KEYSTORE_PASSWORD`, unlocks it in CI. Without it the AAB is built unsigned. Erik holds the offline backup (key file + password). Play App Signing holds the real app key, so a lost upload key can be reset.
 
 ## Local
 ```
