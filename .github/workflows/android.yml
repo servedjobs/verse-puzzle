@@ -5,7 +5,7 @@ name: Android build
 # Nothing is uploaded to Google Play from here.
 on:
   push:
-    branches: [main]
+    branches: [main, prayerchair]
   workflow_dispatch:
 
 jobs:
