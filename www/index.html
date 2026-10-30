@@ -332,10 +332,8 @@ input{font:inherit; color:inherit}
     <main class="view" id="view"></main>
     <div class="playhost" id="playhost" hidden></div>
     <nav class="tabbar" id="tabbar">
-      <button class="tab" data-tab="today"><svg class="ico" viewBox="0 0 24 24"><use href="#i-sun"/></svg>Today</button>
+      <button class="tab" data-tab="today"><svg class="ico" viewBox="0 0 24 24"><use href="#i-sun"/></svg>Daily</button>
       <button class="tab" data-tab="bible"><svg class="ico" viewBox="0 0 24 24"><use href="#i-book"/></svg>Bible</button>
-      <button class="tab" data-tab="play"><svg class="ico" viewBox="0 0 24 24"><use href="#i-puzzle"/></svg>Play</button>
-      <button class="tab" data-tab="saved"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bookmark"/></svg>Saved</button>
     </nav>
   </div>
 </div>
@@ -714,11 +712,12 @@ view.addEventListener("scroll", () => topbar.classList.toggle("scrolled", view.s
 
 function render(){
   view.onscroll = null;
-  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === tab));
+  const hiTab = tab === "play" ? "today" : tab === "saved" ? "bible" : tab;
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === hiTab));
   const playing = tab === "play";
   view.hidden = playing; playhost.hidden = !playing;
   topbar.classList.remove("scrolled");
-  if(playing){ bar(); mountPlay(); return; }
+  if(playing){ bar({back: () => { tab = "today"; sub = null; render(); }, title: "Word games"}); mountPlay(); return; }
   view.scrollTop = 0;
   if(tab === "today") renderToday();
   else if(tab === "bible") renderBible();
@@ -738,7 +737,7 @@ function renderToday(){
   const segs = Array.from({length:7}, (_,i) => `<i class="${i < seen ? "on" : i === seen && !done ? "cur" : ""}"></i>`).join("");
   const sevenTitle = done ? "Today’s seven are done" : seen ? `${7-seen} verses to go` : "Today’s seven";
   const sevenSub = done ? (liveStreak() > 1 ? `Day ${liveStreak()} in a row. Come back tomorrow for day ${liveStreak()+1}.` : "Day one is on the board. Come back tomorrow for day two.")
-    : `About a minute${needLabel ? " · picked for " + needLabel.toLowerCase() : ""}.`;
+    : "About a minute.";
   const actionHTML = S.status
     ? `<p class="prose">${esc(r[S.status])}</p><button class="linkbtn" id="chgStatus">Written for: ${esc(STATUS[S.status])} · change</button>`
     : `<p class="muted small" style="margin:0">Pick one so the step fits your life.</p><div class="chips" id="statusChips">${Object.keys(STATUS).map(k => `<button class="chip" data-s="${k}">${STATUS[k]}</button>`).join("")}</div>`;
@@ -781,12 +780,9 @@ function renderToday(){
       ${actionHTML}
     </section>
 
-    <div class="section-h"><span class="label">How are you feeling?</span></div>
-    <div class="chips" id="feelChips">${NEEDS.map(n => `<button class="chip ${S.need === n.key ? "on" : ""}" data-k="${n.key}">${esc(n.label)}</button>`).join("")}</div>
-
     <section class="card" style="display:flex; gap:14px; align-items:center">
       <div class="logo-tile" style="width:44px; height:44px; border-radius:12px">${ic("puzzle")}</div>
-      <div style="flex:1; min-width:0"><h3>Today’s crossword</h3><p class="muted small" style="margin:2px 0 0">Every clue is a verse with one word missing.</p></div>
+      <div style="flex:1; min-width:0"><h3>Word games</h3><p class="muted small" style="margin:2px 0 0">A daily crossword and verse puzzles from Scripture.</p></div>
       <button class="btn dark sm" id="goPlay">Play</button>
     </section>
   </div>`;
@@ -803,7 +799,6 @@ function renderToday(){
   }
   if($("#chgStatus")) $("#chgStatus").onclick = () => { S.status = null; save(); renderToday(); };
   view.querySelectorAll("#statusChips .chip").forEach(c => c.onclick = () => { S.status = c.dataset.s; save(); renderToday(); });
-  view.querySelectorAll("#feelChips .chip").forEach(c => c.onclick = () => openDeck("need", c.dataset.k));
   $("#goPlay").onclick = () => { tab = "play"; S.pane = "cw"; render(); };
 }
 
@@ -962,7 +957,7 @@ function renderBible(){
   const last = S.last;
   const books = BOOK_ORDER.filter((_,i) => S.testament === "ot" ? i < OT : i >= OT);
   view.innerHTML = `<div class="stack">
-    <div class="hello"><h1>Bible</h1><p>Douay-Rheims · all 73 books · works offline</p></div>
+    <div class="hello" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px"><div><h1>Bible</h1><p>Douay-Rheims · all 73 books · works offline</p></div><button class="btn quiet sm" id="goSaved" style="flex:none">${ic("bookmark","sm")}Saved${saved.size ? " · " + saved.size : ""}</button></div>
     <label class="search">${ic("search","sm")}<input id="q" type="search" placeholder="Search “John 3” or a word like “peace”" value="${esc(query)}" autocomplete="off" enterkeyhint="search"></label>
     <div id="results"></div>
     <div id="browse" class="stack">
@@ -982,6 +977,7 @@ function renderBible(){
   q.oninput = () => { query = q.value; drawResults(); };
   q.onkeydown = e => { if(e.key === "Enter"){ const r = parseRef(q.value); if(r && r.ch){ q.blur(); openChapter(r.book, r.ch, r.v ? IDX[r.book+":"+r.ch+":"+r.v] : null); } } };
   if($("#cont")) $("#cont").onclick = () => openChapter(last.book, last.ch);
+  $("#goSaved").onclick = () => { tab = "saved"; sub = null; render(); };
   view.querySelectorAll(".chips .chip[data-b]").forEach(c => c.onclick = () => openChapter(c.dataset.b, +c.dataset.c));
   view.querySelectorAll(".segctl button").forEach(b => b.onclick = () => { S.testament = b.dataset.t; save(); renderBible(); });
   view.querySelectorAll("[data-book]").forEach(b => b.onclick = () => { sub = {type:"book", book:b.dataset.book}; renderBible(); view.scrollTop = 0; });
@@ -1080,7 +1076,7 @@ function verseSheet(g){
 
 /* ---------- SAVED ---------- */
 function renderSaved(){
-  bar();
+  bar({back: () => { tab = "bible"; sub = null; render(); }, title: "Saved verses"});
   const keys = [...saved].reverse();
   view.innerHTML = `<div class="stack"><div class="hello"><h1>Saved</h1><p>${keys.length ? `${keys.length} verse${keys.length > 1 ? "s" : ""}, kept on this device` : "Verses you keep"}</p></div>
     ${keys.length ? keys.map(g => `<button class="card" data-g="${g}" style="text-align:left; display:grid; gap:8px; width:100%"><span class="ref">${esc(refOf(g))}</span><span class="verse" style="font-size:calc(18px * var(--rs)); display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden">${esc(ALL[g].t)}</span></button>`).join("")
@@ -1331,7 +1327,7 @@ function openSettings(){
     <div class="card flat stack"><div><b>Teaching view</b><p class="muted small" style="margin:2px 0 0">${isCatholic() ? "Full Catholic view: names the Catechism, the sacraments, Mary and the saints." : "General Christian view, rooted in the same teaching."}</p></div><div class="segctl"><button id="viewChr" class="${isCatholic() ? "" : "on"}">Christian</button><button id="viewCat" class="${isCatholic() ? "on" : ""}">Catholic</button></div></div>
     <div class="list">
       <div class="li"><div class="txt"><b>Highlight saints’ days</b><span class="sub">A short card on Today with the saint and a verse</span></div><button class="switch" id="setSaints" role="switch" aria-checked="${S.saints ? "true" : "false"}" aria-label="Highlight saints' days"></button></div>
-      <button class="li" id="setNeed"><div class="txt"><b>What you’re carrying</b><span class="sub">${esc(needLabel)} · shapes today’s seven</span></div>${ic("chev","chev")}</button>
+      <button class="li" id="setNeed"><div class="txt"><b>Verse focus (optional)</b><span class="sub">${esc(needLabel)} · adds a few verses on one theme</span></div>${ic("chev","chev")}</button>
       <button class="li" id="setWho"><div class="txt"><b>Who’s reading</b><span class="sub">${S.status ? esc(STATUS[S.status]) : "Not set"} · shapes the daily step</span></div>${ic("chev","chev")}</button>
       <div class="li"><div class="txt"><b>Reading text size</b><span class="sub">For verses, chapters and prayers</span></div><div class="row-btns"><button class="icon-btn" id="fsDown" aria-label="Smaller">A−</button><button class="icon-btn" id="fsUp" aria-label="Larger">A+</button></div></div>
       <div class="li"><div class="txt"><b>Don’t leave God in the PrayerChair</b><span class="sub">4 one-line reminders · ${NUDGE_TIMES.map(fmtTime).join(", ")}</span></div><button class="switch" id="setNudge" role="switch" aria-checked="${S.nudges ? "true" : "false"}" aria-label="Reminders through the day"></button></div>
@@ -1365,11 +1361,14 @@ function openSettings(){
   });
 }
 let obDraft = null;
-const OB_STEPS = ["What’s your first name?", "What are you carrying right now?", "Who’s reading?", "Who do you pray for?", "Don’t leave God in the PrayerChair"];
-function onboard(step, single){
+const OB_TITLES = ["What’s your first name?", "Verse focus (optional)", "Who’s reading?", "Who do you pray for?", "Don’t leave God in the PrayerChair"];
+const OB_FLOW = [0, 2, 3, 4]; // first-run setup skips the feelings question
+const OB_STEPS = OB_FLOW;
+function onboard(pos, single){
+  const step = single ? pos : OB_FLOW[pos];
   obDraft = obDraft || {need:S.need, name:S.name, status:S.status, remind:S.remind, nudges: single ? S.nudges : true, people:(S.people || []).slice(), hope:S.hope || ""};
   while(obDraft.people.length < 3) obDraft.people.push("");
-  const segs = `<div class="seg">${OB_STEPS.map((_,i) => `<i class="${i < step ? "on" : i === step ? "cur" : ""}"></i>`).join("")}</div>`;
+  const segs = `<div class="seg">${OB_FLOW.map((_,i) => `<i class="${i < pos ? "on" : i === pos ? "cur" : ""}"></i>`).join("")}</div>`;
   let body = single ? "" : segs;
   if(step === 0) body += `<p class="muted" style="margin:0">So PrayerChair can greet you by name. It stays on this phone.</p><input class="input" id="obName" value="${esc(obDraft.name || "")}" placeholder="First name" autocomplete="given-name" enterkeyhint="next">`;
   if(step === 1) body += `<p class="muted" style="margin:0">Pick the closest. Three of your seven verses each day, and part of your prayer, will come from it. Change it any time.</p><div class="need-grid">${NEEDS.map(n => `<button class="need ${obDraft.need === n.key ? "on" : ""}" data-k="${n.key}"><b>${esc(n.label)}</b><span>${esc(n.sub)}</span></button>`).join("")}</div>`;
@@ -1380,20 +1379,20 @@ function onboard(step, single){
   if(step === 4) body += `<p class="prose" style="margin:0">A few gentle reminders through the day help you keep God with you, not just in the morning.</p>
     <div class="card flat setrow"><div style="min-width:0"><b>Daily reminders</b><p class="muted small" style="margin:2px 0 0">Four one-line reminders, like “Give God one small struggle right now.” Turn them off anytime in your profile.</p></div><button class="switch" id="obNudge" role="switch" aria-checked="${obDraft.nudges ? "true" : "false"}" aria-label="Daily reminders"></button></div>
     <p class="muted small" style="margin:0">Your seven verses will be waiting each morning at:</p><div class="chips" style="flex-wrap:wrap">${["06:00","07:00","08:00","12:00","21:00"].map(t => `<button class="chip ${obDraft.remind === t ? "on" : ""}" data-t="${t}">${fmtTime(t)}</button>`).join("")}</div>`;
-  const last = single || step === OB_STEPS.length - 1;
+  const last = single || pos === OB_FLOW.length - 1;
   const blocked = (step === 0 && !(obDraft.name || "").trim()) || (step === 1 && !obDraft.need) || (step === 2 && !obDraft.status);
-  body += `<div class="row-btns" style="margin-top:4px">${!single && step > 0 ? `<button class="btn quiet" id="obBack">${ic("back","sm")}Back</button>` : ""}<button class="btn primary" id="obNext" style="flex:1" ${blocked ? "disabled" : ""}>${last ? (single ? "Save" : "Start today’s seven") : "Continue"}</button></div>`;
+  body += `<div class="row-btns" style="margin-top:4px">${!single && pos > 0 ? `<button class="btn quiet" id="obBack">${ic("back","sm")}Back</button>` : ""}<button class="btn primary" id="obNext" style="flex:1" ${blocked ? "disabled" : ""}>${last ? (single ? "Save" : "Start today’s seven") : "Continue"}</button></div>`;
   document.querySelectorAll(".sheet,.backdrop").forEach(e => e.remove());
-  sheet(OB_STEPS[step], body, (sh, close) => {
+  sheet(OB_TITLES[step], body, (sh, close) => {
     const keep = () => { [0,1,2].forEach(i => { const el = $("#obP"+i, sh); if(el) obDraft.people[i] = el.value; }); const h = $("#obHope", sh); if(h) obDraft.hope = h.value; const n = $("#obName", sh); if(n) obDraft.name = n.value; };
-    sh.querySelectorAll(".need").forEach(b => b.onclick = () => { obDraft.need = b.dataset.k; onboard(step, single); });
-    sh.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { obDraft.status = b.dataset.s; onboard(step, single); });
-    sh.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { obDraft.remind = b.dataset.t; onboard(step, single); });
-    if($("#obNudge", sh)) $("#obNudge", sh).onclick = () => { obDraft.nudges = !obDraft.nudges; onboard(step, single); };
+    sh.querySelectorAll(".need").forEach(b => b.onclick = () => { obDraft.need = b.dataset.k; onboard(pos, single); });
+    sh.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { obDraft.status = b.dataset.s; onboard(pos, single); });
+    sh.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { obDraft.remind = b.dataset.t; onboard(pos, single); });
+    if($("#obNudge", sh)) $("#obNudge", sh).onclick = () => { obDraft.nudges = !obDraft.nudges; onboard(pos, single); };
     const nx = $("#obNext", sh);
     const nm = $("#obName", sh);
     if(nm){ setTimeout(() => nm.focus(), 250); nm.oninput = () => { obDraft.name = nm.value; const ok = !!nm.value.trim(); nx.disabled = !ok; nx.style.opacity = ok ? "1" : ".45"; }; nm.onkeydown = e => { if(e.key === "Enter") nx.click(); }; }
-    if($("#obBack", sh)) $("#obBack", sh).onclick = () => { keep(); onboard(step-1, false); };
+    if($("#obBack", sh)) $("#obBack", sh).onclick = () => { keep(); onboard(pos-1, false); };
     if(nx.disabled) nx.style.opacity = ".45";
     nx.onclick = () => {
       if(nx.disabled) return; keep();
@@ -1407,22 +1406,18 @@ function onboard(step, single){
         if(!single) setTimeout(() => openDeck("seven"), 250);
         return;
       }
-      onboard(step+1, false);
+      onboard(pos+1, false);
     };
   });
 }
 
 /* ---------- WELCOME ---------- */
 const INTRO = [
-  {icon:"sun", title:"Daily verses, tailored to you", text:"Each morning, seven short verses chosen for what you’re carrying right now. About a minute.",
+  {icon:"sun", title:"Daily", text:"Each day, open the Daily tab for seven short verses, a plain explanation of what they mean, and a prayer for your day. About a minute.",
    demo:`<div class="ib-card"><span class="ref">Philippians 4:6</span><p>Be nothing solicitous: but in every thing, by prayer and supplication, with thanksgiving, let your petitions be made known to God.</p><div class="seg"><i class="on"></i><i class="cur"></i><i></i><i></i><i></i><i></i><i></i></div></div>`},
-  {icon:"light", title:"A quick study on what it means", text:"A short, plain explanation of every verse, rooted in centuries of Christian teaching, with sources you can check.",
-   demo:`<div class="ib-card"><span class="label">What this means</span><p>Paul tells us to bring every worry to God in prayer, with thanks, instead of carrying it alone.</p></div>`},
-  {icon:"hands", title:"A daily prayer, written for you", text:"Your prayer names your day, the people you love and what you’re walking through, with one small step to focus on.",
-   demo:`<div class="ib-card"><span class="label">Your prayer for today</span><p><i>Lord, I come to You as I am. Please watch over Mom and Dan today… Your will be done. Amen.</i></p></div>`},
-  {icon:"book", title:"Read it all, share it, play", text:"Track your reading through the whole Bible, share verses with the people you love, and enjoy word games built from Scripture.",
-   demo:`<div class="ib-card"><span class="label">Your reading</span><div class="mini" style="height:8px"><i style="width:34%"></i></div><p class="small">412 of 1,334 chapters · Crossword solved</p></div>`},
-  {icon:"bell", title:"Don’t leave God in the PrayerChair", text:"Gentle one-line reminders through the day help you keep Him with you, not just in the morning.",
+  {icon:"book", title:"Read the Bible", text:"The Bible tab has all 73 books, offline. Pick up where you left off, track every chapter you read, and keep the verses you love.",
+   demo:`<div class="ib-card"><span class="label">Your reading</span><div class="mini" style="height:8px"><i style="width:34%"></i></div><p class="small">412 of 1,334 chapters read</p></div>`},
+  {icon:"bell", title:"Don’t leave God in the PrayerChair", text:"Gentle one-line reminders through the day help you keep Him with you. You can turn them off anytime.",
    demo:`<div class="ib-card ib-note"><span class="label">PrayerChair · 12:30 pm</span><p>Give God one small struggle right now.</p></div>`}
 ];
 function welcome(){
@@ -1439,7 +1434,7 @@ function welcome(){
         <div class="intro-ico">${ic(s.icon, "lg")}</div>
         <span class="intro-step">${i+1} of ${INTRO.length}</span>
         <h1>${i === 0 ? `Sit with God for <em>one minute</em> a day.` : esc(s.title)}</h1>
-        ${i === 0 ? `<p class="lead"><b style="color:#fff">${esc(s.title)}.</b> ${esc(s.text)}</p>` : `<p class="lead">${esc(s.text)}</p>`}
+        ${i === 0 ? `<p class="lead"><b style="color:#fff">${esc(s.title)}:</b> ${esc(s.text)}</p>` : `<p class="lead">${esc(s.text)}</p>`}
         ${s.demo}
       </div>
       <div class="cta">
