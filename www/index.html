@@ -130,7 +130,8 @@ S.lv=S.lv||{order:0,crypto:0,search:0}; S.hints=S.hints??5; S.streak=S.streak||0
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 document.documentElement.style.setProperty('--fs',S.large?1.22:1);
 const Cap=window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?Capacitor:null;
-const Haptics=Cap?Cap.registerPlugin('Haptics'):null, Share=Cap?Cap.registerPlugin('Share'):null, LN=Cap?Cap.registerPlugin('LocalNotifications'):null;
+const capPlug=n=>{try{const C=window.Capacitor;if(!C)return null;if(C.Plugins&&C.Plugins[n])return C.Plugins[n];return typeof C.registerPlugin==='function'?C.registerPlugin(n):null}catch(e){return null}};
+const Haptics=Cap?capPlug('Haptics'):null, Share=Cap?capPlug('Share'):null, LN=Cap?capPlug('LocalNotifications'):null;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* ---- sound: synthesized with Web Audio, no files, no licenses ---- */
 let AC=null;
