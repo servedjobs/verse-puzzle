@@ -16,6 +16,9 @@ s=re.sub(r'<link href="https://fonts.googleapis.com[^>]*>\s*','',s)
 # the puzzles iframe font link (inside JS)
 s=re.sub(r'const fontLink = `[^`]*`;', 'const fontLink = `<style>'+css.replace('\\','\\\\')+'</style>`;', s, count=1)
 assert 'fonts.googleapis' not in s, 'google font reference left'
-head='<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<style>'+css+'html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n'
+DIAG="<script>(function(){var shown=0;function show(m){if(shown++>2)return;var d=document.getElementById('pc-err');if(!d){d=document.createElement('div');d.id='pc-err';d.style.cssText='position:fixed;left:8px;right:8px;top:40px;z-index:99999;background:#7f1d1d;color:#fff;font:13px/1.4 monospace;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all';(document.body||document.documentElement).appendChild(d)}d.textContent+=(d.textContent?'\\n':'')+'PrayerChair error (send Erik a screenshot):\\n'+m}window.addEventListener('error',function(e){show((e.message||'error')+' @'+(e.lineno||'?')+':'+(e.colno||'?'))});window.addEventListener('unhandledrejection',function(e){show('promise: '+((e.reason&&(e.reason.message||e.reason))||'?'))});window.__pcBoot=Date.now();setTimeout(function(){if(!window.__pcReady)show('app did not start within 15s (ua: '+navigator.userAgent+')')},15000)})();</script>\n"
+head='<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'+DIAG+'<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<style>'+css+'html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n'
+s=s.replace('render();\nif(!S.welcomed) welcome();','render();\nwindow.__pcReady=1;\nif(!S.welcomed) welcome();',1)
+assert '__pcReady=1' in s
 open(A+'www/index.html','w',encoding='utf-8').write(head+s+'\n</html>\n')
 print('www/index.html', os.path.getsize(A+'www/index.html'))
