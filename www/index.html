@@ -101,6 +101,10 @@ input{font:inherit; color:inherit}
 .ib-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px}
 .ib-tags span{font-size:12px; font-weight:600; padding:4px 8px; border-radius:999px; background:rgba(245,158,11,.18); color:#FBBF24}
 .ib-list{display:grid; gap:10px}
+.ib-games{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.ib-games div{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:12px; display:grid; gap:4px}
+.ib-games b{color:#FBBF24; font-size:15px}
+.ib-games span{font-size:13px; line-height:1.35; color:#CBD5E1}
 .ib-list span{display:flex; gap:10px; align-items:center; font-size:15px}
 .tabbar{flex:none; display:grid; grid-template-columns:repeat(2,1fr); border-top:1px solid var(--line); background:var(--surface);
   padding:0 max(0px, env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(0px, env(safe-area-inset-left,0px))}
@@ -1487,11 +1491,14 @@ function onboard(pos, single){
 const INTRO = [
   {icon:"sun", title:"Your daily reading", text:"Each day: a short Bible reading, a plain explanation of what it means, a prayer for your day, and one small action to take.",
    demo:`<div class="ib-card"><span class="ref">Philippians 4:6</span><p>Be nothing solicitous: but in every thing, by prayer and supplication, with thanksgiving, let your petitions be made known to God.</p><div class="ib-tags"><span>Reading</span><span>What it means</span><span>Prayer</span><span>Today’s step</span></div></div>`},
-  {icon:"bell", title:"Don’t leave God in the PrayerChair", text:"Gentle one-line reminders through the day help you keep Him with you, not just in the morning. Turn them off anytime.",
-   demo:`<div class="ib-card ib-note"><span class="label">PrayerChair · 12:30 pm</span><p>Give God one small struggle right now.</p></div>`},
+  {icon:"bell", title:"Don’t leave God in the PrayerChair", text:"Pick when you want your daily reminder. You can change it anytime in Settings.", remind:true},
   {icon:"book", title:"Read the whole Bible", text:"Choose how long you want to take. We’ll give you a few chapters each day and track your progress.", plan:true},
-  {icon:"puzzle", title:"Bible word games", text:"A daily crossword where every clue is a verse, plus verse puzzles. A fun way to learn Scripture.",
-   demo:`<div class="ib-card"><span class="label">Today’s crossword · 1 Across</span><p>“Fear not, for I am ______ thee.”</p></div>`}
+  {icon:"puzzle", title:"Bible word games", text:"Four quick games that help Scripture stick.",
+   demo:`<div class="ib-games">
+     <div><b>Crossword</b><span>Every clue is a verse with one word missing.</span></div>
+     <div><b>Verse Builder</b><span>Tap the words back into the right order.</span></div>
+     <div><b>Cryptogram</b><span>Each number is a letter. Crack the coded verse.</span></div>
+     <div><b>Word Search</b><span>Find the verse’s key words hidden in the grid.</span></div></div>`}
 ];
 function welcome(){
   S.welcomed = true; save(); // shown once; it can be replayed from Settings
@@ -1499,10 +1506,12 @@ function welcome(){
   const ov = document.createElement("div"); ov.className = "overlay welcome"; ov.id = "welcome";
   app.appendChild(ov);
   const NAME = INTRO.length, DONE = INTRO.length + 1;
-  let i = 0, planDays = S.plan ? S.plan.days : 365, nm = S.name || "";
+  let i = 0, planDays = S.plan ? S.plan.days : 365, nm = S.name || "", rTime = S.remindOn === false ? "" : (S.remind || "07:00"), nudgeOn = S.nudges !== false;
   const finish = then => {
     S.name = (nm || "").trim().slice(0,30);
     S.plan = planDays ? (S.plan && S.plan.days === planDays ? S.plan : {days:planDays, start:todayKey()}) : null;
+    if(rTime){ S.remind = rTime; S.remindOn = true; } else S.remindOn = false;
+    S.nudges = nudgeOn;
     save(); ov.remove(); tab = "today"; sub = null; render(); scheduleAlerts(true);
     if(then === "settings") setTimeout(openSettings, 250);
     else setTimeout(() => openDeck("seven"), 250);
@@ -1514,7 +1523,11 @@ function welcome(){
       const sl = INTRO[i];
       const planHTML = sl.plan ? `<div class="ib-card"><span class="label">I want to read the whole Bible in</span>
           <div class="chips" style="flex-wrap:wrap; margin-top:8px">${PLAN_OPTS.map(d => `<button class="chip ${planDays === d ? "on" : ""}" data-d="${d}">${planLabel(d)}</button>`).join("")}<button class="chip ${!planDays ? "on" : ""}" data-d="0">No plan</button></div>
-          <p class="small" style="margin:10px 0 0">${planDays ? `That’s about <b>${planPerDay(planDays)} chapters a day</b>.` : "Read at your own pace. You can pick a plan later."}</p></div>` : sl.demo;
+          <p class="small" style="margin:10px 0 0">${planDays ? `That’s about <b>${planPerDay(planDays)} chapters a day</b>.` : "Read at your own pace. You can pick a plan later."}</p></div>`
+        : sl.remind ? `<div class="ib-card"><span class="label">Remind me to read each day at</span>
+          <div class="chips" style="flex-wrap:wrap; margin-top:8px">${["06:00","07:00","08:00","12:00","18:00","21:00"].map(t => `<button class="chip ${rTime === t ? "on" : ""}" data-t="${t}">${fmtTime(t)}</button>`).join("")}<button class="chip ${!rTime ? "on" : ""}" data-t="">No reminder</button></div>
+          <div class="setrow" style="display:flex; gap:12px; align-items:center; margin-top:14px"><div style="flex:1; min-width:0"><b style="color:#fff; font-size:15px">Short reminders through the day</b><p class="small" style="margin:2px 0 0">Four one-liners, like “Give God one small struggle right now.”</p></div><button class="switch" id="iNudge" role="switch" aria-checked="${nudgeOn ? "true" : "false"}" aria-label="Short reminders through the day"></button></div></div>`
+        : sl.demo;
       ov.innerHTML = `<div class="in">${top(true)}
         ${i === 0 ? `<div class="art" aria-hidden="true"><canvas id="lamp" width="300" height="150" style="width:300px; max-width:100%; height:auto"></canvas></div>` : ""}
         <div class="intro-slide" aria-live="polite">
@@ -1527,6 +1540,8 @@ function welcome(){
         <div class="cta">${dots()}<button class="btn primary block" id="iNext">Next</button>${i > 0 ? `<button class="link" id="iBack">Back</button>` : ""}</div></div>`;
       if(i === 0) drawLamp($("#lamp", ov));
       ov.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { planDays = +b.dataset.d; draw(); });
+      ov.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { rTime = b.dataset.t; draw(); });
+      if($("#iNudge", ov)) $("#iNudge", ov).onclick = () => { nudgeOn = !nudgeOn; draw(); };
       $("#iNext", ov).onclick = () => { i++; draw(); };
       if($("#iBack", ov)) $("#iBack", ov).onclick = () => { i--; draw(); };
       $("#iSkip", ov).onclick = () => { i = NAME; draw(); };
@@ -1550,7 +1565,7 @@ function welcome(){
             <span>${ic("hands","sm")}People you pray for</span>
             <span>${ic("step","sm")}Who’s reading, for your daily step</span>
             <span>${ic("light","sm")}A verse focus</span>
-            <span>${ic("bell","sm")}Reminder times</span></div></div>
+</div></div>
         </div>
         <div class="cta">${dots()}<button class="btn primary block" id="iGo">${ic("arrow","sm")}Start today’s reading</button><button class="link" id="iSet">Open Settings instead</button></div></div>`;
       $("#iGo", ov).onclick = () => finish("read");
