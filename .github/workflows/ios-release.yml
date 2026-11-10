@@ -1,0 +1,64 @@
+name: iOS release (App Store Connect upload)
+# Builds, signs (automatic, via App Store Connect API key) and uploads to App Store Connect / TestFlight.
+# Needs repo secrets ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (contents of the .p8 file).
+# Run: Actions > iOS release > Run workflow (pick the branch), or push a tag starting with ios-.
+on:
+  workflow_dispatch:
+  push:
+    tags: ['ios-*']
+jobs:
+  upload:
+    runs-on: macos-15
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check secrets
+        run: |
+          for v in ASC_KEY_ID ASC_ISSUER_ID; do [ -n "${!v}" ] || { echo "::error::Missing secret $v"; exit 1; }; done
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm }
+      - run: npm ci
+      - run: npx cap sync ios
+      - name: Write API key
+        env: { ASC_KEY_P8: '${{ secrets.ASC_KEY_P8 }}' }
+        run: |
+          [ -n "$ASC_KEY_P8" ] || { echo "::error::Missing secret ASC_KEY_P8"; exit 1; }
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s\n' "$ASC_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+      - name: Archive
+        run: |
+          cd ios/App
+          if [ -d App.xcworkspace ]; then TARGET="-workspace App.xcworkspace"; else TARGET="-project App.xcodeproj"; fi
+          xcodebuild $TARGET -scheme App -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath $RUNNER_TEMP/App.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID \
+            DEVELOPMENT_TEAM=5UZ9C6T4V5 CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            archive | tail -60
+          test ${PIPESTATUS[0]} -eq 0
+      - name: Export and upload to App Store Connect
+        run: |
+          cat > $RUNNER_TEMP/export.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>5UZ9C6T4V5</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/App.xcarchive \
+            -exportOptionsPlist $RUNNER_TEMP/export.plist -exportPath $RUNNER_TEMP/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID | tail -40
+          test ${PIPESTATUS[0]} -eq 0
+      - name: Remove key
+        if: always()
+        run: rm -rf ~/.appstoreconnect
