@@ -698,7 +698,9 @@ async function scheduleAlerts(ask){
     for(let i = 0; i < 7; i++){
       const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
       if(S.remindOn !== false){ const [h,m] = S.remind.split(":").map(Number), at = new Date(day); at.setHours(h, m, 0, 0);
-        if(at > now) list.push({id:1000 + i, title:"Your daily reading is ready", body: planPerDay() ? `A short reading, a prayer for your day, and ${planPerDay()} chapter${planPerDay() > 1 ? "s" : ""} of your Bible plan.` : "A short reading, what it means, and a prayer for your day.", schedule:{at, allowWhileIdle:true}, isExactNotification:false}); }
+        if(at > now){ let tease = "Today’s verse is waiting for you.";
+          try{ const w = verseOfDay(day, votdPick).text.split(/\s+/); tease = "“" + w.slice(0, Math.min(7, Math.max(3, w.length - 3))).join(" ").replace(/[,;:.]$/, "") + "…”"; }catch(e){}
+          list.push({id:1000 + i, title:"Don’t leave God in the PrayerChair today", body:tease, schedule:{at, allowWhileIdle:true}, isExactNotification:false}); } }
       if(S.nudges) nudgesFor(day).forEach((body, k) => { const [h,m] = NUDGE_TIMES[k].split(":").map(Number), at = new Date(day); at.setHours(h, m, 0, 0);
         if(at > now) list.push({id:2000 + i*10 + k, title:"Don’t leave God in the PrayerChair", body, schedule:{at, allowWhileIdle:true}, isExactNotification:false}); });
     }
