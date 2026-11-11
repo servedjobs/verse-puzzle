@@ -503,7 +503,7 @@ const FS = [1, 1.1, 1.22, 1.36];
 /* ---------- state ---------- */
 const KEY = "prayerchair.v1";
 const DEF = {welcomed:false, name:"", need:null, status:null, remind:"07:00", fs:1, saved:[], read:[], streak:0, best:0, freezes:2, lastDone:null,
-  daily:{date:null, seq:[], seen:0}, keep:0, last:null, coach:false, testament:"ot", nudges:true, remindOn:true, pane:"cw", view:"christian", saints:false, start:null, people:[], hope:"", nudgeAsk:null, nudgeAsks:0, plan:null};
+  daily:{date:null, seq:[], seen:0}, keep:0, last:null, coach:false, testament:"ot", nudges:true, remindOn:true, pane:"cw", view:"christian", saints:false, start:null, people:[], hope:"", nudgeAsk:null, nudgeAsks:0, plan:null, tr:"drb"};
 let S = JSON.parse(JSON.stringify(DEF));
 try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
 if(!S.daily) S.daily = {date:null, seq:[], seen:0};
@@ -521,6 +521,22 @@ function todayKey(d=new Date()){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+
 function dayOfYear(){ const n = new Date(); return Math.floor((n - new Date(n.getFullYear(),0,0)) / 864e5); }
 function daysBetween(a,b){ const [ay,am,ad]=a.split("-").map(Number),[by,bm,bd]=b.split("-").map(Number); return Math.round((Date.UTC(by,bm-1,bd)-Date.UTC(ay,am-1,ad))/864e5); }
 function hebPs(c){ if(c <= 8 || c >= 148) return c; if(c === 9) return "9–10"; if(c <= 112) return c + 1; if(c === 113) return "114–115"; if(c <= 115) return 116; if(c <= 145) return c + 1; return 147; }
+const TR = {drb:{name:"Douay-Rheims", short:"Douay-Rheims"}, kjv:{name:"King James Version", short:"KJV"}, bsb:{name:"Berean Standard Bible", short:"BSB"}};
+const TRX = {};
+function trCur(){ return TR[S.tr] ? S.tr : "drb"; }
+async function loadTr(k){ if(k === "drb" || k in TRX) return TRX[k]; try{ const r = await fetch("bibles/" + k + ".json"); TRX[k] = r.ok ? await r.json() : null; }catch(e){ TRX[k] = null; } return TRX[k]; }
+function trChapter(book, ch){ // the chapter in the chosen Bible; books it lacks fall back to Douay-Rheims
+  const k = trCur(), dr = {verses:BIBLE[book][ch-1], tr:"drb", num:ch};
+  if(k === "drb") return dr;
+  const B = TRX[k]; if(!B || !B[book]) return Object.assign(dr, {fallback:true});
+  if(book === "Psalms"){ const h = String(hebPs(ch)), ns = h.split("–").map(Number); const vs = [].concat(...ns.map(n => B.Psalms[n-1] || [])); return vs.length ? {verses:vs, tr:k, num:h} : Object.assign(dr, {fallback:true}); }
+  const vs = B[book][ch-1]; return vs ? {verses:vs, tr:k, num:ch} : Object.assign(dr, {fallback:true});
+}
+async function shareText(text){
+  try{ if(CAP){ const SH = capPlug("Share"); if(SH){ await SH.share({text}); return; } } if(navigator.share){ await navigator.share({text}); return; } }catch(e){ if(e && (e.name === "AbortError" || /cancel/i.test(e.message || ""))) return; }
+  try{ await navigator.clipboard.writeText(text); toast("Verse copied, ready to paste"); }
+  catch(e){ toast("Press and hold the verse to copy it", "copy"); }
+}
 function bookLabel(b, c){ return b === "Psalms" ? "Psalm" : b; }
 function refOf(g){ const r = ALL[g]; return r.book === "Psalms" ? `Psalm ${r.ch}:${r.v}${hebPs(r.ch) !== r.ch ? ` (${hebPs(r.ch)})` : ""}` : r.book+" "+r.ch+":"+r.v; }
 
@@ -673,7 +689,7 @@ async function scheduleAlerts(ask){
     for(let i = 0; i < 7; i++){
       const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
       if(S.remindOn !== false){ const [h,m] = S.remind.split(":").map(Number), at = new Date(day); at.setHours(h, m, 0, 0);
-        if(at > now) list.push({id:1000 + i, title:"Today’s seven are ready", body: planPerDay() ? `Seven verses, plus ${planPerDay()} chapter${planPerDay() > 1 ? "s" : ""} of your Bible plan.` : "Seven verses, about a minute.", schedule:{at, allowWhileIdle:true}, isExactNotification:false}); }
+        if(at > now) list.push({id:1000 + i, title:"Your daily reading is ready", body: planPerDay() ? `A short reading, a prayer for your day, and ${planPerDay()} chapter${planPerDay() > 1 ? "s" : ""} of your Bible plan.` : "A short reading, what it means, and a prayer for your day.", schedule:{at, allowWhileIdle:true}, isExactNotification:false}); }
       if(S.nudges) nudgesFor(day).forEach((body, k) => { const [h,m] = NUDGE_TIMES[k].split(":").map(Number), at = new Date(day); at.setHours(h, m, 0, 0);
         if(at > now) list.push({id:2000 + i*10 + k, title:"Don’t leave God in the PrayerChair", body, schedule:{at, allowWhileIdle:true}, isExactNotification:false}); });
     }
@@ -1028,7 +1044,7 @@ function renderBible(){
   const last = S.last;
   const books = BOOK_ORDER.filter((_,i) => S.testament === "ot" ? i < OT : i >= OT);
   view.innerHTML = `<div class="stack">
-    <div class="hello" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px"><div><h1>Bible</h1><p>Douay-Rheims · all 73 books · works offline</p></div><button class="btn quiet sm" id="goSaved" style="flex:none">${ic("bookmark","sm")}Saved${saved.size ? " · " + saved.size : ""}</button></div>
+    <div class="hello" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px"><div><h1>Bible</h1><p>${esc(TR[trCur()].name)} · works offline · change it in any chapter</p></div><button class="btn quiet sm" id="goSaved" style="flex:none">${ic("bookmark","sm")}Saved${saved.size ? " · " + saved.size : ""}</button></div>
     ${sevenCardHTML()}
     ${planCardHTML()}
     <label class="search">${ic("search","sm")}<input id="q" type="search" placeholder="Search “John 3” or a word like “peace”" value="${esc(query)}" autocomplete="off" enterkeyhint="search"></label>
@@ -1098,7 +1114,9 @@ function openChapter(book, ch, hl){
 }
 function renderChapter(book, ch, hl){
   S.last = {book, ch}; save();
-  const key = book + ":" + ch, verses = BIBLE[book][ch-1];
+  if(trCur() !== "drb" && !(trCur() in TRX)){ view.innerHTML = `<p class="muted" style="padding:24px">Opening the ${esc(TR[trCur()].name)}…</p>`; loadTr(trCur()).then(() => { if(sub && sub.type === "chapter" && sub.book === book && sub.ch === ch) renderChapter(book, ch, hl); }); return; }
+  const TC = trChapter(book, ch), drb = TC.tr === "drb";
+  const key = book + ":" + ch, verses = TC.verses;
   const gi0 = IDX[book+":"+ch+":1"];
   const prev = ch > 1 ? [book, ch-1] : (BOOK_ORDER.indexOf(book) > 0 ? [BOOK_ORDER[BOOK_ORDER.indexOf(book)-1], BIBLE[BOOK_ORDER[BOOK_ORDER.indexOf(book)-1]].length] : null);
   const nb = BOOK_ORDER[BOOK_ORDER.indexOf(book)+1];
@@ -1107,8 +1125,9 @@ function renderChapter(book, ch, hl){
        right: `<button class="icon-btn plain" id="fsBtn" aria-label="Text size">${ic("type")}</button>`});
   const isRead = readSet.has(key);
   view.innerHTML = `<article class="reader">
-    <h1>${esc(bookLabel(book))} ${ch}</h1><div class="meta">${verses.length} verses · Douay-Rheims${book === "Psalms" && hebPs(ch) !== ch ? ` · Psalm ${hebPs(ch)} in newer Bibles` : ""} · tap a verse to save or share</div>
-    <div class="vtext">${verses.map((t,i) => `<span class="v ${gi0+i === hl ? "hl" : ""}" data-g="${gi0+i}" id="v${gi0+i}"><sup>${i+1}</sup>${esc(t)}</span> `).join("")}</div>
+    <h1>${esc(bookLabel(book))} ${TC.num}</h1><div class="meta">${verses.length} verses · ${esc(TR[TC.tr].short)}${TC.fallback ? ` (this ${trCur() === "drb" ? "" : "book or chapter is not in the " + esc(TR[trCur()].short)})` : ""}${book === "Psalms" && String(hebPs(ch)) !== String(ch) ? (drb ? ` · Psalm ${hebPs(ch)} in newer Bibles` : ` · Psalm ${ch} in Douay-Rheims`) : ""} · tap a verse to ${drb ? "save or " : ""}share</div>
+    <div class="segctl" role="group" aria-label="Bible translation" style="margin:10px 0 6px; grid-template-columns:repeat(3,1fr)">${Object.keys(TR).map(k => `<button data-tr="${k}" class="${trCur() === k ? "on" : ""}">${esc(TR[k].short)}</button>`).join("")}</div>
+    <div class="vtext">${verses.map((t,i) => drb ? `<span class="v ${gi0+i === hl ? "hl" : ""}" data-g="${gi0+i}" id="v${gi0+i}"><sup>${i+1}</sup>${esc(t)}</span> ` : `<span class="v" data-i="${i}"><sup>${i+1}</sup>${esc(t)}</span> `).join("")}</div>
     <div class="reader-foot">
       <button class="btn ${isRead ? "ghost" : "primary"} block" id="markRead">${ic("check","sm")}${isRead ? "Read · tap to undo" : "Mark as read"}</button>
       <div class="navrow">
@@ -1122,7 +1141,8 @@ function renderChapter(book, ch, hl){
   if(prev) $("#prevCh").onclick = () => openChapter(prev[0], prev[1]);
   if(next) $("#nextCh").onclick = () => { if(!readSet.has(key)){ readSet.add(key); persist(); } openChapter(next[0], next[1]); };
   $("#fsBtn").onclick = () => { S.fs = (S.fs + 1) % FS.length; applyFs(); save(); toast(["Text size: regular","Text size: large","Text size: larger","Text size: largest"][S.fs], "type"); };
-  view.querySelectorAll(".v").forEach(s => s.onclick = () => verseSheet(+s.dataset.g));
+  view.querySelectorAll(".v").forEach(s => s.onclick = () => drb ? verseSheet(+s.dataset.g) : shareText(`“${verses[+s.dataset.i]}” ${bookLabel(book)} ${TC.num}:${+s.dataset.i + 1} (${TR[TC.tr].short})`));
+  view.querySelectorAll("[data-tr]").forEach(b => b.onclick = () => { S.tr = b.dataset.tr; save(); renderChapter(book, ch); });
   view.onscroll = () => { if(sub && sub.type === "chapter" && !readSet.has(key) && view.scrollTop + view.clientHeight >= view.scrollHeight - 60 && view.scrollHeight > view.clientHeight + 100){ readSet.add(key); persist(); const b = $("#markRead"); if(b){ b.className = "btn ghost block"; b.innerHTML = ic("check","sm") + "Read · tap to undo"; } } };
 }
 view.addEventListener("scroll", () => {}, {passive:true});
@@ -1398,6 +1418,7 @@ function openSettings(){
     <div class="field"><label for="setName">Your first name</label><input class="input" id="setName" value="${esc(S.name)}" placeholder="First name" autocomplete="given-name"></div>
     <button class="li card flat" id="setPeople" style="border-top:1px solid var(--line)"><div class="txt"><b>People I pray for</b><span class="sub">${(S.people || []).length ? esc(joinNames(S.people)) : "Add up to three"}${S.hope ? " · Hoping for: " + esc(S.hope) : ""}</span></div>${ic("chev","chev")}</button>
     <div class="card flat stack"><div><b>Teaching view</b><p class="muted small" style="margin:2px 0 0">${isCatholic() ? "Full Catholic view: names the Catechism, the sacraments, Mary and the saints." : "General Christian view, rooted in the same teaching."}</p></div><div class="segctl"><button id="viewChr" class="${isCatholic() ? "" : "on"}">Christian</button><button id="viewCat" class="${isCatholic() ? "on" : ""}">Catholic</button></div></div>
+    <div class="card flat stack"><div><b>Bible translation</b><p class="muted small" style="margin:2px 0 0">For reading chapters in the Bible tab. Daily readings use Douay-Rheims.</p></div><div class="segctl" style="grid-template-columns:repeat(3,1fr)">${Object.keys(TR).map(k => `<button data-str="${k}" class="${trCur() === k ? "on" : ""}">${esc(TR[k].short)}</button>`).join("")}</div></div>
     <div class="list">
       <div class="li"><div class="txt"><b>Highlight saints’ days</b><span class="sub">A short card on Today with the saint and a verse</span></div><button class="switch" id="setSaints" role="switch" aria-checked="${S.saints ? "true" : "false"}" aria-label="Highlight saints' days"></button></div>
       <button class="li" id="setPlan"><div class="txt"><b>Bible reading plan</b><span class="sub">${S.plan ? esc(planLabel(S.plan.days)) + " · " + planPerDay() + " chapter" + (planPerDay() > 1 ? "s" : "") + " a day" : "Not set · read the whole Bible at your pace"}</span></div>${ic("chev","chev")}</button>
@@ -1405,13 +1426,13 @@ function openSettings(){
       <button class="li" id="setWho"><div class="txt"><b>Who’s reading</b><span class="sub">${S.status ? esc(STATUS[S.status]) : "Not set"} · shapes the daily step</span></div>${ic("chev","chev")}</button>
       <div class="li"><div class="txt"><b>Reading text size</b><span class="sub">For verses, chapters and prayers</span></div><div class="row-btns"><button class="icon-btn" id="fsDown" aria-label="Smaller">A−</button><button class="icon-btn" id="fsUp" aria-label="Larger">A+</button></div></div>
       <div class="li"><div class="txt"><b>Don’t leave God in the PrayerChair</b><span class="sub">4 one-line reminders · ${NUDGE_TIMES.map(fmtTime).join(", ")}</span></div><button class="switch" id="setNudge" role="switch" aria-checked="${S.nudges ? "true" : "false"}" aria-label="Reminders through the day"></button></div>
-      <div class="li"><div class="txt"><b>Today’s seven reminder</b><span class="sub">${fmtTime(S.remind)} · in the phone app</span></div><button class="switch" id="setRemind" role="switch" aria-checked="${S.remindOn !== false ? "true" : "false"}" aria-label="Daily reading reminder"></button></div>
+      <button class="li" id="setRemind"><div class="txt"><b>Daily reading reminder</b><span class="sub">${S.remindOn !== false ? fmtTime(S.remind) + " each day" : "Off"}</span></div>${ic("chev","chev")}</button>
     </div>
     <div class="card flat stack"><span class="label">Your streak</span><div class="stats"><div class="stat"><b class="num">${liveStreak()}</b><span>current</span></div><div class="stat"><b class="num">${S.best}</b><span>best</span></div><div class="stat"><b class="num">${S.freezes}</b><span>freezes</span></div></div>
       <p class="muted small" style="margin:0">Miss a day and a freeze keeps your streak. You earn one every 7 days, up to 2.</p></div>
     <button class="btn quiet block" id="replay">Show the welcome screen</button>
     <button class="btn quiet block danger" id="reset">Reset all progress</button>
-    <p class="muted small" style="margin:0; text-align:center">PrayerChair · Scripture: Douay-Rheims Bible, Challoner revision (public domain). ${isCatholic() ? "“What this means” draws on the Catechism of the Catholic Church and Catholic commentaries such as Haydock; sources are listed under each one." : "“What this means” draws on the Catechism and classic Christian commentaries; sources are listed under each one."} Psalms use the traditional numbering; the newer number is shown in brackets. Everything stays on this device.</p>`,
+    <p class="muted small" style="margin:0; text-align:center">PrayerChair · Scripture: Douay-Rheims Bible, Challoner revision; King James Version; Berean Standard Bible (all public domain). ${isCatholic() ? "“What this means” draws on the Catechism of the Catholic Church and Catholic commentaries such as Haydock; sources are listed under each one." : "“What this means” draws on the Catechism and classic Christian commentaries; sources are listed under each one."} Psalms use the traditional numbering; the newer number is shown in brackets. Everything stays on this device.</p>`,
   (sh, close) => {
     const nm = $("#setName", sh); nm.oninput = () => { S.name = nm.value.trim().slice(0, 30); save(); };
     $("#setNeed", sh).onclick = () => { close(); onboard(1, true); };
@@ -1425,8 +1446,8 @@ function openSettings(){
     $("#replay", sh).onclick = () => { close(); welcome(true); };
     $("#setNudge", sh).onclick = async () => { const sw = $("#setNudge", sh); sw.setAttribute("aria-checked", !S.nudges ? "true" : "false"); await setNudges(!S.nudges); sw.setAttribute("aria-checked", S.nudges ? "true" : "false"); if(tab === "today") renderToday(); };
     $("#setSaints", sh).onclick = () => { S.saints = !S.saints; save(); $("#setSaints", sh).setAttribute("aria-checked", S.saints ? "true" : "false"); if(tab === "today") renderToday(); };
-    $("#setRemind", sh).onclick = async () => { const sw = $("#setRemind", sh); S.remindOn = S.remindOn === false; save(); sw.setAttribute("aria-checked", S.remindOn ? "true" : "false");
-      if(S.remindOn && LN){ const ok = await scheduleAlerts(true); if(ok === false){ toast("Allow notifications for PrayerChair in your phone’s settings", "bell"); } else toast("Morning reminder on", "bell"); } else scheduleAlerts(false); };
+    $("#setRemind", sh).onclick = () => { close(); remindSheet(); };
+    sh.querySelectorAll("[data-str]").forEach(b => b.onclick = () => { S.tr = b.dataset.str; save(); loadTr(S.tr); close(); render(); openSettings(); toast(TR[S.tr].name, "book"); });
     const rs = $("#reset", sh); let armed = false;
     rs.onclick = () => {
       if(!armed){ armed = true; rs.textContent = "Tap again to erase streak, saved verses and reading"; return; }
@@ -1435,6 +1456,17 @@ function openSettings(){
     };
     sh.addEventListener("remove", () => {});
   });
+}
+function remindSheet(){
+  const times = ["06:00","07:00","08:00","12:00","18:00","21:00"], on = S.remindOn !== false;
+  sheet("Daily reading reminder", `<p class="muted small" style="margin:0">One reminder a day to open your daily reading.</p>
+    <div class="chips" style="flex-wrap:wrap">${times.map(x => `<button class="chip ${on && S.remind === x ? "on" : ""}" data-t="${x}">${fmtTime(x)}</button>`).join("")}<button class="chip ${on ? "" : "on"}" data-t="">Off</button></div>`,
+  (sh, close) => { sh.querySelectorAll("[data-t]").forEach(b => b.onclick = async () => {
+    if(b.dataset.t){ S.remind = b.dataset.t; S.remindOn = true; } else S.remindOn = false;
+    save(); close(); openSettings();
+    if(S.remindOn && LN){ const ok = await scheduleAlerts(true); if(ok === false) toast("Allow notifications for PrayerChair in your phone’s settings", "bell"); else toast("Reminder set for " + fmtTime(S.remind), "bell"); }
+    else { scheduleAlerts(false); toast(S.remindOn ? "Reminder set for " + fmtTime(S.remind) : "Daily reminder off", "bell"); }
+  }); });
 }
 let obDraft = null;
 const OB_TITLES = ["What’s your first name?", "Verse focus (optional)", "Who’s reading?", "Who do you pray for?", "Don’t leave God in the PrayerChair"];
@@ -1479,7 +1511,6 @@ function onboard(pos, single){
         S.welcomed = true; if(!single || step === 4) S.nudges = !!obDraft.nudges;
         if(needChanged && S.daily.seen === 0) buildDaily(true);
         save(); obDraft = null; close(); render(); scheduleAlerts(true);
-        if(!single) setTimeout(() => openDeck("seven"), 250);
         return;
       }
       onboard(pos+1, false);
@@ -1514,7 +1545,6 @@ function welcome(){
     S.nudges = nudgeOn;
     save(); ov.remove(); tab = "today"; sub = null; render(); scheduleAlerts(true);
     if(then === "settings") setTimeout(openSettings, 250);
-    else setTimeout(() => openDeck("seven"), 250);
   };
   const top = (skip) => `<div class="logo" style="justify-content:space-between"><div class="logo"><div class="logo-tile">${ic("chair")}</div><div class="wordmark">Prayer<span>Chair</span></div></div>${skip ? `<button class="link" id="iSkip">Skip</button>` : ""}</div>`;
   const dots = () => `<div class="dots" aria-hidden="true">${[...INTRO, 0, 0].map((_,k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`;
@@ -1595,6 +1625,7 @@ function drawLamp(c){ // a chair by a window of light, drawn once
 if(!S.start){ S.start = todayKey(); save(); }
 buildDaily(false);
 scheduleAlerts(false);
+if(trCur() !== "drb") loadTr(trCur());
 render();
 window.__pcReady=1;
 if(!S.welcomed) welcome();
