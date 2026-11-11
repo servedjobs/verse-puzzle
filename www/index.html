@@ -818,9 +818,9 @@ function render(){
   document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === hiTab));
   const playing = tab === "play";
   view.hidden = playing; playhost.hidden = !playing;
-  const tb = document.getElementById("tabbar"); if(tb) tb.hidden = playing && (S.pane || "cw") === "cw"; // the crossword needs the room for its keyboard
+  const tb = document.getElementById("tabbar"); if(tb) tb.hidden = false; // always there, so Games is easy to leave and come back to
   topbar.classList.remove("scrolled");
-  if(playing){ if((S.pane || "cw") === "cw") bar({back: () => { tab = "today"; sub = null; render(); }, title: "Word games"}); else bar(); mountPlay(); return; }
+  if(playing){ bar(); mountPlay(); return; }
   view.scrollTop = 0;
   if(tab === "today") renderToday();
   else if(tab === "bible") renderBible();
@@ -1172,12 +1172,14 @@ function renderChapter(book, ch, hl){
 view.addEventListener("scroll", () => {}, {passive:true});
 
 /* ---------- sheets ---------- */
+let backToSettings = false; // set when Settings opens a sub-screen, so closing it lands back in Settings
 function sheet(title, body, onMount){
   const bd = document.createElement("div"); bd.className = "backdrop";
   const sh = document.createElement("div"); sh.className = "sheet"; sh.setAttribute("role","dialog"); sh.setAttribute("aria-label", title);
   sh.innerHTML = `<div class="grab"></div><div class="sh-head"><h2>${esc(title)}</h2><button class="icon-btn plain" data-close aria-label="Close">${ic("x")}</button></div><div class="sh-body">${body}</div>`;
   app.appendChild(bd); app.appendChild(sh);
-  const close = () => { bd.remove(); sh.remove(); };
+  const close = () => { bd.remove(); sh.remove();
+    if(backToSettings) setTimeout(() => { if(backToSettings && !document.querySelector(".sheet,.overlay")){ backToSettings = false; openSettings(); } }, 80); };
   bd.onclick = close; sh.querySelector("[data-close]").onclick = close;
   if(onMount) onMount(sh, close);
   return close;
@@ -1515,22 +1517,25 @@ function openSettings(){
     <div class="card flat stack"><span class="label">Your streak</span><div class="stats"><div class="stat"><b class="num">${liveStreak()}</b><span>current</span></div><div class="stat"><b class="num">${S.best}</b><span>best</span></div><div class="stat"><b class="num">${S.freezes}</b><span>freezes</span></div></div>
       <p class="muted small" style="margin:0">Miss a day and a freeze keeps your streak. You earn one every 7 days, up to 2.</p></div>
     <button class="btn quiet block" id="replay">Show the welcome screen</button>
+    <button class="btn primary block" id="setDone">Done</button>
     <button class="btn quiet block danger" id="reset">Reset all progress</button>
     <p class="muted small" style="margin:0; text-align:center">PrayerChair · Scripture: Douay-Rheims Bible, Challoner revision; King James Version; Berean Standard Bible (all public domain). ${isCatholic() ? "“What this means” draws on the Catechism of the Catholic Church and Catholic commentaries such as Haydock; sources are listed under each one." : "“What this means” draws on the Catechism and classic Christian commentaries; sources are listed under each one."} Psalms use the traditional numbering; the newer number is shown in brackets. Everything stays on this device.</p>`,
   (sh, close) => {
     const nm = $("#setName", sh); nm.oninput = () => { S.name = nm.value.trim().slice(0, 30); save(); };
-    $("#setNeed", sh).onclick = () => { close(); onboard(1, true); };
-    $("#setPlan", sh).onclick = () => { close(); planSheet(); };
-    $("#setPeople", sh).onclick = () => { close(); onboard(3, true); };
+    const child = fn => () => { backToSettings = true; close(); fn(); };
+    $("#setNeed", sh).onclick = child(() => onboard(1, true));
+    $("#setPlan", sh).onclick = child(planSheet);
+    $("#setPeople", sh).onclick = child(() => onboard(3, true));
+    $("#setDone", sh).onclick = () => { backToSettings = false; close(); };
     const setView = v => { S.view = v; save(); buildNotes(); close(); render(); openSettings(); toast(v === "catholic" ? "Catholic view on" : "Christian view on"); };
     $("#viewChr", sh).onclick = () => setView("christian"); $("#viewCat", sh).onclick = () => setView("catholic");
-    $("#setWho", sh).onclick = () => { close(); onboard(2, true); };
+    $("#setWho", sh).onclick = child(() => onboard(2, true));
     $("#fsDown", sh).onclick = () => { S.fs = Math.max(0, S.fs-1); applyFs(); save(); };
     $("#fsUp", sh).onclick = () => { S.fs = Math.min(FS.length-1, S.fs+1); applyFs(); save(); };
-    $("#replay", sh).onclick = () => { close(); welcome(true); };
+    $("#replay", sh).onclick = () => { backToSettings = false; close(); welcome(true); };
     $("#setNudge", sh).onclick = async () => { const sw = $("#setNudge", sh); sw.setAttribute("aria-checked", !S.nudges ? "true" : "false"); await setNudges(!S.nudges); sw.setAttribute("aria-checked", S.nudges ? "true" : "false"); if(tab === "today") renderToday(); };
     $("#setSaints", sh).onclick = () => { S.saints = !S.saints; save(); $("#setSaints", sh).setAttribute("aria-checked", S.saints ? "true" : "false"); if(tab === "today") renderToday(); };
-    $("#setRemind", sh).onclick = () => { close(); remindSheet(); };
+    $("#setRemind", sh).onclick = child(remindSheet);
     sh.querySelectorAll("[data-str]").forEach(b => b.onclick = () => { S.tr = b.dataset.str; save(); loadTr(S.tr); close(); render(); openSettings(); toast(TR[S.tr].name, "book"); });
     const rs = $("#reset", sh); let armed = false;
     rs.onclick = () => {
@@ -1547,7 +1552,7 @@ function remindSheet(){
     <div class="chips" style="flex-wrap:wrap">${times.map(x => `<button class="chip ${on && S.remind === x ? "on" : ""}" data-t="${x}">${fmtTime(x)}</button>`).join("")}<button class="chip ${on ? "" : "on"}" data-t="">Off</button></div>`,
   (sh, close) => { sh.querySelectorAll("[data-t]").forEach(b => b.onclick = async () => {
     if(b.dataset.t){ S.remind = b.dataset.t; S.remindOn = true; } else S.remindOn = false;
-    save(); close(); openSettings();
+    save(); close();
     if(S.remindOn && LN){ const ok = await scheduleAlerts(true); if(ok === false) toast("Allow notifications for PrayerChair in your phone’s settings", "bell"); else toast("Reminder set for " + fmtTime(S.remind), "bell"); }
     else { scheduleAlerts(false); toast(S.remindOn ? "Reminder set for " + fmtTime(S.remind) : "Daily reminder off", "bell"); }
   }); });
@@ -1638,12 +1643,11 @@ function welcome(){
     if($("#iBack", ov)) $("#iBack", ov).onclick = () => { i--; draw(); }; };
   const draw = () => {
     if(i === 0){
-      shell(`<div class="art" aria-hidden="true"><canvas id="lamp" width="300" height="150" style="width:300px; max-width:100%; height:auto"></canvas></div>
+      shell(`<div class="art" aria-hidden="true" style="margin:0 0 6px"><img src="img/jesus.jpg" alt="" style="display:block; width:100%; max-height:34vh; object-fit:cover; object-position:50% 30%; border-radius:22px; box-shadow:0 18px 40px rgba(0,0,0,.35)"></div>
         ${step()}<h1>Sit with God for <em>one minute</em> a day.</h1>
         <p class="lead">PrayerChair is free, private and works offline. Here’s what’s inside:</p>
         <div class="ib-card" style="display:grid; gap:12px">${[["sun","Daily","A short reading, what it means, a prayer and one step for today."],["book","Bible","The whole Bible, at your own pace."],["puzzle","Games","A daily crossword and verse puzzles, alone or with someone."]].map(([icn,h,d]) => `<div style="display:flex; gap:10px; align-items:flex-start">${ic(icn,"sm")}<div style="font-size:14.5px; line-height:1.35"><b style="color:#fff">${h}</b><br>${d}</div></div>`).join("")}</div>`,
         `<button class="btn primary block" id="iNext">Get started</button>`);
-      drawLamp($("#lamp", ov));
       $("#iNext", ov).onclick = () => { i++; draw(); };
     } else if(i === 1){
       shell(`<div class="intro-ico">${ic("user","lg")}</div>${step()}<h1>What’s your first name?</h1>
