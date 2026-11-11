@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script>(function(){var shown=0;function show(m){if(shown++>2)return;var d=document.getElementById('pc-err');if(!d){d=document.createElement('div');d.id='pc-err';d.style.cssText='position:fixed;left:8px;right:8px;top:40px;z-index:99999;background:#7f1d1d;color:#fff;font:13px/1.4 monospace;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all';(document.body||document.documentElement).appendChild(d)}d.textContent+=(d.textContent?'\n':'')+'PrayerChair error (send Erik a screenshot):\n'+m}window.addEventListener('error',function(e){show((e.message||'error')+' @'+(e.lineno||'?')+':'+(e.colno||'?'))});window.addEventListener('unhandledrejection',function(e){show('promise: '+((e.reason&&(e.reason.message||e.reason))||'?'))});window.__pcBoot=Date.now();setTimeout(function(){if(!window.__pcReady)show('app did not start within 15s (ua: '+navigator.userAgent+')')},15000)})();</script>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <style>@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format('woff2')}@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format('woff2')}@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2')}@font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/inter-latin-700-normal.woff2) format('woff2')}@font-face{font-family:'Source Serif 4';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/source-serif-4-latin-400-normal.woff2) format('woff2')}@font-face{font-family:'Source Serif 4';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/source-serif-4-latin-600-normal.woff2) format('woff2')}@font-face{font-family:'Source Serif 4';font-style:italic;font-weight:400;font-display:swap;src:url(fonts/source-serif-4-latin-400-italic.woff2) format('woff2')}html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>PrayerChair</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -106,7 +106,7 @@ input{font:inherit; color:inherit}
 .ib-games b{color:#FBBF24; font-size:15px}
 .ib-games span{font-size:13px; line-height:1.35; color:#CBD5E1}
 .ib-list span{display:flex; gap:10px; align-items:center; font-size:15px}
-.tabbar{flex:none; display:grid; grid-template-columns:repeat(2,1fr); border-top:1px solid var(--line); background:var(--surface);
+.tabbar{flex:none; display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--line); background:var(--surface);
   padding:0 max(0px, env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(0px, env(safe-area-inset-left,0px))}
 .tab{border:0; background:none; height:var(--tab-h); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:var(--ink-4); font-size:11.5px; font-weight:600}
 .tab.on{color:var(--brand-text)}
@@ -303,6 +303,14 @@ input{font:inherit; color:inherit}
 .cw-scroll{flex:1; overflow-y:auto; padding:0 max(16px, env(safe-area-inset-right,0px)) 12px max(16px, env(safe-area-inset-left,0px))}
 .cw-head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin:0 0 8px}
 .cw-ic{display:flex; gap:6px}
+html,body,button{touch-action:manipulation}
+.cw-tools{display:flex; gap:5px}
+.cw-tools button{display:inline-flex; align-items:center; gap:4px; white-space:nowrap; font:600 12.5px/1 var(--font); padding:7px 9px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink)}
+.cw-tools button:disabled{opacity:.45}
+.cw-tools button b{color:var(--brand-text)}
+.cw-tip{font-size:12px; color:var(--ink-3); margin:0 0 6px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.cw-help li{margin:0 0 10px; line-height:1.4}
+.cw-help b{color:var(--ink)}
 .cw-ic .icon-btn{position:relative; width:34px; height:34px}
 .cw-badge{position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; border-radius:8px; background:var(--brand); color:#fff; font-size:10px; font-weight:700; line-height:16px; text-align:center}
 .cw-head h2{margin:0; font-size:var(--t-lg); letter-spacing:-.3px}
@@ -319,9 +327,9 @@ input{font:inherit; color:inherit}
 .cw-clue .txt{flex:1; min-width:0; font-family:var(--read); font-size:15px; line-height:1.32; color:var(--ink); max-height:5.4em; overflow-y:auto}
 .cw-clue .txt b{font-family:var(--font); font-size:var(--t-xs); letter-spacing:.06em; text-transform:uppercase; color:var(--brand-text); display:block; margin-bottom:2px}
 .cw-clue .txt small{font-family:var(--font); color:var(--ink-4); font-size:var(--t-xs)}
-.kb{flex:none; display:grid; gap:5px; padding:6px max(4px, env(safe-area-inset-right,0px)) max(8px, env(safe-area-inset-bottom,0px)) max(4px, env(safe-area-inset-left,0px))}
+.kb{flex:none; display:grid; gap:4px; padding:5px max(4px, env(safe-area-inset-right,0px)) max(8px, env(safe-area-inset-bottom,0px)) max(4px, env(safe-area-inset-left,0px))}
 .kb .r{display:flex; gap:5px; justify-content:center}
-.kb button{flex:1; max-width:40px; height:42px; border-radius:8px; border:1px solid var(--line); background:var(--surface); font-weight:700; font-size:15px; color:var(--ink); padding:0; box-shadow:0 1px 0 var(--line-2)}
+.kb button{flex:1; max-width:40px; height:38px; border-radius:8px; border:1px solid var(--line); background:var(--surface); font-weight:700; font-size:15px; color:var(--ink); padding:0; box-shadow:0 1px 0 var(--line-2)}
 .kb button.w{max-width:58px; flex:1.5}
 .cw-tools{display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap}
 .cw-list{display:grid; gap:10px; margin-top:6px}
@@ -348,6 +356,7 @@ input{font:inherit; color:inherit}
     <nav class="tabbar" id="tabbar">
       <button class="tab" data-tab="today"><svg class="ico" viewBox="0 0 24 24"><use href="#i-sun"/></svg>Daily</button>
       <button class="tab" data-tab="bible"><svg class="ico" viewBox="0 0 24 24"><use href="#i-book"/></svg>Bible</button>
+      <button class="tab" data-tab="play"><svg class="ico" viewBox="0 0 24 24"><use href="#i-puzzle"/></svg>Games</button>
     </nav>
   </div>
 </div>
@@ -805,13 +814,13 @@ view.addEventListener("scroll", () => topbar.classList.toggle("scrolled", view.s
 
 function render(){
   view.onscroll = null;
-  const hiTab = tab === "play" ? "today" : tab === "saved" ? "bible" : tab;
+  const hiTab = tab === "saved" ? "bible" : tab;
   document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === hiTab));
   const playing = tab === "play";
   view.hidden = playing; playhost.hidden = !playing;
-  const tb = document.getElementById("tabbar"); if(tb) tb.hidden = playing;
+  const tb = document.getElementById("tabbar"); if(tb) tb.hidden = playing && (S.pane || "cw") === "cw"; // the crossword needs the room for its keyboard
   topbar.classList.remove("scrolled");
-  if(playing){ bar({back: () => { tab = "today"; sub = null; render(); }, title: "Word games"}); mountPlay(); return; }
+  if(playing){ if((S.pane || "cw") === "cw") bar({back: () => { tab = "today"; sub = null; render(); }, title: "Word games"}); else bar(); mountPlay(); return; }
   view.scrollTop = 0;
   if(tab === "today") renderToday();
   else if(tab === "bible") renderBible();
@@ -860,13 +869,17 @@ function renderToday(){
     <section class="card stack">
       <span class="label" style="display:flex; gap:6px; align-items:center">${ic("hands","sm")}Your prayer for today · ${esc(r.prayer.title)}</span>
       ${personalPrayer(r.prayer.text, new Date()).map(x => `<p class="prose" style="font-style:italic">${esc(x)}</p>`).join("")}
+      <div class="row-btns"><button class="btn quiet sm" id="sharePr">${ic("share","sm")}Share prayer</button></div>
       <button class="linkbtn" id="editPeople">${(S.people || []).filter(Boolean).length ? `Praying for ${esc(joinNames(S.people.filter(Boolean)))} · edit` : "Add the people you pray for"} ${ic("chev","sm")}</button>
     </section>
 
     <section class="card stack">
       <span class="label" style="display:flex; gap:6px; align-items:center">${ic("step","sm")}One step for today</span>
       ${actionHTML}
+      ${S.status ? `<div class="row-btns"><button class="btn quiet sm" id="shareStep">${ic("share","sm")}Share step</button></div>` : ""}
     </section>
+
+    <button class="btn primary block" id="shareAll">${ic("share","sm")}Send today’s reading in a text</button>
 
     <section class="card" style="display:flex; gap:14px; align-items:center">
       <div class="logo-tile" style="width:44px; height:44px; border-radius:12px">${ic("puzzle")}</div>
@@ -887,6 +900,13 @@ function renderToday(){
   if($("#chgStatus")) $("#chgStatus").onclick = () => { S.status = null; save(); renderToday(); };
   view.querySelectorAll("#statusChips .chip").forEach(c => c.onclick = () => { S.status = c.dataset.s; save(); renderToday(); });
   $("#goPlay").onclick = () => { tab = "play"; S.pane = "cw"; render(); };
+  const day = new Date().toLocaleDateString(undefined,{weekday:"long", month:"long", day:"numeric"});
+  const prTxt = () => `🙏 ${r.prayer.title}\n\n${personalPrayer(r.prayer.text, new Date()).join("\n\n")}`;
+  const stepTxt = () => S.status ? `✅ One step for today\n${r[S.status]}` : "";
+  const tail = "\n\nFrom PrayerChair · prayerchair.app";
+  $("#sharePr").onclick = () => shareText(prTxt() + tail);
+  if($("#shareStep")) $("#shareStep").onclick = () => shareText(stepTxt() + tail);
+  $("#shareAll").onclick = () => shareText([`📖 Today’s reading · ${day}`, `“${v[1]}”\n${v[0]}`, `What this means\n${r.p1}`, prTxt(), stepTxt()].filter(Boolean).join("\n\n") + tail);
 }
 
 function maybeAskNudges(){
@@ -1187,7 +1207,7 @@ function mountPlay(){
     playMounted = true;
     playhost.innerHTML = `<div class="playbar"><div class="segctl" role="tablist"><button data-p="cw">Crossword</button><button data-p="vp">Verse puzzles</button></div></div>
       <div class="pane" id="cwPane"></div><div class="pane" id="vpPane" hidden></div>`;
-    playhost.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { S.pane = b.dataset.p; save(); showPane(); });
+    playhost.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { S.pane = b.dataset.p; save(); render(); });
   }
   showPane();
 }
@@ -1322,8 +1342,8 @@ function renderCW(){
   const keys = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
   pane.innerHTML = `
     <div class="cw-scroll">
-      <div class="cw-head"><span class="muted small"><b style="color:var(--ink)">Today’s crossword</b> · ${solvedCount} of ${CW.words.length} solved</span>
-        ${st.done ? `<span class="pill">${ic("check","sm")}Solved</span>` : `<div class="cw-ic"><button class="icon-btn" id="cwCheck" aria-label="Check answers" title="Check">${ic("check","sm")}</button><button class="icon-btn" id="cwHint" aria-label="Reveal a letter" title="Reveal a letter (${st.hints} left)" ${st.hints ? "" : "disabled"}>${ic("light","sm")}<span class="cw-badge">${st.hints}</span></button><button class="icon-btn" id="cwList" aria-label="All clues" title="All clues">${ic("search","sm")}</button></div>`}</div>
+      <div class="cw-head"><span class="muted small"><b style="color:var(--ink)">${solvedCount}/${CW.words.length}</b> solved</span>
+        ${st.done ? `<span class="pill">${ic("check","sm")}Solved</span>` : `<div class="cw-tools"><button id="cwHelp" aria-label="How to play">? Help</button><button id="cwHint" ${st.hints ? "" : "disabled"}>Hint <b>${st.hints}</b></button><button id="cwCheck">Check</button><button id="cwList">Clues</button></div>`}</div>
       <div class="cw-grid" style="grid-template-columns:repeat(${CW.cols}, ${size}px)">${cells}</div>
       ${st.done ? `<div class="card stack" style="margin-top:14px"><h3>Solved. Well done.</h3><p class="muted small" style="margin:0">Here are the verses behind today’s words.</p>
           <div class="list">${CW.words.map(x => `<button class="li" data-g="${x.g}"><div class="txt"><b class="ref">${esc(refOf(x.g))} · ${x.ans}</b><span class="sub" style="font-family:var(--read); font-size:15px; color:var(--ink-2)">${esc(ALL[x.g].t)}</span></div></button>`).join("")}</div>
@@ -1342,6 +1362,8 @@ function renderCW(){
     renderCW();
   });
   pane.querySelectorAll(".kb [data-k]").forEach(b => b.onclick = () => cwKey(b.dataset.k));
+  if($("#cwHelp")) $("#cwHelp").onclick = cwHelp;
+  if(!st.done && !S.cwHelpSeen){ S.cwHelpSeen = true; save(); setTimeout(cwHelp, 300); }
   if($("#cwPrev")) $("#cwPrev").onclick = () => jumpWord(-1);
   if($("#cwNext")) $("#cwNext").onclick = () => jumpWord(1);
   if($("#cwCheck")) $("#cwCheck").onclick = () => {
@@ -1369,13 +1391,27 @@ function renderCW(){
     });
   }
 }
+function cwHelp(){
+  sheet("How to play the crossword", `<ol class="cw-help" style="padding-left:20px; margin:0">
+    <li><b>Read the clue</b> in the yellow bar at the bottom. Each clue is a Bible verse with one word missing.</li>
+    <li><b>Tap a square</b> to choose where to type. The highlighted squares are the word you’re filling in.</li>
+    <li><b>Type with the letter keys</b> at the bottom. You move to the next square on your own.</li>
+    <li><b>Made a mistake?</b> Tap ⌫ to delete a letter and step back.</li>
+    <li><b>Across or down?</b> Tap the same square again, or tap the →/↓ key, to switch direction.</li>
+    <li><b>Next or previous clue:</b> tap the arrows on either side of the clue.</li>
+    <li><b>Stuck?</b> Tap <b>Hint</b> to fill in one letter (3 hints a day). Tap <b>Check</b> to see wrong letters in red.</li>
+    <li><b>Finish</b> by filling every square correctly. You’ll see all the verses behind the answers, and you can play another.</li></ol>`,
+    (sh, close) => {});
+}
 function fitGrid(pane){
   const sc = pane.querySelector(".cw-scroll"), grid = pane.querySelector(".cw-grid"), head = pane.querySelector(".cw-head");
   if(!sc || !grid || S.cw.done) return;
-  const room = sc.clientHeight - head.offsetHeight - 14, wide = sc.clientWidth - 28;
-  const size = Math.max(18, Math.min(46, Math.floor(wide / CW.cols) - 2, Math.floor((room - 4) / CW.rows) - 2));
+  const extra = [".cw-tools", ".cw-tip"].reduce((n, s) => { const e = pane.querySelector(s); return n + (e ? e.offsetHeight + 6 : 0); }, 0);
+  const room = sc.clientHeight - head.offsetHeight - extra - 14, wide = sc.clientWidth - 28;
+  const size = Math.max(24, Math.min(46, Math.floor(wide / CW.cols) - 2, Math.floor((room - 4) / CW.rows) - 2));
   grid.style.gridTemplateColumns = `repeat(${CW.cols}, ${size}px)`;
   grid.querySelectorAll(".cw-c[data-r]").forEach(c => { c.style.width = c.style.height = size + "px"; c.style.fontSize = Math.round(size * .54) + "px"; });
+  const selC = grid.querySelector(".cw-c.sel"); if(selC && sc.scrollHeight > sc.clientHeight) selC.scrollIntoView({block:"nearest"}); // big grids scroll; keep the square you're on in view
 }
 function moveSel(dr, dc){
   let r = cwSel.r + dr, c = cwSel.c + dc;
@@ -1407,6 +1443,8 @@ function afterFill(wordDone){
   for(let r=0;r<CW.rows;r++) for(let c=0;c<CW.cols;c++) if(CW.sol[r][c] && st.fill[cellKey(r,c)] !== CW.sol[r][c]) all = false;
   if(all){ st.done = true; save(); renderCW(); if(navigator.vibrate) try{ navigator.vibrate(30); }catch(e){} toast("Crossword solved", "check"); return; }
   save();
+  let full = true; for(let r=0;r<CW.rows;r++) for(let c=0;c<CW.cols;c++) if(CW.sol[r][c] && !st.fill[cellKey(r,c)]) full = false;
+  if(full) toast("Every square is filled, but some letters are wrong. Tap Check to see them.", "x");
   if(wordDone){ const w = curWord(); const ok = [...w.ans].every((ch,j) => st.fill[cellKey(w.r + (w.d ? j : 0), w.c + (w.d ? 0 : j))] === ch); if(ok){ jumpWord(1); return; } }
   renderCW();
 }
