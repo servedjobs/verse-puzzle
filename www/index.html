@@ -804,7 +804,7 @@ function bar(opts={}){
     ? `<button class="icon-btn plain" id="tbBack" aria-label="Back">${ic("back")}</button><div class="grow title">${esc(opts.title||"")}</div>`
     : `<div class="grow logo"><div class="logo-tile">${ic("chair")}</div><div class="wordmark">Prayer<span>Chair</span></div></div>`;
   topbar.innerHTML = left + (opts.right || "") +
-    `<button class="streak num ${warm?"":"cold"}" id="tbStreak" title="${warm?"Today's seven are done":"Read today's seven to keep your streak"}">${ic("flame","sm")}${s}</button>` +
+    `<button class="streak num ${warm?"":"cold"}" id="tbStreak" title="${warm?"Done for today":"Open today’s reading to keep your streak"}">${ic("flame","sm")}${s}</button>` +
     `<button class="icon-btn" id="tbMe" aria-label="Settings">${ic("user")}</button>`;
   if(opts.back) $("#tbBack").onclick = opts.back;
   $("#tbStreak").onclick = () => { tab = "bible"; sub = null; render(); };
@@ -906,6 +906,10 @@ function renderToday(){
   const tail = "\n\nFrom PrayerChair · prayerchair.app";
   $("#sharePr").onclick = () => shareText(prTxt() + tail);
   if($("#shareStep")) $("#shareStep").onclick = () => shareText(stepTxt() + tail);
+  view.onscroll = () => { // reading today's page to the end counts for the streak
+    if(tab !== "today" || doneToday()) return;
+    if(view.scrollTop + view.clientHeight >= view.scrollHeight - 140 && completeDay()){ bar(); toast(liveStreak() > 1 ? `Day ${liveStreak()} in a row. See you tomorrow.` : "Day one done. See you tomorrow.", "flame"); }
+  };
   $("#shareAll").onclick = () => shareText([`📖 Today’s reading · ${day}`, `“${v[1]}”\n${v[0]}`, `What this means\n${r.p1}`, prTxt(), stepTxt()].filter(Boolean).join("\n\n") + tail);
 }
 
@@ -1306,11 +1310,42 @@ function genCW(seed){
   return null;
 }
 let CW = null, cwSel = {r:0, c:0, d:0}, cwKeyBound = false;
-function cwId(){ return todayKey() + "#" + (S.cwPractice || 0); }
+function cwSeed(){ return S.cwChal ? S.cwChal.seed : dayOfYear() + new Date().getFullYear() * 400 + (S.cwPractice || 0) * 7919; }
+function cwId(){ return S.cwChal ? "c" + S.cwChal.seed : todayKey() + "#" + (S.cwPractice || 0); }
+const mmss = s => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+function chalCode(){ const st = S.cw; return cwSeed().toString(36).toUpperCase() + "-" + (st.done ? (st.secs || 0).toString(36).toUpperCase() + (3 - st.hints) : "0"); }
+function parseChal(code){
+  const m = String(code || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "").match(/^([A-Z0-9]{2,9})-([A-Z0-9]*?)([0-3]?)$/); if(!m) return null;
+  const seed = parseInt(m[1], 36); if(!seed) return null;
+  const secs = m[2] ? parseInt(m[2], 36) : 0; return {seed, secs: secs || 0, hints: secs ? +(m[3] || 0) : 0};
+}
+function startChallenge(c, by){
+  if(!S.cwChal) S.cwSaved = S.cw; // keep today's own crossword safe
+  S.cwChal = {seed:c.seed, secs:c.secs, hints:c.hints, by:(by || "").slice(0,30)}; S.cw = null; CW = null; save(); tab = "play"; S.pane = "cw"; render();
+}
+function endChallenge(){ S.cwChal = null; S.cw = S.cwSaved || null; S.cwSaved = null; CW = null; save(); render(); }
+function playTogether(){
+  const st = S.cw, chal = S.cwChal;
+  sheet("Play together", `<div class="stack">
+    <p class="muted small" style="margin:0">Send a code by text. You both solve the same crossword, then compare times. Fewer hints wins a tie.</p>
+    <button class="btn primary block" id="ptSend">${ic("share","sm")}${st && st.done ? `Challenge someone to beat ${mmss(st.secs || 0)}` : "Send this crossword as a challenge"}</button>
+    <div class="field"><label for="ptCode">Got a code from someone?</label><input class="input" id="ptCode" placeholder="Like K7Q2M-3F1" autocapitalize="characters" autocomplete="off" enterkeyhint="go" maxlength="16"></div>
+    <div class="field"><label for="ptBy">Who sent it? (optional)</label><input class="input" id="ptBy" placeholder="Their name" maxlength="30"></div>
+    <button class="btn quiet block" id="ptGo">Play their crossword</button>
+    ${chal ? `<button class="btn quiet block" id="ptBack">Back to my own crossword</button>` : ""}</div>`,
+  (sh, close) => {
+    $("#ptSend", sh).onclick = () => { const me = S.name ? S.name : "I";
+      const brag = st && st.done ? `${me === "I" ? "I" : me} solved this PrayerChair crossword in ${mmss(st.secs || 0)}${3 - st.hints ? ` with ${3 - st.hints} hint${3 - st.hints > 1 ? "s" : ""}` : " with no hints"}. Can you beat it?` : `${me === "I" ? "I'm" : me + " is"} playing this PrayerChair crossword. Race me!`;
+      shareText(`${brag}\n\nOpen PrayerChair → Games → 2 players, and enter this code:\n${chalCode()}\n\nprayerchair.app`); };
+    $("#ptGo", sh).onclick = () => { const c = parseChal($("#ptCode", sh).value); if(!c){ toast("That code doesn’t look right. Check it and try again.", "x"); return; } close(); startChallenge(c, $("#ptBy", sh).value.trim()); };
+    $("#ptCode", sh).onkeydown = e => { if(e.key === "Enter") $("#ptGo", sh).click(); };
+    if($("#ptBack", sh)) $("#ptBack", sh).onclick = () => { close(); endChallenge(); };
+  });
+}
 function loadCW(){
   const id = cwId();
   if(CW && CW.id === id) return;
-  const seed = dayOfYear() + new Date().getFullYear() * 400 + (S.cwPractice || 0) * 7919;
+  const seed = cwSeed();
   let puzzle = null; for(let k = 0; !puzzle && k < 20; k++) puzzle = genCW(seed + k * 31);
   if(!S.cw || S.cw.id !== id) S.cw = {id, fill:{}, rev:{}, done:false, hints:3};
   CW = {id, ...puzzle};
@@ -1342,10 +1377,13 @@ function renderCW(){
   const keys = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
   pane.innerHTML = `
     <div class="cw-scroll">
-      <div class="cw-head"><span class="muted small"><b style="color:var(--ink)">${solvedCount}/${CW.words.length}</b> solved</span>
-        ${st.done ? `<span class="pill">${ic("check","sm")}Solved</span>` : `<div class="cw-tools"><button id="cwHelp" aria-label="How to play">? Help</button><button id="cwHint" ${st.hints ? "" : "disabled"}>Hint <b>${st.hints}</b></button><button id="cwCheck">Check</button><button id="cwList">Clues</button></div>`}</div>
+      <div class="cw-head"><span class="muted small"><b style="color:var(--ink)">${solvedCount}/${CW.words.length}</b></span>
+        ${st.done ? `<span class="pill">${ic("check","sm")}Solved</span>` : `<div class="cw-tools"><button id="cwHelp" aria-label="How to play">?</button><button id="cwHint" ${st.hints ? "" : "disabled"}>Hint <b>${st.hints}</b></button><button id="cwCheck">Check</button><button id="cwList">Clues</button><button id="cwVs">${ic("share","sm")}2 players</button></div>`}</div>
+      ${S.cwChal && !st.done ? `<p class="cw-tip"><b>Challenge${S.cwChal.by ? " from " + esc(S.cwChal.by) : ""}</b>${S.cwChal.secs ? ` · beat ${mmss(S.cwChal.secs)}` : " · race them"} · <button class="linkbtn" id="cwLeave" style="display:inline">leave</button></p>` : ""}
       <div class="cw-grid" style="grid-template-columns:repeat(${CW.cols}, ${size}px)">${cells}</div>
-      ${st.done ? `<div class="card stack" style="margin-top:14px"><h3>Solved. Well done.</h3><p class="muted small" style="margin:0">Here are the verses behind today’s words.</p>
+      ${st.done ? `<div class="card stack" style="margin-top:14px"><h3>Solved in ${mmss(st.secs || 0)}. Well done.</h3>
+          ${S.cwChal && S.cwChal.secs ? (() => { const mine = st.secs || 0, mh = 3 - st.hints, th = S.cwChal.hints, win = mine < S.cwChal.secs || (mine === S.cwChal.secs && mh <= th); return `<p class="prose" style="margin:0"><b>${win ? "You win!" : "So close!"}</b> You: ${mmss(mine)}${mh ? ` · ${mh} hint${mh > 1 ? "s" : ""}` : ""}. ${esc(S.cwChal.by || "Them")}: ${mmss(S.cwChal.secs)}${th ? ` · ${th} hint${th > 1 ? "s" : ""}` : ""}.</p>`; })() : ""}
+          <div class="row-btns"><button class="btn quiet sm" id="cwVs2">${ic("share","sm")}${S.cwChal ? "Send my result" : "Challenge someone"}</button>${S.cwChal ? `<button class="btn quiet sm" id="cwLeave2">Back to my crossword</button>` : ""}</div><p class="muted small" style="margin:0">Here are the verses behind today’s words.</p>
           <div class="list">${CW.words.map(x => `<button class="li" data-g="${x.g}"><div class="txt"><b class="ref">${esc(refOf(x.g))} · ${x.ans}</b><span class="sub" style="font-family:var(--read); font-size:15px; color:var(--ink-2)">${esc(ALL[x.g].t)}</span></div></button>`).join("")}</div>
           <button class="btn primary block" id="cwMore">Play another crossword</button></div>`
       : ""}
@@ -1363,6 +1401,12 @@ function renderCW(){
   });
   pane.querySelectorAll(".kb [data-k]").forEach(b => b.onclick = () => cwKey(b.dataset.k));
   if($("#cwHelp")) $("#cwHelp").onclick = cwHelp;
+  if($("#cwVs")) $("#cwVs").onclick = playTogether;
+  if($("#cwLeave")) $("#cwLeave").onclick = endChallenge;
+  if($("#cwLeave2")) $("#cwLeave2").onclick = endChallenge;
+  if($("#cwVs2")) $("#cwVs2").onclick = () => { if(!S.cwChal){ playTogether(); return; }
+    const mine = st.secs || 0, mh = 3 - st.hints, win = !S.cwChal.secs || mine < S.cwChal.secs || (mine === S.cwChal.secs && mh <= S.cwChal.hints);
+    shareText(`I finished ${S.cwChal.by ? S.cwChal.by + "'s" : "your"} PrayerChair crossword in ${mmss(mine)}${mh ? ` with ${mh} hint${mh > 1 ? "s" : ""}` : " with no hints"}.${S.cwChal.secs ? (win ? " I win! 🏆" : " You win this one!") : ""}\n\nMy code if you want a rematch: ${chalCode()}`); };
   if(!st.done && !S.cwHelpSeen){ S.cwHelpSeen = true; save(); setTimeout(cwHelp, 300); }
   if($("#cwPrev")) $("#cwPrev").onclick = () => jumpWord(-1);
   if($("#cwNext")) $("#cwNext").onclick = () => jumpWord(1);
@@ -1380,7 +1424,7 @@ function renderCW(){
   if($("#cwList")) $("#cwList").onclick = () => sheet("All clues", `<div class="cw-list">${["Across","Down"].map((lab, d) => `<span class="label">${lab}</span><div class="list">${CW.words.filter(x => x.d === d).map(x => `<button class="li" data-w="${x.n}-${x.d}"><span class="num">${x.n}</span><div class="txt"><span style="font-family:var(--read); font-size:15px">${esc(x.clue)}</span><span class="sub">${esc(refOf(x.g))} · ${x.ans.length} letters</span></div></button>`).join("")}</div>`).join("")}</div>`,
     (sh, close) => sh.querySelectorAll("[data-w]").forEach(b => b.onclick = () => { const [n,d] = b.dataset.w.split("-").map(Number); const x = CW.words.find(y => y.n === n && y.d === d); cwSel = {r:x.r, c:x.c, d:x.d}; close(); renderCW(); }));
   pane.querySelectorAll("[data-g]").forEach(b => b.onclick = () => verseSheet(+b.dataset.g));
-  if($("#cwMore")) $("#cwMore").onclick = () => { S.cwPractice = (S.cwPractice || 0) + 1; CW = null; renderCW(); };
+  if($("#cwMore")) $("#cwMore").onclick = () => { if(S.cwChal){ endChallenge(); return; } S.cwPractice = (S.cwPractice || 0) + 1; CW = null; renderCW(); };
   if(!cwKeyBound){ cwKeyBound = true;
     document.addEventListener("keydown", e => {
       if(tab !== "play" || (S.pane || "cw") !== "cw" || !CW || S.cw.done || document.querySelector(".sheet") || e.metaKey || e.ctrlKey) return;
@@ -1400,6 +1444,7 @@ function cwHelp(){
     <li><b>Across or down?</b> Tap the same square again, or tap the →/↓ key, to switch direction.</li>
     <li><b>Next or previous clue:</b> tap the arrows on either side of the clue.</li>
     <li><b>Stuck?</b> Tap <b>Hint</b> to fill in one letter (3 hints a day). Tap <b>Check</b> to see wrong letters in red.</li>
+    <li><b>Play with someone:</b> tap <b>2 players</b> to text them a code. You both solve the same crossword and compare times.</li>
     <li><b>Finish</b> by filling every square correctly. You’ll see all the verses behind the answers, and you can play another.</li></ol>`,
     (sh, close) => {});
 }
@@ -1432,6 +1477,7 @@ function cwKey(k){
     else { const i = w.d ? cwSel.r - w.r : cwSel.c - w.c; if(i > 0){ if(w.d) cwSel.r--; else cwSel.c--; delete st.fill[cellKey(cwSel.r, cwSel.c)]; } }
     if(st.bad) delete st.bad[key]; save(); renderCW(); return;
   }
+  const now = Date.now(); st.acc = (st.acc || 0) + Math.min(now - (st.tick || now), 60000); st.tick = now; // active solving time; long breaks don't count
   st.fill[key] = k; delete st.rev[key]; if(st.bad) delete st.bad[key];
   const i = w.d ? cwSel.r - w.r : cwSel.c - w.c;
   if(i < w.ans.length - 1){ if(w.d) cwSel.r++; else cwSel.c++; }
@@ -1441,7 +1487,7 @@ function cwKey(k){
 function afterFill(wordDone){
   const st = S.cw; let all = true;
   for(let r=0;r<CW.rows;r++) for(let c=0;c<CW.cols;c++) if(CW.sol[r][c] && st.fill[cellKey(r,c)] !== CW.sol[r][c]) all = false;
-  if(all){ st.done = true; save(); renderCW(); if(navigator.vibrate) try{ navigator.vibrate(30); }catch(e){} toast("Crossword solved", "check"); return; }
+  if(all){ st.done = true; st.secs = Math.max(1, Math.round((st.acc || 0) / 1000)); save(); renderCW(); if(navigator.vibrate) try{ navigator.vibrate(30); }catch(e){} toast("Crossword solved", "check"); return; }
   save();
   let full = true; for(let r=0;r<CW.rows;r++) for(let c=0;c<CW.cols;c++) if(CW.sol[r][c] && !st.fill[cellKey(r,c)]) full = false;
   if(full) toast("Every square is filled, but some letters are wrong. Tap Check to see them.", "x");
@@ -1574,76 +1620,63 @@ function welcome(){
   document.querySelectorAll(".sheet,.backdrop").forEach(e => e.remove());
   const ov = document.createElement("div"); ov.className = "overlay welcome"; ov.id = "welcome";
   app.appendChild(ov);
-  const NAME = INTRO.length, DONE = INTRO.length + 1;
-  let i = 0, planDays = S.plan ? S.plan.days : 365, nm = S.name || "", rTime = S.remindOn === false ? "" : (S.remind || "07:00"), nudgeOn = S.nudges !== false;
+  const STEPS = 5;
+  let i = 0, nm = S.name || "", rTime = S.remindOn === false ? "" : (S.remind || "07:00"), nudgeOn = S.nudges !== false, tr = trCur();
   const finish = then => {
     S.name = (nm || "").trim().slice(0,30);
-    S.plan = planDays ? (S.plan && S.plan.days === planDays ? S.plan : {days:planDays, start:todayKey()}) : null;
     if(rTime){ S.remind = rTime; S.remindOn = true; } else S.remindOn = false;
-    S.nudges = nudgeOn;
+    S.nudges = nudgeOn; S.tr = tr; if(tr !== "drb") loadTr(tr);
     save(); ov.remove(); tab = "today"; sub = null; render(); scheduleAlerts(true);
-    if(then === "settings") setTimeout(openSettings, 250);
   };
-  const top = (skip) => `<div class="logo" style="justify-content:space-between"><div class="logo"><div class="logo-tile">${ic("chair")}</div><div class="wordmark">Prayer<span>Chair</span></div></div>${skip ? `<button class="link" id="iSkip">Skip</button>` : ""}</div>`;
-  const dots = () => `<div class="dots" aria-hidden="true">${[...INTRO, 0, 0].map((_,k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`;
+  const SAMPLE = {drb:"I can do all these things in him who strengtheneth me.", kjv:"I can do all things through Christ which strengtheneth me.", bsb:"I can do all things through Christ who gives me strength."};
+  const TRDESC = {drb:"Catholic. Traditional English.", kjv:"Classic Protestant. Traditional English.", bsb:"Modern, easy-to-read English."};
+  const head = (skip) => `<div class="logo" style="justify-content:space-between"><div class="logo"><div class="logo-tile">${ic("chair")}</div><div class="wordmark">Prayer<span>Chair</span></div></div>${skip ? `<button class="link" id="iSkip">Skip</button>` : ""}</div>`;
+  const dots = () => `<div class="dots" aria-hidden="true">${Array.from({length:STEPS}, (_,k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`;
+  const step = () => `<span class="intro-step">Step ${i+1} of ${STEPS}</span>`;
+  const shell = (body, cta) => { ov.innerHTML = `<div class="in">${head(i > 0 && i < STEPS-1)}<div class="intro-slide" aria-live="polite">${body}</div><div class="cta">${dots()}${cta}</div></div>`;
+    if($("#iSkip", ov)) $("#iSkip", ov).onclick = () => { i = STEPS-1; draw(); };
+    if($("#iBack", ov)) $("#iBack", ov).onclick = () => { i--; draw(); }; };
   const draw = () => {
-    if(i < NAME){
-      const sl = INTRO[i];
-      const planHTML = sl.plan ? `<div class="ib-card"><span class="label">I want to read the whole Bible in</span>
-          <div class="chips" style="flex-wrap:wrap; margin-top:8px">${PLAN_OPTS.map(d => `<button class="chip ${planDays === d ? "on" : ""}" data-d="${d}">${planLabel(d)}</button>`).join("")}<button class="chip ${!planDays ? "on" : ""}" data-d="0">No plan</button></div>
-          <p class="small" style="margin:10px 0 0">${planDays ? `That’s about <b>${planPerDay(planDays)} chapters a day</b>.` : "Read at your own pace. You can pick a plan later."}</p></div>`
-        : sl.remind ? `<div class="ib-card"><span class="label">Remind me to read each day at</span>
-          <div class="chips" style="flex-wrap:wrap; margin-top:8px">${["06:00","07:00","08:00","12:00","18:00","21:00"].map(t => `<button class="chip ${rTime === t ? "on" : ""}" data-t="${t}">${fmtTime(t)}</button>`).join("")}<button class="chip ${!rTime ? "on" : ""}" data-t="">No reminder</button></div>
-          <div class="setrow" style="display:flex; gap:12px; align-items:center; margin-top:14px"><div style="flex:1; min-width:0"><b style="color:#fff; font-size:15px">Short reminders through the day</b><p class="small" style="margin:2px 0 0">Four one-liners, like “Give God one small struggle right now.”</p></div><button class="switch" id="iNudge" role="switch" aria-checked="${nudgeOn ? "true" : "false"}" aria-label="Short reminders through the day"></button></div></div>`
-        : sl.demo;
-      ov.innerHTML = `<div class="in">${top(true)}
-        ${i === 0 ? `<div class="art" aria-hidden="true"><canvas id="lamp" width="300" height="150" style="width:300px; max-width:100%; height:auto"></canvas></div>` : ""}
-        <div class="intro-slide" aria-live="polite">
-          <div class="intro-ico">${ic(sl.icon, "lg")}</div>
-          <span class="intro-step">${i+1} of ${INTRO.length}</span>
-          <h1>${i === 0 ? `Sit with God for <em>one minute</em> a day.` : esc(sl.title)}</h1>
-          ${i === 0 ? `<p class="lead"><b style="color:#fff">${esc(sl.title)}:</b> ${esc(sl.text)}</p>` : `<p class="lead">${esc(sl.text)}</p>`}
-          ${planHTML}
-        </div>
-        <div class="cta">${dots()}<button class="btn primary block" id="iNext">Next</button>${i > 0 ? `<button class="link" id="iBack">Back</button>` : ""}</div></div>`;
-      if(i === 0) drawLamp($("#lamp", ov));
-      ov.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { planDays = +b.dataset.d; draw(); });
-      ov.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { rTime = b.dataset.t; draw(); });
-      if($("#iNudge", ov)) $("#iNudge", ov).onclick = () => { nudgeOn = !nudgeOn; draw(); };
+    if(i === 0){
+      shell(`<div class="art" aria-hidden="true"><canvas id="lamp" width="300" height="150" style="width:300px; max-width:100%; height:auto"></canvas></div>
+        ${step()}<h1>Sit with God for <em>one minute</em> a day.</h1>
+        <p class="lead">PrayerChair is free, private and works offline. Here’s what’s inside:</p>
+        <div class="ib-card" style="display:grid; gap:12px">${[["sun","Daily","A short reading, what it means, a prayer and one step for today."],["book","Bible","The whole Bible, at your own pace."],["puzzle","Games","A daily crossword and verse puzzles, alone or with someone."]].map(([icn,h,d]) => `<div style="display:flex; gap:10px; align-items:flex-start">${ic(icn,"sm")}<div style="font-size:14.5px; line-height:1.35"><b style="color:#fff">${h}</b><br>${d}</div></div>`).join("")}</div>`,
+        `<button class="btn primary block" id="iNext">Get started</button>`);
+      drawLamp($("#lamp", ov));
       $("#iNext", ov).onclick = () => { i++; draw(); };
-      if($("#iBack", ov)) $("#iBack", ov).onclick = () => { i--; draw(); };
-      $("#iSkip", ov).onclick = () => { i = NAME; draw(); };
-    } else if(i === NAME){
-      ov.innerHTML = `<div class="in">${top(false)}
-        <div class="intro-slide"><div class="intro-ico">${ic("user", "lg")}</div>
-          <h1>What’s your first name?</h1><p class="lead">So PrayerChair can greet you and pray with you by name. It stays on this phone.</p>
-          <input class="input" id="iName" value="${esc(nm)}" placeholder="First name" autocomplete="given-name" enterkeyhint="done" maxlength="30" style="font-size:18px">
-        </div>
-        <div class="cta">${dots()}<button class="btn primary block" id="iNext">Continue</button><button class="link" id="iSkip">Skip</button></div></div>`;
+    } else if(i === 1){
+      shell(`<div class="intro-ico">${ic("user","lg")}</div>${step()}<h1>What’s your first name?</h1>
+        <p class="lead">So PrayerChair can greet you. It stays on this phone.</p>
+        <input class="input" id="iName" value="${esc(nm)}" placeholder="First name" autocomplete="given-name" enterkeyhint="next" maxlength="30" style="font-size:18px">`,
+        `<button class="btn primary block" id="iNext">Next</button><button class="link" id="iBack">Back</button>`);
       const inp = $("#iName", ov); inp.oninput = () => { nm = inp.value; }; inp.onkeydown = e => { if(e.key === "Enter") $("#iNext", ov).click(); };
-      setTimeout(() => inp.focus(), 200);
-      $("#iNext", ov).onclick = () => { i = DONE; draw(); };
-      $("#iSkip", ov).onclick = () => { nm = ""; i = DONE; draw(); };
+      $("#iNext", ov).onclick = () => { i++; draw(); };
+    } else if(i === 2){
+      shell(`<div class="intro-ico">${ic("bell","lg")}</div>${step()}<h1>When should we remind you?</h1>
+        <p class="lead">One reminder a day to open your daily reading.</p>
+        <div class="ib-card"><div class="chips" style="flex-wrap:wrap">${["06:00","07:00","08:00","12:00","18:00","21:00"].map(x => `<button class="chip ${rTime === x ? "on" : ""}" data-t="${x}">${fmtTime(x)}</button>`).join("")}<button class="chip ${!rTime ? "on" : ""}" data-t="">No reminder</button></div>
+          <div style="display:flex; gap:12px; align-items:center; margin-top:16px"><div style="flex:1; min-width:0"><b style="color:#fff; font-size:15px">Little nudges through the day</b><p class="small" style="margin:2px 0 0">Four short lines, like “Give God one small struggle right now.”</p></div><button class="switch" id="iNudge" role="switch" aria-checked="${nudgeOn ? "true" : "false"}" aria-label="Little nudges through the day"></button></div></div>`,
+        `<button class="btn primary block" id="iNext">Next</button><button class="link" id="iBack">Back</button>`);
+      ov.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { rTime = b.dataset.t; draw(); });
+      $("#iNudge", ov).onclick = () => { nudgeOn = !nudgeOn; draw(); };
+      $("#iNext", ov).onclick = () => { i++; draw(); };
+    } else if(i === 3){
+      shell(`<div class="intro-ico">${ic("book","lg")}</div>${step()}<h1>Which Bible do you want to read?</h1>
+        <p class="lead">You can change it anytime in the Bible tab.</p>
+        <div class="ib-list" style="gap:10px">${Object.keys(TR).map(k => `<button class="ib-card" data-tr="${k}" style="text-align:left; width:100%; border:2px solid ${tr === k ? "#F59E0B" : "rgba(255,255,255,.14)"}; color:inherit; display:block">
+          <b style="color:#fff">${esc(TR[k].name)}</b><span class="small" style="display:block">${TRDESC[k]}</span>
+          <p class="small" style="margin:6px 0 0; font-family:var(--read); font-style:italic">“${SAMPLE[k]}” Phil 4:13</p></button>`).join("")}</div>`,
+        `<button class="btn primary block" id="iNext">Next</button><button class="link" id="iBack">Back</button>`);
+      ov.querySelectorAll("[data-tr]").forEach(b => b.onclick = () => { tr = b.dataset.tr; draw(); });
+      $("#iNext", ov).onclick = () => { i++; draw(); };
     } else {
-      ov.innerHTML = `<div class="in">${top(false)}
-        <div class="intro-slide"><div class="intro-ico">${ic("check", "lg")}</div>
-          <h1>You’re all set${(nm || "").trim() ? ", " + esc(nm.trim()) : ""}.</h1>
-          <p class="lead">Everything else is optional. You can add it anytime in Settings (the person icon at the top):</p>
-          <div class="ib-card"><div class="ib-list">
-            <span>${ic("hands","sm")}People you pray for</span>
-            <span>${ic("step","sm")}Who’s reading, for your daily step</span>
-            <span>${ic("light","sm")}A verse focus</span>
-</div></div>
-        </div>
-        <div class="cta">${dots()}<button class="btn primary block" id="iGo">${ic("arrow","sm")}Start today’s reading</button><button class="link" id="iSet">Open Settings instead</button></div></div>`;
-      $("#iGo", ov).onclick = () => finish("read");
-      $("#iSet", ov).onclick = () => finish("settings");
+      shell(`<div class="intro-ico">${ic("check","lg")}</div>${step()}<h1>You’re all set${(nm || "").trim() ? ", " + esc(nm.trim()) : ""}.</h1>
+        <p class="lead">Your daily reading is ready. Come back tomorrow for a new one.</p>`,
+        `<button class="btn primary block" id="iGo">${ic("arrow","sm")}Go to today’s reading</button>`);
+      $("#iGo", ov).onclick = () => finish();
     }
   };
-  let x0 = null;
-  ov.addEventListener("pointerdown", e => { x0 = e.clientX; });
-  ov.addEventListener("pointerup", e => { if(x0 == null || i >= NAME) return; const dx = e.clientX - x0; x0 = null;
-    if(Math.abs(dx) > 60){ if(dx < 0){ i++; draw(); } else if(dx > 0 && i > 0){ i--; draw(); } } });
   draw();
 }
 function drawLamp(c){ // a chair by a window of light, drawn once
