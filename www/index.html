@@ -561,6 +561,50 @@ function trV(g){ // the verse at Douay-Rheims index g, in the chosen Bible; fall
   }
   return TRV[key] = out;
 }
+/* ---------- share today as ONE picture (instead of a long run of text bubbles) ---------- */
+function wrapLines(ctx, text, maxW){
+  const out = []; String(text).split("\n").forEach(par => { let line = ""; par.split(/\s+/).forEach(w => { const tryL = line ? line + " " + w : w; if(ctx.measureText(tryL).width > maxW && line){ out.push(line); line = w; } else line = tryL; }); out.push(line); }); return out;
+}
+function clip(s, n){ s = String(s || "").trim(); if(s.length <= n) return s; const cut = s.slice(0, n); const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! ")); return end > n * .5 ? cut.slice(0, end + 1) : cut.replace(/\s+\S*$/, "") + "…"; }
+async function dayImage(parts){ // parts: {date, ref, verse, tr, meaning, prayerTitle, prayer, step}
+  try{ await Promise.all(["400 40px Inter","500 40px Inter","600 40px Inter","700 40px Inter","400 40px 'Source Serif 4'","italic 400 40px 'Source Serif 4'","600 40px 'Source Serif 4'"].map(f => document.fonts.load(f))); }catch(e){}
+  const W = 1080, P = 84, cw = W - P * 2, c = document.createElement("canvas"), x = c.getContext("2d");
+  const blocks = []; let y = 0;
+  const add = (font, color, text, lh, gapAfter, opts = {}) => { x.font = font; const lines = wrapLines(x, text, cw - (opts.indent || 0)); blocks.push({font, color, lines, lh, y, indent: opts.indent || 0, upper: opts.upper}); y += lines.length * lh + gapAfter; };
+  y = 230;
+  add("700 30px Inter", "#B45309", (parts.date || "").toUpperCase(), 40, 34);
+  add("600 58px 'Source Serif 4'", "#0F172A", "“" + parts.verse + "”", 78, 18, {});
+  add("600 32px Inter", "#B45309", parts.ref + (parts.tr ? "  ·  " + parts.tr : ""), 42, 56);
+  const sect = (label, body, font, lh) => { if(!body) return; add("700 26px Inter", "#64748B", label.toUpperCase(), 36, 14); add(font, "#1E293B", body, lh, 46); };
+  sect("What this means", clip(parts.meaning, 330), "400 36px Inter", 52);
+  sect(parts.prayerTitle ? "Prayer · " + parts.prayerTitle : "A prayer for today", clip(parts.prayer, 300), "italic 400 38px 'Source Serif 4'", 54);
+  sect("One step for today", clip(parts.step, 170), "500 36px Inter", 50);
+  const H = Math.min(2400, Math.max(1350, y + 190));
+  c.width = W; c.height = H;
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#FFF4DE"); g.addColorStop(.35, "#FFFBF3"); g.addColorStop(1, "#FFFFFF"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  // header: brand tile + wordmark
+  const tg = x.createLinearGradient(P, 80, P + 96, 176); tg.addColorStop(0, "#F59E0B"); tg.addColorStop(1, "#B45309"); x.fillStyle = tg;
+  x.beginPath(); x.roundRect ? x.roundRect(P, 80, 96, 96, 26) : x.rect(P, 80, 96, 96); x.fill();
+  x.strokeStyle = "#fff"; x.lineWidth = 7; x.lineCap = "round"; x.lineJoin = "round"; // simple chair glyph
+  x.beginPath(); x.moveTo(P+32, 104); x.lineTo(P+64, 104); x.moveTo(P+32, 104); x.lineTo(P+32, 154); x.moveTo(P+64, 104); x.lineTo(P+64, 154); x.moveTo(P+28, 128); x.lineTo(P+68, 128); x.moveTo(P+32, 141); x.lineTo(P+64, 141); x.stroke();
+  x.textBaseline = "alphabetic"; x.font = "700 52px Inter"; x.fillStyle = "#0F172A"; x.fillText("Prayer", P + 122, 146); const pw = x.measureText("Prayer").width; x.fillStyle = "#B45309"; x.fillText("Chair", P + 122 + pw, 146);
+  blocks.forEach(b => { x.font = b.font; x.fillStyle = b.color; b.lines.forEach((ln, i) => x.fillText(ln, P + b.indent, b.y + b.lh * (i + 1) - b.lh * .25)); });
+  // footer invite
+  x.fillStyle = "#0F172A"; x.beginPath(); x.roundRect ? x.roundRect(P, H - 150, cw, 92, 46) : x.rect(P, H - 150, cw, 92); x.fill();
+  x.font = "600 32px Inter"; x.fillStyle = "#fff"; const ft = "A minute with God, every morning · prayerchair.app"; const fw = x.measureText(ft).width; x.fillText(ft, (W - fw) / 2, H - 92);
+  return c.toDataURL("image/png");
+}
+async function shareImage(dataUrl, text){
+  const b64 = dataUrl.split(",")[1], name = "prayerchair-" + todayKey() + ".png";
+  try{
+    if(CAP){ const FS = capPlug("Filesystem"), SH = capPlug("Share");
+      if(FS && SH){ const w = await FS.writeFile({path:name, data:b64, directory:"CACHE"}); await SH.share({text, files:[w.uri]}); return true; } }
+    const blob = await (await fetch(dataUrl)).blob(), file = new File([blob], name, {type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], text}); return true; }
+  }catch(e){ if(e && (e.name === "AbortError" || /cancel/i.test(e.message || ""))) return true; }
+  return false;
+}
+const INVITE = "I’ve been using PrayerChair: one minute with God each morning, with a Bible verse, what it means and a prayer for your day. It’s free, no ads. Try it: https://prayerchair.app";
 async function shareText(text){
   try{ if(CAP){ const SH = capPlug("Share"); if(SH){ await SH.share({text}); return; } } if(navigator.share){ await navigator.share({text}); return; } }catch(e){ if(e && (e.name === "AbortError" || /cancel/i.test(e.message || ""))) return; }
   try{ await navigator.clipboard.writeText(text); toast("Verse copied, ready to paste"); }
@@ -903,7 +947,8 @@ function renderToday(){
       ${S.status ? `<div class="row-btns"><button class="btn quiet sm" id="shareStep">${ic("share","sm")}Share step</button></div>` : ""}
     </section>
 
-    <button class="btn primary block" id="shareAll">${ic("share","sm")}Send today’s reading in a text</button>
+    <button class="btn primary block" id="shareAll">${ic("share","sm")}Share today as a picture</button>
+    <button class="btn quiet block" id="invite">${ic("user","sm")}Invite a friend to PrayerChair</button>
 
     <section class="card" style="display:flex; gap:14px; align-items:center">
       <div class="logo-tile" style="width:44px; height:44px; border-radius:12px">${ic("puzzle")}</div>
@@ -934,7 +979,13 @@ function renderToday(){
     if(tab !== "today" || doneToday()) return;
     if(view.scrollTop + view.clientHeight >= view.scrollHeight - 140 && completeDay()){ bar(); toast(liveStreak() > 1 ? `Day ${liveStreak()} in a row. See you tomorrow.` : "Day one done. See you tomorrow.", "flame"); }
   };
-  $("#shareAll").onclick = () => shareText([`📖 Today’s reading · ${day}`, `“${v[1]}”\n${v[0]}`, `What this means\n${r.p1}`, prTxt(), stepTxt()].filter(Boolean).join("\n\n") + tail);
+  $("#shareAll").onclick = async () => {
+    const btn = $("#shareAll"); btn.disabled = true;
+    try{ const img = await dayImage({date:day, ref:v[0], verse:v[1], tr:TR[trCur()].short, meaning:r.p1, prayerTitle:r.prayer.title, prayer:personalPrayer(r.prayer.text, new Date()).join(" "), step:S.status ? r[S.status] : ""});
+      if(!(await shareImage(img, "Today’s reading from PrayerChair 🙏 prayerchair.app"))) shareText([`📖 Today’s reading · ${day}`, `“${v[1]}”\n${v[0]}`, `What this means\n${r.p1}`, prTxt(), stepTxt()].filter(Boolean).join("\n\n") + tail);
+    } finally { btn.disabled = false; }
+  };
+  $("#invite").onclick = () => shareText(INVITE);
 }
 
 function maybeAskNudges(){
@@ -1542,6 +1593,7 @@ function openSettings(){
     </div>
     <div class="card flat stack"><span class="label">Your streak</span><div class="stats"><div class="stat"><b class="num">${liveStreak()}</b><span>current</span></div><div class="stat"><b class="num">${S.best}</b><span>best</span></div><div class="stat"><b class="num">${S.freezes}</b><span>freezes</span></div></div>
       <p class="muted small" style="margin:0">Miss a day and a freeze keeps your streak. You earn one every 7 days, up to 2.</p></div>
+    <button class="btn quiet block" id="setInvite">Invite a friend to PrayerChair</button>
     <button class="btn quiet block" id="replay">Show the welcome screen</button>
     <button class="btn primary block" id="setDone">Done</button>
     <button class="btn quiet block danger" id="reset">Reset all progress</button>
@@ -1553,6 +1605,7 @@ function openSettings(){
     $("#setPlan", sh).onclick = child(planSheet);
     $("#setPeople", sh).onclick = child(() => onboard(3, true));
     $("#setDone", sh).onclick = () => { backToSettings = false; close(); };
+    $("#setInvite", sh).onclick = () => shareText(INVITE);
     const setView = v => { S.view = v; save(); buildNotes(); close(); render(); openSettings(); toast(v === "catholic" ? "Catholic view on" : "Christian view on"); };
     $("#viewChr", sh).onclick = () => setView("christian"); $("#viewCat", sh).onclick = () => setView("catholic");
     $("#setWho", sh).onclick = child(() => onboard(2, true));
