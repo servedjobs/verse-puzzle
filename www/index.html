@@ -512,7 +512,7 @@ const FS = [1, 1.1, 1.22, 1.36];
 /* ---------- state ---------- */
 const KEY = "prayerchair.v1";
 const DEF = {welcomed:false, name:"", need:null, status:null, remind:"07:00", fs:1, saved:[], read:[], streak:0, best:0, freezes:2, lastDone:null,
-  daily:{date:null, seq:[], seen:0}, keep:0, last:null, coach:false, testament:"ot", nudges:true, remindOn:true, pane:"cw", view:"christian", saints:false, start:null, people:[], hope:"", nudgeAsk:null, nudgeAsks:0, plan:null, tr:"drb"};
+  daily:{date:null, seq:[], seen:0}, keep:0, last:null, coach:false, testament:"ot", nudges:true, remindOn:true, pane:"cw", view:"christian", saints:false, start:null, people:[], hope:"", nudgeAsk:null, nudgeAsks:0, plan:null, tr:"kjv"};
 let S = JSON.parse(JSON.stringify(DEF));
 try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
 if(!S.daily) S.daily = {date:null, seq:[], seen:0};
@@ -540,6 +540,26 @@ function trChapter(book, ch){ // the chapter in the chosen Bible; books it lacks
   const B = TRX[k]; if(!B || !B[book]) return Object.assign(dr, {fallback:true});
   if(book === "Psalms"){ const h = String(hebPs(ch)), ns = h.split("–").map(Number); const vs = [].concat(...ns.map(n => B.Psalms[n-1] || [])); return vs.length ? {verses:vs, tr:k, num:h} : Object.assign(dr, {fallback:true}); }
   const vs = B[book][ch-1]; return vs ? {verses:vs, tr:k, num:ch} : Object.assign(dr, {fallback:true});
+}
+const _ws = s => new Set((s.toLowerCase().match(/[a-z]{4,}/g) || []).map(w => w.replace(/(eth|est|ed|s)$/, "")));
+const TRV = {};
+function trV(g){ // the verse at Douay-Rheims index g, in the chosen Bible; falls back to Douay-Rheims
+  const k = trCur(), r = ALL[g], dr = {t:r.t, ref:refOf(g), tr:"drb"};
+  if(k === "drb" || !TRX[k]) return dr;
+  const key = k + g; if(key in TRV) return TRV[key];
+  const B = TRX[k][r.book]; let out = dr;
+  if(B){
+    const ch = r.book === "Psalms" ? parseInt(String(hebPs(r.ch))) : r.ch, vs = B[ch-1];
+    if(vs){ // pick the verse that matches best near the same number (Psalm titles shift numbering)
+      const want = _ws(r.t); let best = -1, bi = -1;
+      for(let v = Math.max(1, r.v - 2); v <= Math.min(vs.length, r.v + 2); v++){ const have = _ws(vs[v-1]); let n = 0; want.forEach(w => { if(have.has(w)) n++; }); const sc = n - Math.abs(v - r.v) * .3; if(sc > best){ best = sc; bi = v; } }
+      let vt = bi > 0 ? vs[bi-1] : "";
+      if(r.book === "Psalms"){ vt = vt.replace(/^[\u0590-\u05FF]+\s+[A-Z]+\.\s*/, ""); // Psalm 119 letter headings
+        if(bi === 1){ const m = vt.match(/^((?:A |To |For |Of |Maschil|Michtam|Shiggaion|Upon )[^.]{0,160}\.)\s+(.{20,})$/); if(m) vt = m[2]; } } // "A Psalm of David." titles
+      if(bi > 0 && (best > 0 || bi === r.v)) out = {t:vt, ref:(r.book === "Psalms" ? "Psalm" : bookLabel(r.book)) + " " + ch + ":" + bi, tr:k};
+    }
+  }
+  return TRV[key] = out;
 }
 async function shareText(text){
   try{ if(CAP){ const SH = capPlug("Share"); if(SH){ await SH.share({text}); return; } } if(navigator.share){ await navigator.share({text}); return; } }catch(e){ if(e && (e.name === "AbortError" || /cancel/i.test(e.message || ""))) return; }
@@ -622,8 +642,10 @@ function votdFor(d){
 function verseOfDay(d, pick){
   const p = pick || votdFor(d);
   if(p.holy){ const H = HOLY[p.holy], cat = isCatholic();
-    return {ref:H.ref, text:H.text, holy:H.name, g:refGi(H.ref), r:{p1: cat ? H.p1 : (H.gp1 || H.p1), p2: cat ? H.p2 : (H.gp2 || H.p2), sources:H.sources, prayer:H.prayer, couple:H.couple, single_male:H.single_male, single_female:H.single_female}}; }
-  const v = VERSES[p.i]; return {ref:v[0], text:v[1], g:GI_OF[p.i], r:refl(p.i), season:p.season, i:p.i};
+    const hg = refGi(H.ref), htv = hg != null ? trV(hg) : null;
+    return {ref: htv && htv.tr !== "drb" ? htv.ref : H.ref, text: htv && htv.tr !== "drb" ? htv.t : H.text, holy:H.name, g:hg, r:{p1: cat ? H.p1 : (H.gp1 || H.p1), p2: cat ? H.p2 : (H.gp2 || H.p2), sources:H.sources, prayer:H.prayer, couple:H.couple, single_male:H.single_male, single_female:H.single_female}}; }
+  const v = VERSES[p.i], g = GI_OF[p.i], tv = g != null ? trV(g) : null;
+  return {ref: tv && tv.tr !== "drb" ? tv.ref : v[0], text: tv && tv.tr !== "drb" ? tv.t : v[1], g, r:refl(p.i), season:p.season, i:p.i};
 }
 function saintFor(d){ return S.saints ? SAINTS.find(s => s.date === md(d)) : null; }
 function nudgesFor(d){
@@ -789,7 +811,7 @@ function toast(msg, icon="check"){
   app.appendChild(t); setTimeout(() => t.remove(), 2300);
 }
 async function shareVerse(g){
-  const text = `“${ALL[g].t}” ${refOf(g)} (Douay-Rheims)`;
+  const tv = trV(g), text = `“${tv.t}” ${tv.ref} (${TR[tv.tr].short})`;
   try{ if(CAP){ const SH = capPlug("Share"); if(SH){ await SH.share({text}); return; } } if(navigator.share){ await navigator.share({text}); return; } }catch(e){ if(e && (e.name === "AbortError" || /cancel/i.test(e.message || ""))) return; }
   try{ await navigator.clipboard.writeText(text); toast("Verse copied, ready to paste"); }
   catch(e){ toast("Press and hold the verse to copy it", "copy"); }
@@ -946,12 +968,12 @@ function deckCard(g, back){
   const label = deck.mode === "seven" ? `${deck.pos + 1} of 7` : deck.mode === "keep" ? "" : deck.title;
   return `<article class="dcard ${back ? "back" : ""}" ${back ? 'aria-hidden="true"' : ""}>
     <span class="stamp save">SAVE</span><span class="stamp next">NEXT</span>
-    <div class="eyebrow"><span class="ref">${esc(refOf(g))}</span>${saved.has(g) ? `<span class="pill">${ic("check","sm")}Saved</span>` : label ? `<span class="label">${esc(label)}</span>` : ""}</div>
+    <div class="eyebrow"><span class="ref">${esc(trV(g).ref)}</span>${saved.has(g) ? `<span class="pill">${ic("check","sm")}Saved</span>` : label ? `<span class="label">${esc(label)}</span>` : ""}</div>
     <div class="body">
-      <p class="verse">${esc(ALL[g].t)}</p>
+      <p class="verse">${esc(trV(g).t)}</p>
       ${note ? `<div class="note">${ic("light","sm")}<span>${esc(note)}</span></div>` : ""}
     </div>
-    <div class="foot"><button class="linkbtn" data-ch="1">${ic("book","sm")}Read ${esc(ALL[g].book)} ${ALL[g].ch}</button><span>Douay-Rheims</span></div>
+    <div class="foot"><button class="linkbtn" data-ch="1">${ic("book","sm")}Read ${esc(ALL[g].book)} ${ALL[g].ch}</button><span>${esc(TR[trV(g).tr].short)}</span></div>
   </article>`;
 }
 function drawDeck(){
@@ -1201,7 +1223,7 @@ function renderSaved(){
   bar({back: () => { tab = "bible"; sub = null; render(); }, title: "Saved verses"});
   const keys = [...saved].reverse();
   view.innerHTML = `<div class="stack"><div class="hello"><h1>Saved</h1><p>${keys.length ? `${keys.length} verse${keys.length > 1 ? "s" : ""}, kept on this device` : "Verses you keep"}</p></div>
-    ${keys.length ? keys.map(g => `<button class="card" data-g="${g}" style="text-align:left; display:grid; gap:8px; width:100%"><span class="ref">${esc(refOf(g))}</span><span class="verse" style="font-size:calc(18px * var(--rs)); display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden">${esc(ALL[g].t)}</span></button>`).join("")
+    ${keys.length ? keys.map(g => `<button class="card" data-g="${g}" style="text-align:left; display:grid; gap:8px; width:100%"><span class="ref">${esc(trV(g).ref)}</span><span class="verse" style="font-size:calc(18px * var(--rs)); display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden">${esc(trV(g).t)}</span></button>`).join("")
     : `<div class="empty">${ic("bookmark")}<b>Nothing saved yet</b><span>Swipe right on a verse, or tap Save, and it stays here.</span><button class="btn primary" id="startS" style="margin-top:8px">Read today’s seven</button></div>`}
   </div>`;
   view.querySelectorAll("[data-g]").forEach(b => b.onclick = () => verseSheet(+b.dataset.g));
@@ -1506,7 +1528,7 @@ function openSettings(){
     <div class="field"><label for="setName">Your first name</label><input class="input" id="setName" value="${esc(S.name)}" placeholder="First name" autocomplete="given-name"></div>
     <button class="li card flat" id="setPeople" style="border-top:1px solid var(--line)"><div class="txt"><b>People I pray for</b><span class="sub">${(S.people || []).length ? esc(joinNames(S.people)) : "Add up to three"}${S.hope ? " · Hoping for: " + esc(S.hope) : ""}</span></div>${ic("chev","chev")}</button>
     <div class="card flat stack"><div><b>Teaching view</b><p class="muted small" style="margin:2px 0 0">${isCatholic() ? "Full Catholic view: names the Catechism, the sacraments, Mary and the saints." : "General Christian view, rooted in the same teaching."}</p></div><div class="segctl"><button id="viewChr" class="${isCatholic() ? "" : "on"}">Christian</button><button id="viewCat" class="${isCatholic() ? "on" : ""}">Catholic</button></div></div>
-    <div class="card flat stack"><div><b>Bible translation</b><p class="muted small" style="margin:2px 0 0">For reading chapters in the Bible tab. Daily readings use Douay-Rheims.</p></div><div class="segctl" style="grid-template-columns:repeat(3,1fr)">${Object.keys(TR).map(k => `<button data-str="${k}" class="${trCur() === k ? "on" : ""}">${esc(TR[k].short)}</button>`).join("")}</div></div>
+    <div class="card flat stack"><div><b>Bible translation</b><p class="muted small" style="margin:2px 0 0">Used everywhere: the daily verse, the seven, sharing and the Bible tab.</p></div><div class="segctl" style="grid-template-columns:repeat(3,1fr)">${Object.keys(TR).map(k => `<button data-str="${k}" class="${trCur() === k ? "on" : ""}">${esc(TR[k].short)}</button>`).join("")}</div></div>
     <div class="list">
       <div class="li"><div class="txt"><b>Highlight saints’ days</b><span class="sub">A short card on Today with the saint and a verse</span></div><button class="switch" id="setSaints" role="switch" aria-checked="${S.saints ? "true" : "false"}" aria-label="Highlight saints' days"></button></div>
       <button class="li" id="setPlan"><div class="txt"><b>Bible reading plan</b><span class="sub">${S.plan ? esc(planLabel(S.plan.days)) + " · " + planPerDay() + " chapter" + (planPerDay() > 1 ? "s" : "") + " a day" : "Not set · read the whole Bible at your pace"}</span></div>${ic("chev","chev")}</button>
@@ -1538,7 +1560,7 @@ function openSettings(){
     $("#setNudge", sh).onclick = async () => { const sw = $("#setNudge", sh); sw.setAttribute("aria-checked", !S.nudges ? "true" : "false"); await setNudges(!S.nudges); sw.setAttribute("aria-checked", S.nudges ? "true" : "false"); if(tab === "today") renderToday(); };
     $("#setSaints", sh).onclick = () => { S.saints = !S.saints; save(); $("#setSaints", sh).setAttribute("aria-checked", S.saints ? "true" : "false"); if(tab === "today") renderToday(); };
     $("#setRemind", sh).onclick = child(remindSheet);
-    sh.querySelectorAll("[data-str]").forEach(b => b.onclick = () => { S.tr = b.dataset.str; save(); loadTr(S.tr); close(); render(); openSettings(); toast(TR[S.tr].name, "book"); });
+    sh.querySelectorAll("[data-str]").forEach(b => b.onclick = async () => { S.tr = b.dataset.str; save(); await loadTr(S.tr); close(); render(); openSettings(); scheduleAlerts(false); toast(TR[S.tr].name, "book"); });
     const rs = $("#reset", sh); let armed = false;
     rs.onclick = () => {
       if(!armed){ armed = true; rs.textContent = "Tap again to erase streak, saved verses and reading"; return; }
@@ -1702,7 +1724,7 @@ function drawLamp(c){ // a chair by a window of light, drawn once
 if(!S.start){ S.start = todayKey(); save(); }
 buildDaily(false);
 scheduleAlerts(false);
-if(trCur() !== "drb") loadTr(trCur());
+if(trCur() !== "drb") loadTr(trCur()).then(() => { render(); scheduleAlerts(false); });
 render();
 window.__pcReady=1;
 if(!S.welcomed) welcome();
