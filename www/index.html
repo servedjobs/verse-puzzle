@@ -844,13 +844,13 @@ function render(){
   view.hidden = playing; playhost.hidden = !playing;
   const tb = document.getElementById("tabbar"); if(tb) tb.hidden = false; // always there, so Games is easy to leave and come back to
   topbar.classList.remove("scrolled");
-  if(playing){ bar(); mountPlay(); return; }
+  if(playing){ if(S.pane === "cw") bar({back: () => { S.pane = "vp"; save(); render(); }, title: "Crossword"}); else bar(); mountPlay(); return; }
   view.scrollTop = 0;
   if(tab === "today") renderToday();
   else if(tab === "bible") renderBible();
   else if(tab === "saved") renderSaved();
 }
-document.querySelectorAll(".tab").forEach(t => t.onclick = () => { tab = t.dataset.tab; sub = null; render(); });
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => { tab = t.dataset.tab; sub = null; if(tab === "play") S.pane = "vp"; render(); });
 
 /* ---------- TODAY ---------- */
 function greeting(){ const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; }
@@ -923,7 +923,7 @@ function renderToday(){
   }
   if($("#chgStatus")) $("#chgStatus").onclick = () => { S.status = null; save(); renderToday(); };
   view.querySelectorAll("#statusChips .chip").forEach(c => c.onclick = () => { S.status = c.dataset.s; save(); renderToday(); });
-  $("#goPlay").onclick = () => { tab = "play"; S.pane = "cw"; render(); };
+  $("#goPlay").onclick = () => { tab = "play"; S.pane = "vp"; render(); };
   const day = new Date().toLocaleDateString(undefined,{weekday:"long", month:"long", day:"numeric"});
   const prTxt = () => `🙏 ${r.prayer.title}\n\n${personalPrayer(r.prayer.text, new Date()).join("\n\n")}`;
   const stepTxt = () => S.status ? `✅ One step for today\n${r[S.status]}` : "";
@@ -1235,15 +1235,13 @@ let playMounted = false, vpFrame = null;
 function mountPlay(){
   if(!playMounted){
     playMounted = true;
-    playhost.innerHTML = `<div class="playbar"><div class="segctl" role="tablist"><button data-p="cw">Crossword</button><button data-p="vp">Verse puzzles</button></div></div>
-      <div class="pane" id="cwPane"></div><div class="pane" id="vpPane" hidden></div>`;
-    playhost.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { S.pane = b.dataset.p; save(); render(); });
+    playhost.innerHTML = `<div class="pane" id="cwPane" hidden></div><div class="pane" id="vpPane"></div>`;
+    window.addEventListener("message", e => { if(e.data && e.data.pc === "cw" && e.source === (vpFrame && vpFrame.contentWindow)){ S.pane = "cw"; save(); render(); } });
   }
   showPane();
 }
 function showPane(){
-  const p = S.pane || "cw";
-  playhost.querySelectorAll("[data-p]").forEach(b => b.classList.toggle("on", b.dataset.p === p));
+  const p = S.pane === "cw" ? "cw" : "vp";
   $("#cwPane").hidden = p !== "cw"; $("#vpPane").hidden = p !== "vp";
   if(p === "vp" && !vpFrame) mountVP();
   if(p === "cw") renderCW();
@@ -1264,7 +1262,11 @@ function mountVP(){
     .btn.gold{color:var(--on-gold)!important}
     .mode,.board,.row,.done blockquote{border-radius:16px!important;box-shadow:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.08)}
   </style>`;
-  let html = VP_HTML.replace("<h1>Verse Puzzle</h1>", "<h1>Puzzles</h1>").replace("</head>", fontLink + css + "</head>");
+  let html = VP_HTML.replace("<h1>Verse Puzzle</h1>", "<h1>Games</h1>")
+    .replace("<div class=\"section-h\">Puzzles</div>", "<div class=\"section-h\">All games</div>")
+    .replace("<div class=\"modes\">${mode('order')}", "<div class=\"modes\"><button class=\"mode\" id=\"cwOpen\"><div class=\"ic\" style=\"background:#E0F2FE;color:#0369A1\">✚</div><b>Crossword</b><span>A new Bible crossword every day, alone or with someone</span></button>${mode('order')}")
+    .replace("$('#set').onclick=settings;", "$('#set').onclick=settings;$('#cwOpen').onclick=()=>parent.postMessage({pc:'cw'},'*');")
+    .replace("['Aa','Three kinds of puzzles','Verse Builder: tap the words in order.", "['Aa','Four games in one place','Crossword: fill in the missing words of Bible verses. Verse Builder: tap the words in order.").replace("</head>", fontLink + css + "</head>");
   vpFrame = document.createElement("iframe"); vpFrame.title = "Verse puzzles"; vpFrame.srcdoc = html;
   $("#vpPane").appendChild(vpFrame);
 }
