@@ -1,0 +1,16 @@
+name: Stage AAB for Play upload
+on:
+  push:
+    branches: [prayerchair]
+    paths: [".github/workflows/stage-aab.yml"]
+permissions: { contents: write, actions: read }
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - env: { GH_TOKEN: ${{ github.token }} }
+        run: |
+          gh run download 43440025795 -R ${{ github.repository }} -D art
+          git clone -q --depth 1 -b gh-pages https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }} site
+          mkdir -p site/dl && cp art/*/prayerchair.aab site/dl/e526b77047da34c1b504f39d.aab && ls -la site/dl
+          cd site && git config user.name ci && git config user.email ci@users.noreply.github.com && git add dl && git commit -qm "temp play build" && git push -q
