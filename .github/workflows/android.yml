@@ -33,7 +33,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon -PversionCode=${{ github.run_number }} 2>&1 | tee ../gradle-debug.log
+          ./gradlew assembleDebug --no-daemon -PversionCode=${{ github.run_number }} -PversionName=1.2 2>&1 | tee ../gradle-debug.log
           test ${PIPESTATUS[0]} -eq 0
 
       - name: Load upload key
@@ -53,7 +53,7 @@ jobs:
           KEY_ALIAS: upload
           KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          ./gradlew bundleRelease --no-daemon -PversionCode=${{ github.run_number }} 2>&1 | tee ../gradle-release.log
+          ./gradlew bundleRelease --no-daemon -PversionCode=${{ github.run_number }} -PversionName=1.2 2>&1 | tee ../gradle-release.log
           test ${PIPESTATUS[0]} -eq 0
 
       - name: Name the outputs
