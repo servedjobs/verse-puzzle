@@ -509,7 +509,7 @@ const POP_SET = new Set(POP);
 // after the well-known list, the "keep reading" feed walks the hand-noted verses, then the rest in order
 const KEEP = POP.concat(Object.keys(NOTE).map(Number).filter(g => !POP_SET.has(g)));
 const REFL = Object.keys(REFLECTIONS).map(Number);
-const STATUS_ = 0; const STATUS = {couple:"Married or a couple", single_male:"Single man", single_female:"Single woman"};
+const STATUS_ = 0; const STATUS = {couple:"Married or in a relationship", single_male:"Single man", single_female:"Single woman"};
 const FS = [1, 1.1, 1.22, 1.36];
 
 /* ---------- state ---------- */
@@ -793,9 +793,9 @@ const PRAY_NEED = {
  relationships:"Bless the relationships in my life, and help me love the people around me with patience.",
  decisions:"I have a decision in front of me. Give me wisdom, and help me choose what pleases You."
 };
-const PRAY_STATUS = {couple:"Bless my marriage today, and help us love each other the way You love us.", single_male:"Help me use this season of my life to grow into the man You are calling me to be.", single_female:"Help me use this season of my life to grow into the woman You are calling me to be."};
+const PRAY_STATUS = {couple:"Bless my relationship today, and help us love each other the way You love us.", single_male:"Help me use this season of my life to grow into the man You are calling me to be.", single_female:"Help me use this season of my life to grow into the woman You are calling me to be."};
 const PRAY_JOURNEY = ["Draw me a little closer to You today.", "Help me know You better through Your word.", "Teach me to listen for Your voice today.", "Let me notice You in the ordinary moments of this day.", "Make my heart a little more like Yours today.", "Help me walk with You, one step at a time.", "Keep me close to You, even when I forget You."];
-const PRAY_CLOSE = ["Thank You for every gift of this day, and above all for Jesus, who gave His life for me. Amen.", "I am grateful for Your love, which I never earned. Thank You, Jesus. Amen.", "Thank You for hearing me. Your will be done in my life today. Amen."];
+const PRAY_CLOSE = ["Thank You for every gift of this day, and above all for Jesus, who gave His life for me. In Jesus Christ’s name, Amen.", "I am grateful for Your love, which I never earned. In Jesus Christ’s name, Amen.", "Thank You for hearing me. Your will be done in my life today. In Jesus Christ’s name, Amen."];
 const PRAY_OPEN = ["Lord, it's me, {n}. Thank You for this new day.", "Father, here I am, {n}, grateful for another day.", "Jesus, it's {n}. Thank You for being here with me.", "Lord, thank You for waking me to this day. It's {n}, and I come to You as I am."];
 const PRAY_OPEN_NONAME = ["Lord, thank You for this new day.", "Father, here I am, grateful for another day.", "Jesus, thank You for being here with me.", "Lord, I come to You as I am, grateful for this day."];
 function joinNames(a){ return a.length <= 1 ? (a[0] || "") : a.slice(0,-1).join(", ") + " and " + a[a.length-1]; }
