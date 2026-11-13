@@ -1,6 +1,10 @@
 name: Bible check
 # Asks each Bible service for John 3 with the saved keys and prints what came back (never the keys).
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches: [prayerchair]
+    paths: [".github/workflows/bible-check.yml"]
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -13,7 +17,7 @@ jobs:
         run: |
           if [ -n "$YV" ]; then
             echo "== YouVersion: English Bibles this key can use"
-            curl -s -H "X-YVP-App-Key: $YV" "https://api.youversion.com/v1/bibles?language_ranges[]=eng&page_size=100" | jq -r '.data[]? | "\(.id)\t\(.abbreviation // .local_abbreviation)\t\(.title // .local_title)"' | head -80
+            curl -s -H "X-YVP-App-Key: $YV" "https://api.youversion.com/v1/bibles?language_ranges[]=eng&page_size=100&all_available=true" | jq -r '.data[]? | "\(.id)\t\(.abbreviation // .local_abbreviation)\t\(.title // .local_title)"' | head -80
             echo "== YouVersion NIV John 3 verses (shape)"
             curl -s -w '\nHTTP %{http_code}\n' -H "X-YVP-App-Key: $YV" "https://api.youversion.com/v1/bibles/111/books/JHN/chapters/3/verses" | head -c 1500; echo
             echo "== YouVersion NIV John 3 passage (shape)"
