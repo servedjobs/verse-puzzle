@@ -27,6 +27,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '22', cache: npm }
       - run: npm ci
+      - name: Bible keys (NIV, ESV, NLT)
+        env:
+          YV_APP_KEY: ${{ secrets.YV_APP_KEY }}
+          ESV_API_KEY: ${{ secrets.ESV_API_KEY }}
+          NLT_API_KEY: ${{ secrets.NLT_API_KEY }}
+          YV_BIBLE_IDS: ${{ vars.YV_BIBLE_IDS }}
+        run: node -e 'const e=process.env;let ids={};try{ids=JSON.parse(e.YV_BIBLE_IDS||"{}")}catch(x){};require("fs").writeFileSync("www/keys.js","window.PC_KEYS="+JSON.stringify({yv:e.YV_APP_KEY||"",esv:e.ESV_API_KEY||"",nlt:e.NLT_API_KEY||"",yvIds:ids})+";")'
       - run: npx cap sync ios
       - name: Write API key
         env: { ASC_KEY_P8: '${{ secrets.ASC_KEY_P8 }}' }

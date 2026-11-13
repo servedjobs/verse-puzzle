@@ -1,0 +1,29 @@
+name: Bible check
+# Asks each Bible service for John 3 with the saved keys and prints what came back (never the keys).
+on: workflow_dispatch
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask each service
+        env:
+          YV: ${{ secrets.YV_APP_KEY }}
+          ESV: ${{ secrets.ESV_API_KEY }}
+          NLT: ${{ secrets.NLT_API_KEY }}
+        run: |
+          if [ -n "$YV" ]; then
+            echo "== YouVersion: English Bibles this key can use"
+            curl -s -H "X-YVP-App-Key: $YV" "https://api.youversion.com/v1/bibles?language_ranges[]=eng&page_size=100" | jq -r '.data[]? | "\(.id)\t\(.abbreviation // .local_abbreviation)\t\(.title // .local_title)"' | head -80
+            echo "== YouVersion NIV John 3 verses (shape)"
+            curl -s -w '\nHTTP %{http_code}\n' -H "X-YVP-App-Key: $YV" "https://api.youversion.com/v1/bibles/111/books/JHN/chapters/3/verses" | head -c 1500; echo
+            echo "== YouVersion NIV John 3 passage (shape)"
+            curl -s -w '\nHTTP %{http_code}\n' -H "X-YVP-App-Key: $YV" "https://api.youversion.com/v1/bibles/111/passages/JHN.3?format=html" | head -c 1500; echo
+          else echo "No YV_APP_KEY yet"; fi
+          if [ -n "$ESV" ]; then
+            echo "== ESV John 3"
+            curl -s -w '\nHTTP %{http_code}\n' -H "Authorization: Token $ESV" "https://api.esv.org/v3/passage/text/?q=John+3&include-passage-references=false&include-footnotes=false&include-headings=false&include-short-copyright=false&line-length=0" | head -c 800; echo
+          else echo "No ESV_API_KEY yet"; fi
+          if [ -n "$NLT" ]; then
+            echo "== NLT John 3"
+            curl -s -w '\nHTTP %{http_code}\n' "https://api.nlt.to/api/passages?version=NLT&ref=John+3&key=$NLT" | head -c 1500; echo
+          else echo "No NLT_API_KEY yet"; fi
