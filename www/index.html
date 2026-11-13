@@ -75,7 +75,7 @@ header.top h1{font:600 calc(24px*var(--fs))/1.1 var(--serif);margin:0;letter-spa
 .cc.bad .l{color:var(--red)}
 .kb{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:14px}
 .kb button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;height:calc(46px*var(--fs));font:600 calc(16px*var(--fs)) var(--sans);padding:0;cursor:pointer}
-.kb button.usedk{opacity:.4}
+.kb button.usedk{box-shadow:inset 0 -3px 0 var(--gold);color:var(--muted)}
 .kb .wide{grid-column:span 2}
 /* word search */
 .ws-grid{display:grid;gap:3px;touch-action:none;margin:0 auto}
@@ -265,8 +265,8 @@ function playCrypto(v,ctx){
   $('#kb').onclick=e=>{const b=e.target.closest('[data-l]');if(!b||sel===null||solvedId===puzzleId)return;const c=cells[sel];const L=b.dataset.l;
     if(L!=='DEL'&&[...given].some(k=>k!==c&&guess[k]===L)){buzz('bad');toast(L+' is already used in green');return}
     if(L==='DEL'){delete guess[c];render();return}
-    for(const k in guess)if(guess[k]===L&&!given.has(k))delete guess[k];
-    guess[c]=L;buzz();
+    let mv=0;for(const k in guess)if(guess[k]===L&&!given.has(k)&&k!==c){delete guess[k];mv=1}
+    guess[c]=L;buzz();if(mv)toast(L+' moved here');
     const full=letters.every(x=>guess[x]);
     if(full){ render(); if(letters.every(x=>guess[x]===x)){solved('crypto',v,ctx);return}
       app.querySelectorAll('#cg .cc[data-c]').forEach(el=>{if(guess[el.dataset.c]!==el.dataset.c)el.classList.add('bad')});buzz('bad');toast('Almost. Letters in red are wrong.');return }
