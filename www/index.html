@@ -1310,7 +1310,7 @@ function renderChapter(book, ch, hl){
   const prev = ch > 1 ? [book, ch-1] : (BOOK_ORDER.indexOf(book) > 0 ? [BOOK_ORDER[BOOK_ORDER.indexOf(book)-1], BIBLE[BOOK_ORDER[BOOK_ORDER.indexOf(book)-1]].length] : null);
   const nb = BOOK_ORDER[BOOK_ORDER.indexOf(book)+1];
   const next = ch < BIBLE[book].length ? [book, ch+1] : (nb ? [nb, 1] : null);
-  bar({back: () => { sub = {type:"book", book}; renderBible(); }, title: `${bookLabel(book)} ${ch}`,
+  bar({back: () => { sub = {type:"book", book}; renderBible(); }, title: `${bookLabel(book)} ${book === "Psalms" && trCur() !== "drb" ? hebPs(ch) : ch}`,
        right: `<button class="icon-btn plain" id="fsBtn" aria-label="Text size">${ic("type")}</button>`});
   const isRead = readSet.has(key);
   view.innerHTML = `<article class="reader">
