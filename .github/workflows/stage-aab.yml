@@ -8,7 +8,8 @@ jobs:
   stage:
     runs-on: ubuntu-latest
     steps:
-      - env: { GH_TOKEN: ${{ github.token }} }
+      - env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh run download 43440025795 -R ${{ github.repository }} -D art
           git clone -q --depth 1 -b gh-pages https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }} site
