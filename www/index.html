@@ -543,7 +543,7 @@ const COPY = {
   nlt:"Scripture quotations are taken from the Holy Bible, New Living Translation, copyright © 1996, 2004, 2015 by Tyndale House Foundation. Used by permission of Tyndale House Publishers, Carol Stream, Illinois 60188. All rights reserved.",
   kjv:"King James Version. Public domain."};
 const YVID = Object.assign({niv:111}, KEYS.yvIds || {}); // YouVersion Bible ids
-function trHas(k){ if(k === "kjv") return true; if(!ONL[k]) return false; if(KEYS.yv && YVID[k]) return true; return !!KEYS[k]; }
+function trHas(k){ if(k === "kjv") return true; if(!ONL[k]) return false; if(KEYS.yv && YVID[k]) return true; return k === "nlt" || !!KEYS[k]; }
 function trList(){ return ["niv","esv","kjv","nlt"].filter(trHas); }
 function trSeg(attr, cur){ const L = trList(); return L.length < 2 ? "" : `<div class="segctl" role="group" aria-label="Bible translation" style="grid-template-columns:repeat(${L.length},1fr)">${L.map(k => `<button data-${attr}="${k}" class="${cur === k ? "on" : ""}">${esc(TR[k].short)}</button>`).join("")}</div>`; }
 const TRX = {};
@@ -583,8 +583,8 @@ async function fetchChapter(k, b, ch){
     const j = JSON.parse(await httpGet("https://api.esv.org/v3/passage/text/?q=" + encodeURIComponent(nm) + "&include-passage-references=false&include-verse-numbers=true&include-first-verse-numbers=true&include-footnotes=false&include-footnote-body=false&include-headings=false&include-short-copyright=false&include-copyright=false&include-selahs=true&indent-paragraphs=0&indent-poetry=false&indent-poetry-lines=0&indent-declares=0&indent-psalm-doxology=0&line-length=0", {Authorization: "Token " + KEYS.esv}));
     return splitNums((j.passages || []).join(" "));
   }
-  if(k === "nlt" && KEYS.nlt){
-    const h = await httpGet("https://api.nlt.to/api/passages?version=NLT&key=" + encodeURIComponent(KEYS.nlt) + "&ref=" + encodeURIComponent(nm));
+  if(k === "nlt"){
+    const h = await httpGet("https://api.nlt.to/api/passages?version=NLT&key=" + encodeURIComponent(KEYS.nlt || "TEST") + "&ref=" + encodeURIComponent(nm));
     const d = document.createElement("div"); d.innerHTML = h; d.querySelectorAll(".tn,.a-tn,h2,h3,h4,.subhead,.chapter-number,.psa-title,.psa-hebrew").forEach(e => e.remove());
     d.querySelectorAll("verse_export").forEach(e => e.insertAdjacentText("afterbegin", " [" + e.getAttribute("vn") + "] ")); d.querySelectorAll(".vn").forEach(e => e.remove());
     return splitNums(d.textContent || "");
@@ -820,6 +820,26 @@ function personalPrayer(core, d){
 const CAP = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? window.Capacitor : null;
 const capPlug=n=>{try{const C=window.Capacitor;if(!C)return null;if(C.Plugins&&C.Plugins[n])return C.Plugins[n];return typeof C.registerPlugin==='function'?C.registerPlugin(n):null}catch(e){return null}};
 const LN = CAP ? capPlug("LocalNotifications") : null;
+/* tapping a reminder opens Today and keeps what it said on screen (iOS clears it from Notification Center) */
+let alertNote = null;
+function openFromAlert(n){
+  n = n || {}; const ex = n.extra || {};
+  alertNote = {title: n.title || "Don’t leave God in the PrayerChair today", body: n.body || "", daily: ex.pc !== "nudge"};
+  document.querySelectorAll(".overlay:not(#welcome), .sheet, .backdrop").forEach(e => e.remove());
+  tab = "today"; sub = null; render();
+}
+function showAlertNote(){
+  if(!alertNote || tab !== "today") return;
+  const a = alertNote; alertNote = null;
+  const card = document.createElement("section"); card.className = "card stack"; card.id = "alertNote";
+  card.style.cssText = "border:2px solid #F59E0B";
+  card.innerHTML = `<span class="label">${ic("bell","sm")} Your reminder</span><b>${esc(a.title)}</b>${a.daily ? `<p class="muted small" style="margin:0">Here’s today’s verse in full ↓</p>` : `<p class="prose" style="margin:0">${esc(a.body)}</p>`}<button class="btn quiet sm" id="alertOk" style="align-self:flex-start">Got it</button>`;
+  const st = view.querySelector(".stack"), hello = st && st.querySelector(".hello");
+  if(hello) hello.after(card); else if(st) st.prepend(card);
+  $("#alertOk").onclick = () => card.remove();
+  if(a.daily){ const v = view.querySelector(".verse"); if(v){ const c = v.closest(".card"); if(c){ c.style.transition = "box-shadow .6s"; c.style.boxShadow = "0 0 0 3px #F59E0B"; setTimeout(() => c.style.boxShadow = "", 4000); } } }
+}
+if(LN && LN.addListener){ try{ LN.addListener("localNotificationActionPerformed", e => openFromAlert(e && e.notification)); }catch(e){} }
 async function scheduleAlerts(ask){
   if(!LN) return null;
   try{
@@ -834,9 +854,9 @@ async function scheduleAlerts(ask){
       if(S.remindOn !== false){ const [h,m] = S.remind.split(":").map(Number), at = new Date(day); at.setHours(h, m, 0, 0);
         if(at > now){ let tease = "Today’s verse is waiting for you.";
           try{ const w = verseOfDay(day, votdPick).text.split(/\s+/); tease = "“" + w.slice(0, Math.min(7, Math.max(3, w.length - 3))).join(" ").replace(/[,;:.]$/, "") + "…”"; }catch(e){}
-          list.push({id:1000 + i, title:"Don’t leave God in the PrayerChair today", body:tease, schedule:{at, allowWhileIdle:true}, isExactNotification:false}); } }
+          list.push({id:1000 + i, title:"Don’t leave God in the PrayerChair today", body:tease, extra:{pc:"daily"}, schedule:{at, allowWhileIdle:true}, isExactNotification:false}); } }
       if(S.nudges) nudgesFor(day).forEach((body, k) => { const [h,m] = NUDGE_TIMES[k].split(":").map(Number), at = new Date(day); at.setHours(h, m, 0, 0);
-        if(at > now) list.push({id:2000 + i*10 + k, title:"Don’t leave God in the PrayerChair", body, schedule:{at, allowWhileIdle:true}, isExactNotification:false}); });
+        if(at > now) list.push({id:2000 + i*10 + k, title:"Don’t leave God in the PrayerChair", body, extra:{pc:"nudge"}, schedule:{at, allowWhileIdle:true}, isExactNotification:false}); });
     }
     if(list.length) await LN.schedule({notifications:list});
     return true;
@@ -958,7 +978,7 @@ function render(){
   topbar.classList.remove("scrolled");
   if(playing){ if(S.pane === "cw") bar({back: () => { S.pane = "vp"; save(); render(); }, title: "Crossword"}); else bar(); mountPlay(); return; }
   view.scrollTop = 0;
-  if(tab === "today") renderToday();
+  if(tab === "today"){ renderToday(); showAlertNote(); }
   else if(tab === "bible") renderBible();
   else if(tab === "saved") renderSaved();
 }
