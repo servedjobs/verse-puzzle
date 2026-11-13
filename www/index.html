@@ -570,13 +570,9 @@ async function fetchChapter(k, b, ch){
   const nm = (b === "Psalms" ? "Psalm" : b) + " " + ch;
   if(KEYS.yv && YVID[k]){ // YouVersion Platform
     const H = {"X-YVP-App-Key": KEYS.yv}, base = "https://api.youversion.com/v1/bibles/" + YVID[k];
-    try{ const j = JSON.parse(await httpGet(base + "/books/" + USFM[bi] + "/chapters/" + ch + "/verses", H)), d = j.data || [];
-      const vs = []; d.forEach((x, i) => { const n = +String(x.id || x.usfm || "").split(".").pop() || x.verse || x.number || i + 1, t = x.content || x.text || ""; if(t) vs[n - 1] = /</.test(t) ? htmlText(t) : t.trim(); });
-      if(vs.filter(Boolean).length) return Array.from(vs, v => v || "");
-    }catch(e){}
     const j = JSON.parse(await httpGet(base + "/passages/" + USFM[bi] + "." + ch + "?format=html", H)), h = j.content || (j.data && j.data.content) || "";
-    const d = document.createElement("div"); d.innerHTML = h; d.querySelectorAll(".note,.ft,.f,.x,.heading,.s1,.s2,.d,h1,h2,h3,h4").forEach(e => e.remove());
-    d.querySelectorAll(".label,.v,.verse-num,sup").forEach(e => { if(/^\d+$/.test(e.textContent.trim())) e.textContent = " [" + e.textContent.trim() + "] "; });
+    const d = document.createElement("div"); d.innerHTML = h; d.querySelectorAll(".yv-n,.yv-h,.note,.ft,.f,.x,.heading,.s1,.s2,.s,.d,.r,.ms,.mr,h1,h2,h3,h4").forEach(e => e.remove());
+    d.querySelectorAll(".yv-vlbl,.label,.verse-num,sup").forEach(e => { if(/^\d+$/.test(e.textContent.trim())) e.textContent = " [" + e.textContent.trim() + "] "; });
     return splitNums(d.textContent || "");
   }
   if(k === "esv" && KEYS.esv){
