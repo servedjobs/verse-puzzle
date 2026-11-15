@@ -1,0 +1,55 @@
+/* Bible Scenes */
+.scn-card{position:relative; display:block; width:100%; height:168px; border:0; padding:0; border-radius:var(--r-lg, 18px); overflow:hidden; background:#1a1510; cursor:pointer; text-align:left; color:#fff; box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.scn-card img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 30%; filter:sepia(.35) brightness(.8)}
+.scn-card::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg, rgba(10,7,3,.85) 0%, rgba(10,7,3,.45) 60%, rgba(10,7,3,.1) 100%)}
+.scn-card-txt{position:absolute; z-index:1; left:18px; right:76px; bottom:18px; display:grid; gap:4px}
+.scn-card-txt .label{color:#FBBF24}
+.scn-card-txt b{font-family:var(--read); font-size:21px; line-height:1.2; font-weight:600}
+.scn-card-txt .sub{font-size:13px; opacity:.85}
+.scn-play{position:absolute; z-index:1; right:18px; bottom:20px; width:46px; height:46px; border-radius:50%; display:grid; place-items:center; background:#F59E0B; color:#1A1206}
+.scn-play .ico{transform:rotate(-90deg)}
+.overlay.scn{background:#000; color:#fff}
+.scn-top{position:absolute; z-index:5; top:0; left:0; right:0; display:flex; align-items:center; gap:10px; padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px; background:linear-gradient(rgba(0,0,0,.55), transparent); pointer-events:none}
+.scn-top > *{pointer-events:auto}
+.scn-x{background:rgba(255,255,255,.14)!important; color:#fff!important; border-color:transparent!important}
+.scn-title{flex:1; font-weight:700; font-size:16px; text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.scn-count{font-size:13px; opacity:.8}
+.scn-feed{flex:1; height:100%; overflow-y:auto; scroll-snap-type:y mandatory; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; scrollbar-width:none}
+.scn-feed::-webkit-scrollbar{display:none}
+.scn-slide{position:relative; height:100%; min-height:100%; scroll-snap-align:start; scroll-snap-stop:always; overflow:hidden; user-select:none; -webkit-user-select:none}
+.scn-art{position:absolute; inset:0; background:#14100b}
+.scn-art img{position:absolute; opacity:0; transition:opacity .5s}
+.scn-art img[src]{opacity:1}
+.scn-art .bg{inset:-40px; width:calc(100% + 80px); height:calc(100% + 80px); object-fit:cover; filter:blur(28px) sepia(.5) brightness(.45)}
+.scn-art .fg{left:0; top:calc(52px + env(safe-area-inset-top,0px)); width:100%; height:calc(66% - 52px - env(safe-area-inset-top,0px)); object-fit:contain; object-position:center top; filter:sepia(.3) contrast(1.05); transform-origin:50% 40%}
+.scn-slide.on .scn-art .fg{animation:scnKen 18s ease-out forwards}
+@keyframes scnKen{from{transform:scale(1)} to{transform:scale(1.08)}}
+.scn-shade{position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,.7) 60%, rgba(0,0,0,.93) 100%)}
+.scn-info{position:absolute; left:18px; right:84px; bottom:calc(26px + env(safe-area-inset-bottom,0px)); display:grid; gap:8px; text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.scn-ref{font-size:13px; font-weight:700; letter-spacing:.02em; color:#FBBF24}
+.scn-info h2{margin:0; font-family:var(--read); font-size:25px; line-height:1.15; font-weight:700}
+.scn-verse{margin:0; font-family:var(--read); font-size:16px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; cursor:pointer}
+.scn-verse.open{display:block; max-height:42vh; overflow:auto}
+.scn-more{font-size:12px; font-weight:700; opacity:.7; margin-top:-4px}
+.scn-hook{margin:2px 0 0; font-size:14px; line-height:1.4; opacity:.85; font-style:italic}
+.scn-slide.on .scn-info > *{animation:scnUp .5s both}
+.scn-slide.on .scn-info > :nth-child(2){animation-delay:.06s} .scn-slide.on .scn-info > :nth-child(3){animation-delay:.12s} .scn-slide.on .scn-info > :nth-child(4){animation-delay:.2s}
+@keyframes scnUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+.scn-rail{position:absolute; right:10px; bottom:calc(30px + env(safe-area-inset-bottom,0px)); display:grid; gap:18px}
+.scn-act{display:grid; justify-items:center; gap:4px; width:58px; border:0; background:none; color:#fff; font:600 11px/1 var(--ui, system-ui); cursor:pointer; text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.scn-act .ico{width:30px; height:30px; padding:11px; box-sizing:content-box; border-radius:50%; background:rgba(255,255,255,.14); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)}
+.scn-act.on .ico{color:#F87171; fill:#F87171; background:rgba(248,113,113,.18)}
+.scn-heart{position:absolute; left:50%; top:42%; width:110px; height:110px; margin:-55px 0 0 -55px; color:#F87171; opacity:0; pointer-events:none}
+.scn-heart .ico{width:100%; height:100%; fill:#F87171}
+.scn-heart.go{animation:scnPop .8s ease-out}
+@keyframes scnPop{0%{opacity:0; transform:scale(.4)} 25%{opacity:.95; transform:scale(1.1)} 60%{opacity:.9; transform:scale(1)} 100%{opacity:0; transform:scale(1.25) translateY(-30px)}}
+.scn-end{display:grid; place-items:center; background:radial-gradient(circle at 50% 35%, #3a2a12, #000 70%)}
+.scn-endbox{display:grid; justify-items:center; gap:12px; padding:24px; text-align:center; max-width:320px}
+.scn-endbox h2{margin:6px 0 0; font-family:var(--read); font-size:26px}
+.scn-endbox p{margin:0 0 8px; opacity:.85}
+.scn-endbox .btn{width:100%}
+.scn-endbox .btn.quiet{color:#fff}
+.scn-coach{position:absolute; z-index:6; left:50%; top:42%; transform:translateX(-50%); display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:999px; background:rgba(0,0,0,.6); font-size:14px; font-weight:600; pointer-events:none; animation:scnBob 1.6s ease-in-out infinite}
+.scn-coach .ico{transform:rotate(90deg)}
+@keyframes scnBob{0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,-10px)}}
+@media (prefers-reduced-motion: reduce){ .scn-slide.on .scn-art .fg, .scn-slide.on .scn-info > *, .scn-coach{animation:none} }
