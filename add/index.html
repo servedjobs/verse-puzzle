@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Play with me on PrayerChair</title><link rel="icon" href="/favicon.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:title" content="Play Bible Trivia with me on PrayerChair"><meta property="og:image" content="https://prayerchair.app/favicon.png">
+<style>
+:root{--ink:#0F172A;--muted:#475569;--gold:#B45309;--bg:#EAF5FF;--card:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#F1F5F9;--muted:#94A3B8;--bg:#0E1626;--card:#151E2E;--gold:#FBBF24}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,'Segoe UI',Inter,Roboto,sans-serif;display:grid;place-items:center;min-height:100vh;padding:16px;box-sizing:border-box}
+.card{background:var(--card);border-radius:24px;padding:28px 22px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(15,42,74,.12)}
+img{width:96px;height:96px;border-radius:22px}
+h1{font-size:26px;margin:14px 0 6px}p{color:var(--muted);margin:0 0 18px}
+.btn{display:block;text-decoration:none;font-weight:700;border-radius:14px;padding:14px;margin:10px 0}
+.primary{background:var(--gold);color:#fff}.quiet{border:1.5px solid rgba(100,116,139,.35);color:var(--ink)}
+.code{font-size:13px;color:var(--muted);margin-top:14px}b.c{letter-spacing:2px}
+</style></head><body><div class="card">
+<img src="/apple-touch-icon.png" alt="PrayerChair">
+<h1>Play Bible Trivia with me</h1>
+<p>Open PrayerChair and we’ll be friends there, so we can play anytime with one tap.</p>
+<a class="btn primary" id="open" href="#">Open in PrayerChair</a>
+<p style="margin:16px 0 4px">Don’t have it yet? It’s free:</p>
+<a class="btn quiet" href="https://apps.apple.com/us/app/prayerchair-bible-prayer/id6833072608">Get it on the App Store</a>
+<a class="btn quiet" href="https://play.google.com/store/apps/details?id=com.vandelaylabs.prayerchair">Get it on Google Play</a>
+<div class="code" id="code"></div>
+</div>
+<script>
+var c=(location.hash||"").replace("#","").replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,6);
+var url="prayerchair://add/"+c; document.getElementById("open").href=url;
+if(c){document.getElementById("code").innerHTML='After installing, tap “Open in PrayerChair” again, or in Games → Bible Trivia tap “Have a friend’s code?” and enter <b class="c">'+c+'</b>.'; setTimeout(function(){location.href=url},400);}
+</script></body></html>
