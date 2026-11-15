@@ -5,7 +5,9 @@ from full_a import CATS
 from relations import EXTRA, REL
 from long_peter import LONG as L1
 from long_twelve import LONG as L2
-LONG = {**L2, **L1}
+from long_nt import LONG as L3
+from long_ot import LONG as L4
+LONG = {**L4, **L3, **L2, **L1}
 for c in CATS:
     for pp in c["people"]:
         x = LONG.get(pp["id"])
