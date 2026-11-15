@@ -1,0 +1,64 @@
+/* Bible People */
+.pp-card{margin-top:-4px}
+.overlay.pp{background:var(--canvas-2); color:var(--ink)}
+.pp-seg{padding:0 max(16px, env(safe-area-inset-right,0px)) 8px max(16px, env(safe-area-inset-left,0px))}
+.pp-body{flex:1; overflow-y:auto; padding:8px max(16px, env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px))}
+.pp-cat{display:grid; gap:10px}
+.pp-cat-h{display:flex; justify-content:space-between; align-items:flex-end; gap:12px}
+.pp-cat-h h3{margin:0; font-size:18px}
+.pp-cat-h p{margin:2px 0 0}
+.pp-row{display:flex; gap:10px; overflow-x:auto; padding:2px 2px 8px; margin:0 -2px; scroll-snap-type:x proximity; scrollbar-width:none}
+.pp-row::-webkit-scrollbar{display:none}
+.pp-tile{flex:0 0 136px; scroll-snap-align:start; display:grid; justify-items:start; align-content:start; gap:6px; padding:12px; border-radius:16px; border:1px solid var(--line); background:var(--canvas); color:var(--ink); text-align:left; cursor:pointer}
+.pp-tile b{font-size:15px; line-height:1.2}
+.pp-tile > span:last-child{font-size:12px; line-height:1.35; color:var(--ink-2); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+.pp-av{flex:none; width:40px; height:40px; border-radius:50%; overflow:hidden; display:grid; place-items:center; background:#2a2016}
+.pp-av img{width:100%; height:100%; object-fit:cover; filter:sepia(.35)}
+.pp-av.lg{width:56px; height:56px}
+.pp-av.mono{background:var(--brand-soft); color:var(--brand-text); font:700 18px/1 var(--read); border:1px solid var(--brand-line)}
+.pp-av.mono.lg{font-size:24px}
+.pp-who{display:grid; gap:12px}
+.pp-who-h{display:flex; gap:12px; align-items:center}
+.pp-who-h h2{margin:0; font-family:var(--read); font-size:22px}
+.pp-who-h p{margin:2px 0 0}
+.pp-map{width:100%; height:auto; display:block}
+.pp-node{cursor:pointer}
+.pp-ini{font:700 15px var(--read); fill:var(--ink)}
+.pp-lab{font:600 10.5px var(--ui, system-ui); fill:var(--ink-2); paint-order:stroke; stroke:var(--canvas); stroke-width:3px}
+.pp-cini{font:700 26px var(--read); fill:var(--on-brand)}
+.pp-legend{display:flex; flex-wrap:wrap; gap:6px 12px; font-size:12px; color:var(--ink-2)}
+.pp-legend span{display:inline-flex; align-items:center; gap:5px}
+.pp-legend i{width:10px; height:10px; border-radius:50%}
+.pp-line{list-style:none; margin:0; padding:0 0 0 20px; position:relative; display:grid; gap:4px}
+.pp-line::before{content:""; position:absolute; left:39px; top:24px; bottom:24px; width:2px; background:var(--brand-line)}
+.pp-line button{display:flex; gap:12px; align-items:center; width:100%; padding:8px 0; border:0; background:none; color:var(--ink); text-align:left; cursor:pointer; position:relative}
+.pp-line b{display:block; font-size:15px}
+.pp-line .sub{font-size:13px; color:var(--ink-2)}
+/* person story deck */
+.overlay.ppd{z-index:32}
+.ppd-name{font-size:34px!important}
+.ppd-role{margin:0; font-size:17px; line-height:1.4; opacity:.92}
+.ppd-facts{display:flex; flex-wrap:wrap; gap:6px}
+.ppd-facts span{font-size:12.5px; font-weight:600; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.14); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)}
+.ppd-hint{margin:6px 0 0; font-size:13px; opacity:.75; display:flex; align-items:center; gap:6px}
+.ppd-hint .ico{transform:rotate(90deg)}
+.ppd-intro .scn-info{right:18px}
+.ppd-card{display:grid; place-items:center}
+.ppd-box{position:relative; z-index:1; margin:calc(64px + env(safe-area-inset-top,0px)) 18px calc(24px + env(safe-area-inset-bottom,0px)); max-width:560px; max-height:calc(100% - 100px); overflow:auto; padding:26px 22px; border-radius:22px; background:rgba(20,15,9,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.1); display:grid; gap:12px}
+.ppd-step{font-size:12px; font-weight:700; color:#FBBF24; letter-spacing:.04em}
+.ppd-box h3{margin:0; font-family:var(--read); font-size:26px; line-height:1.2}
+.ppd-box p{margin:0; font-size:18px; line-height:1.6}
+.ppd-slide-anim{}
+.ppd-card.on .ppd-box{animation:scnUp .45s both}
+.ppd-end h3{font-size:20px}
+.ppd-conn{display:flex; flex-wrap:wrap; gap:8px}
+.ppd-conn button{display:grid; text-align:left; gap:2px; padding:8px 12px; border-radius:12px; border:1.5px solid; background:rgba(255,255,255,.06); color:#fff; font:600 14px/1.2 var(--ui, system-ui); cursor:pointer}
+.ppd-conn small{font-size:11px; font-weight:500; opacity:.7}
+.ppd-reads{display:grid; gap:8px}
+.ppd-reads button{display:flex; gap:10px; align-items:center; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#fff; text-align:left; cursor:pointer}
+.ppd-reads b{display:block; font-size:14px}
+.ppd-reads small{font-size:12px; opacity:.7}
+.ppd-btns{display:grid; gap:8px; margin-top:4px}
+.ppd-btns .btn.quiet{color:#fff}
+.pp-card .scn-play .ico{transform:none}
+.pp-gn{font:700 17px var(--ui, system-ui); fill:#fff}

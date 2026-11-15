@@ -23,8 +23,8 @@ function slideHTML(k, i){ const s = SCENES[k], x = scText(s), g = scG(s);
     <div class="scn-info">
       <span class="scn-ref">${esc(x.ref)}${x.tr ? ` · ${esc(TR[x.tr].short)}` : ""}</span>
       <h2>${esc(s.title)}</h2>
-      <p class="scn-verse">${esc(x.t)}</p><span class="scn-more" hidden>Tap to read more</span>
-      <p class="scn-hook">${esc(s.hook)}</p>
+      <div class="scn-tabs"><button class="on" data-mode="story">What happened</button><button data-mode="verse">Bible verse</button></div>
+      <p class="scn-verse">${esc(s.story || x.t)}</p><span class="scn-more" hidden>Tap to read more</span>
     </div>
     <div class="scn-rail">
       <button class="scn-act ${saved.has(g) ? "on" : ""}" data-act="save" aria-label="Save">${ic("heart")}<span>${saved.has(g) ? "Saved" : "Save"}</span></button>
@@ -44,8 +44,8 @@ function openScenes(){
   const feed = $("#scnFeed"), cnt = $("#scnCount");
   scn = {ov, order};
   const load = el => { if(el) el.querySelectorAll("img[data-src]").forEach(im => { im.src = im.dataset.src; im.removeAttribute("data-src"); }); };
-  const refresh = el => { const k = +el.dataset.k; if(isNaN(k)) return; const s = SCENES[k], x = scText(s);
-    const pv = el.querySelector(".scn-verse"); pv.textContent = x.t; requestAnimationFrame(() => { el.querySelector(".scn-more").hidden = !(pv.scrollHeight > pv.clientHeight + 2 || pv.classList.contains("open")); }); el.querySelector(".scn-ref").textContent = x.ref + (x.tr ? " · " + TR[x.tr].short : "");
+  const refresh = scn.refresh = el => { const k = +el.dataset.k; if(isNaN(k)) return; const s = SCENES[k], x = scText(s);
+    const pv = el.querySelector(".scn-verse"); pv.textContent = el.dataset.mode === "verse" || !s.story ? x.t : s.story; requestAnimationFrame(() => { el.querySelector(".scn-more").hidden = !(pv.scrollHeight > pv.clientHeight + 2 || pv.classList.contains("open")); }); el.querySelector(".scn-ref").textContent = x.ref + (x.tr ? " · " + TR[x.tr].short : "");
     if(ONL[trCur()] && x.tr !== trCur()) ensureChapter(trCur(), s.r[0], s.r[1]).then(ok => { if(ok && scn) refresh(el); }); };
   let cur = -1;
   const io = new IntersectionObserver(es => es.forEach(e => {
@@ -71,6 +71,7 @@ function openScenes(){
       else if(a === "share") shareVerse(scG(s));
       else if(a === "read"){ closeScenes(true); openChapter(s.r[0], s.r[1], scG(s)); }
       return; }
+    const tb = e.target.closest(".scn-tabs button"); if(tb){ el.dataset.mode = tb.dataset.mode; el.querySelectorAll(".scn-tabs button").forEach(x => x.classList.toggle("on", x === tb)); el.querySelector(".scn-verse").classList.remove("open"); el.querySelector(".scn-more").textContent = "Tap to read more"; refresh(el); return; }
     const vv = e.target.closest(".scn-verse, .scn-more"); if(vv){ const p = el.querySelector(".scn-verse"); p.classList.toggle("open"); el.querySelector(".scn-more").textContent = p.classList.contains("open") ? "Show less" : "Tap to read more"; return; }
     const now = Date.now(); if(el._t && now - el._t < 320){ el._t = 0; like(el, true); } else el._t = now; // double-tap to save, like Reels
   });

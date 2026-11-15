@@ -1,0 +1,133 @@
+from people_a import cat
+
+cat("family", "Jesus & His Family", "The family God chose for His Son.", "nativity", [
+ dict(id="jesus", name="Jesus", role="The Son of God, who became a man", art="sermon",
+  facts=["Born in Bethlehem", "Grew up in Nazareth", "Died and rose again"],
+  cards=[
+   ("Who He is", "Christians believe Jesus is God the Son, who became a real human being. He was born to Mary in Bethlehem around 2,000 years ago and grew up in Nazareth, working as a carpenter like Joseph."),
+   ("Three years", "Around age 30 He was baptized by John and began teaching across Israel. He healed the sick, fed huge crowds, calmed storms, forgave sinners and raised the dead. His message: God’s kingdom is here — turn back to God."),
+   ("Who He spent time with", "Jesus ate with tax collectors, touched people with leprosy, welcomed children and defended a woman caught in adultery. The religious leaders hated it."),
+   ("The cross", "The leaders arrested Him and handed Him to the Roman governor, Pontius Pilate, who had Him crucified. Christians believe He died in our place, taking the punishment for our sins."),
+   ("Sunday morning", "Three days later His tomb was empty. For 40 days He appeared to His friends — once to more than 500 people at once — then went up to heaven, promising to come back."),
+   ("Why it matters", "Everything in the Bible points to Him."),
+  ], read=[("Luke",2,"His birth"),("Matthew",5,"Sermon on the Mount"),("John",3,"“For God so loved the world”"),("Luke",23,"The cross"),("Luke",24,"He is risen")]),
+ dict(id="mary", name="Mary", role="The young woman who said yes to God", art="annunciation",
+  facts=["Mother of Jesus", "From Nazareth", "Was at the cross"],
+  cards=[
+   ("Who she was", "Mary was a young Jewish woman from Nazareth, engaged to a carpenter named Joseph."),
+   ("The angel", "The angel Gabriel told her she would have a baby by the Holy Spirit and He would be the Son of God. She asked how — and then said, “I am the Lord’s servant. Let it happen as you said.”"),
+   ("A mother’s life", "She gave birth in a stable in Bethlehem, fled to Egypt to escape King Herod, and lost 12-year-old Jesus for three days in Jerusalem. At a wedding in Cana she told the servants, “Do whatever He tells you.”"),
+   ("At the cross", "Mary stood by the cross as her son died. Jesus gave her to John to take care of. She was with the disciples praying when the Holy Spirit came at Pentecost."),
+   ("Why it matters", "Mary trusted God with something she didn’t understand. Catholics and Orthodox honor her as the Mother of God."),
+  ], read=[("Luke",1,"The angel’s visit"),("Luke",2,"Jesus is born"),("John",2,"The wedding at Cana"),("John",19,"At the cross")]),
+ dict(id="joseph-nazareth", name="Joseph of Nazareth", role="The carpenter who raised Jesus", art="nativity",
+  facts=["Mary’s husband", "A carpenter", "Never says a word in the Bible"],
+  cards=[
+   ("Who he was", "Joseph was a carpenter from Nazareth, from the family line of King David, engaged to Mary."),
+   ("The hard news", "When Mary was pregnant and he knew he wasn’t the father, Joseph planned to call off the wedding quietly so she wouldn’t be shamed. Then an angel told him in a dream: the baby is from God — marry her."),
+   ("Protector", "Joseph listened every time. He took Mary to Bethlehem, then woke up in the night and fled to Egypt to save baby Jesus from King Herod."),
+   ("Why it matters", "Joseph never speaks a single line in the Bible. He just obeys. He raised the Son of God as his own."),
+  ], read=[("Matthew",1,"Joseph’s dream"),("Matthew",2,"Escape to Egypt")]),
+ dict(id="john-baptist", name="John the Baptist", role="The wild prophet who prepared the way for Jesus", art="baptist",
+  facts=["Jesus’ cousin", "Lived in the desert", "Baptized Jesus"],
+  cards=[
+   ("Who he was", "John was Jesus’ relative, born to an old couple, Zechariah and Elizabeth, after an angel promised them a son."),
+   ("The desert preacher", "He lived in the wilderness, wore camel hair and ate locusts and wild honey. Crowds came out to hear him say: “Turn back to God — the King is coming!” He baptized them in the Jordan River."),
+   ("Baptizing Jesus", "When Jesus came to be baptized, John said, “I should be baptized by you!” As Jesus came up out of the water, the sky opened and God’s voice said, “This is my Son, whom I love.”"),
+   ("How it ended", "John told King Herod it was wrong to marry his brother’s wife. Herod threw him in prison, and at a birthday party, Herod had John beheaded."),
+   ("Why it matters", "John’s whole life was about pointing to someone else: “He must become greater; I must become less.”"),
+  ], read=[("Luke",1,"John’s birth"),("Matthew",3,"Preaching and baptism"),("Mark",6,"John’s death")]),
+])
+
+cat("friends", "Friends of Jesus", "The people who walked with Him.", "martha", [
+ dict(id="mary-magdalene", name="Mary Magdalene", role="The first person to see Jesus risen", art="magdalene",
+  facts=["From Magdala", "Freed from seven demons", "First witness of Easter"],
+  cards=[
+   ("Who she was", "Mary came from Magdala, a fishing town. Jesus freed her from seven demons, and from then on she followed Him and helped support His ministry with her own money."),
+   ("She stayed", "When the men ran away, Mary Magdalene stayed at the cross. She watched where Jesus was buried."),
+   ("Easter morning", "Early Sunday she went to the tomb and found it empty. She was crying when a man asked why. She thought he was the gardener — until He said her name: “Mary.” It was Jesus."),
+   ("Why it matters", "Jesus chose her to be the first to see Him risen and to tell the apostles. The early church called her “the apostle to the apostles.”"),
+  ], read=[("Luke",8,"She follows Jesus"),("John",20,"“Mary!”")]),
+ dict(id="martha-mary", name="Martha & Mary of Bethany", role="Two sisters — one busy, one listening", art="martha",
+  facts=["Lived in Bethany", "Sisters of Lazarus", "Jesus’ close friends"],
+  cards=[
+   ("Who they were", "Martha and Mary lived in Bethany, near Jerusalem, with their brother Lazarus. Jesus stayed at their house often."),
+   ("Busy vs. still", "Once Martha was rushing around cooking while Mary sat listening to Jesus. Martha complained. Jesus gently said, “Martha, you’re worried about so many things. Only one thing is needed, and Mary has chosen it.”"),
+   ("When Lazarus died", "Martha ran to Jesus and said, “If you had been here, my brother wouldn’t have died.” Jesus told her, “I am the resurrection and the life.” Martha answered, “I believe you are the Messiah.”"),
+   ("The perfume", "A few days before the cross, Mary poured a jar of very expensive perfume on Jesus’ feet and wiped them with her hair. Jesus said she was getting His body ready for burial."),
+  ], read=[("Luke",10,"Martha and Mary"),("John",11,"Lazarus"),("John",12,"The perfume")]),
+ dict(id="lazarus", name="Lazarus", role="The man Jesus raised after four days in the tomb", art=None,
+  facts=["From Bethany", "Brother of Martha & Mary", "Dead four days"],
+  cards=[
+   ("Who he was", "Lazarus was a close friend of Jesus. When he got sick, his sisters sent word: “The one you love is sick.”"),
+   ("Jesus wept", "Jesus waited, and Lazarus died. When Jesus arrived and saw everyone crying, He cried too — the shortest verse in the Bible: “Jesus wept.”"),
+   ("Come out!", "Jesus had the stone rolled away from the tomb — even though Lazarus had been dead four days. He shouted, “Lazarus, come out!” And Lazarus walked out, still wrapped in burial cloth."),
+   ("What happened next", "So many people believed in Jesus because of it that the religious leaders plotted to kill Jesus — and Lazarus too."),
+  ], read=[("John",11,"Lazarus is raised"),("John",12,"Dinner with Lazarus")]),
+ dict(id="nicodemus", name="Nicodemus", role="The religious leader who came to Jesus at night", art=None,
+  facts=["A Pharisee", "Member of the ruling council", "Helped bury Jesus"],
+  cards=[
+   ("Who he was", "Nicodemus was an important Pharisee and a member of the Jewish ruling council in Jerusalem."),
+   ("At night", "He came to Jesus secretly at night with questions. Jesus told him he had to be “born again.” In that conversation Jesus said the most famous verse in the Bible: “For God so loved the world that He gave His only Son…”"),
+   ("Out in the open", "After Jesus died, Nicodemus stopped hiding. He brought about 75 pounds of spices and helped Joseph of Arimathea bury Jesus’ body."),
+   ("Why it matters", "Faith can start with quiet questions in the dark and grow into courage."),
+  ], read=[("John",3,"Born again"),("John",19,"Burying Jesus")]),
+ dict(id="zacchaeus", name="Zacchaeus", role="The short tax collector who climbed a tree", art=None,
+  facts=["Chief tax collector in Jericho", "Very rich", "Very short"],
+  cards=[
+   ("Who he was", "Zacchaeus was the chief tax collector in Jericho — rich, and hated for cheating people."),
+   ("Up a tree", "When Jesus came through town, Zacchaeus was too short to see over the crowd, so he ran ahead and climbed a sycamore tree."),
+   ("“I’m coming to your house”", "Jesus stopped, looked up and said, “Zacchaeus, hurry down — I need to stay at your house today.” The crowd grumbled that Jesus was going to a sinner’s home."),
+   ("A changed man", "Zacchaeus stood up and said, “I’ll give half of everything to the poor, and if I cheated anyone, I’ll pay them back four times.” Jesus said, “Today salvation has come to this house.”"),
+  ], read=[("Luke",19,"Zacchaeus")]),
+])
+
+cat("church", "The Early Church", "How a small group in Jerusalem spread the news everywhere.", "stephen", [
+ dict(id="paul", name="Paul", role="Persecutor turned the greatest missionary", art="paul-prison",
+  facts=["Also called Saul", "Wrote 13 letters", "Traveled about 10,000 miles"],
+  cards=[
+   ("Who he was", "Saul was a strict, brilliant Jewish teacher from Tarsus. He thought Christians were dangerous and went house to house dragging them to prison."),
+   ("Blinded", "On the road to Damascus a blinding light knocked him to the ground. A voice said, “Saul, why are you persecuting me?” It was Jesus. Saul was blind for three days, then was healed and baptized."),
+   ("On the road", "Now called Paul, he traveled across the Roman world starting churches. He was beaten, stoned, shipwrecked three times and jailed — and once sang hymns at midnight in prison until an earthquake opened the doors."),
+   ("His letters", "Paul wrote 13 letters that are now in the New Testament, including Romans and the famous “love is patient, love is kind” chapter."),
+   ("How it ended", "He was arrested in Jerusalem and sent to Rome. Church tradition says he was beheaded there under Emperor Nero."),
+   ("Why it matters", "If God could turn Saul around, He can turn anyone around."),
+  ], read=[("Acts",9,"The Damascus road"),("Acts",16,"Singing in prison"),("Acts",27,"Shipwreck"),("1 Corinthians",13,"Love is patient")]),
+ dict(id="stephen", name="Stephen", role="The first Christian to die for Jesus", art="stephen",
+  facts=["One of seven helpers", "Full of the Spirit", "Forgave his killers"],
+  cards=[
+   ("Who he was", "Stephen was chosen to help make sure widows got fair shares of food. The Bible says he was full of faith, grace and power."),
+   ("On trial", "Some men lied about him and dragged him before the council. Stephen gave a powerful speech walking through Israel’s history and told the leaders they had killed the Messiah."),
+   ("How it ended", "Furious, they dragged him out of the city and threw stones at him. As he died he prayed, “Lord, don’t hold this sin against them.” A young man named Saul watched and approved."),
+   ("Why it matters", "Stephen died forgiving — just like Jesus. And the man holding the coats became the apostle Paul."),
+  ], read=[("Acts",6,"Stephen is chosen"),("Acts",7,"Stephen’s death")]),
+ dict(id="barnabas", name="Barnabas", role="“Son of Encouragement”", art=None,
+  facts=["Gave away his land", "Vouched for Paul", "Missionary partner"],
+  cards=[
+   ("Who he was", "His real name was Joseph, but the apostles called him Barnabas — “son of encouragement.” He sold a field and gave all the money to the church."),
+   ("Taking a risk", "After Paul became a Christian, everyone was still afraid of him. Barnabas was the one who took Paul to the apostles and vouched for him."),
+   ("Second chances", "Barnabas and Paul traveled together as missionaries. When Paul refused to bring young John Mark again after he quit once, Barnabas took Mark anyway. Mark later wrote the Gospel of Mark."),
+   ("Why it matters", "Some of the biggest names in the Bible needed someone like Barnabas to believe in them first."),
+  ], read=[("Acts",4,"His gift"),("Acts",9,"Standing up for Paul"),("Acts",15,"Taking Mark")]),
+ dict(id="timothy", name="Timothy", role="Paul’s young protégé", art=None,
+  facts=["Raised by mom & grandma in faith", "Pastor in Ephesus", "Got two letters from Paul"],
+  cards=[
+   ("Who he was", "Timothy was a young man from Lystra. His mother Eunice and grandmother Lois taught him the Scriptures from childhood."),
+   ("Paul’s son in the faith", "Paul took Timothy along on his travels and called him “my true son in the faith.” Later Timothy led the church in Ephesus."),
+   ("Don’t let them look down on you", "Paul wrote him two letters, now 1 and 2 Timothy. Paul told him: “Don’t let anyone look down on you because you are young. Set an example.”"),
+  ], read=[("Acts",16,"Timothy joins Paul"),("1 Timothy",4,"“Don’t let anyone look down on you”"),("2 Timothy",1,"Faith from his grandmother")]),
+ dict(id="lydia", name="Lydia", role="Businesswoman and the first Christian in Europe", art=None,
+  facts=["Sold purple cloth", "From Thyatira", "Opened her home"],
+  cards=[
+   ("Who she was", "Lydia sold expensive purple cloth — a luxury business. She worshiped God and met with other women to pray by a river outside Philippi."),
+   ("Her heart opened", "When Paul spoke to the women there, the Bible says “the Lord opened her heart.” She and her household were baptized — the first recorded Christians in Europe."),
+   ("Why it matters", "She insisted Paul and his friends stay at her house, and her home became the first church in Philippi."),
+  ], read=[("Acts",16,"Lydia")]),
+ dict(id="priscilla-aquila", name="Priscilla & Aquila", role="A married couple who served together", art=None,
+  facts=["Tentmakers", "Hosted a church at home", "Taught Apollos"],
+  cards=[
+   ("Who they were", "Priscilla and Aquila were a Jewish couple who made tents. They had been forced out of Rome and moved to Corinth, where Paul worked with them in their shop."),
+   ("A team", "They traveled with Paul, hosted a church in their home, and Paul said they risked their lives for him."),
+   ("Teaching a teacher", "When a gifted speaker named Apollos was missing part of the story about Jesus, they invited him home and explained it more clearly."),
+  ], read=[("Acts",18,"Priscilla and Aquila"),("Romans",16,"Paul’s thanks")]),
+])

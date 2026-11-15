@@ -53,3 +53,7 @@
 .scn-coach .ico{transform:rotate(90deg)}
 @keyframes scnBob{0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,-10px)}}
 @media (prefers-reduced-motion: reduce){ .scn-slide.on .scn-art .fg, .scn-slide.on .scn-info > *, .scn-coach{animation:none} }
+.scn-tabs{display:flex; gap:6px}
+.scn-tabs button{border:1px solid rgba(255,255,255,.28); background:rgba(0,0,0,.25); color:#fff; font:600 12px/1 var(--ui, system-ui); padding:7px 11px; border-radius:999px; cursor:pointer}
+.scn-tabs button.on{background:#F59E0B; border-color:#F59E0B; color:#1A1206}
+.scn-verse{font-family:var(--ui, system-ui)!important; font-size:16px!important}

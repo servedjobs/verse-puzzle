@@ -1,7 +1,8 @@
 import json, sys, os
 sys.path.insert(0, 'scenes'); from scenes import S
+from stories import ST
 man = json.load(open('www/scenes/manifest.json'))
-data = [{"id":sid, "title":t, "r":list(r), "hook":h} for sid, img, t, r, h in S if sid in man]
+data = [{"id":sid, "title":t, "r":list(r), "hook":h, "story":ST.get(sid, "")} for sid, img, t, r, h in S if sid in man]
 p = 'www/index.html'; s = open(p, encoding='utf-8').read()
 css = open('scenes/feed.css').read(); js = open('scenes/feed.js').read().replace('__SCENES__', json.dumps(data, ensure_ascii=False))
 A, B = '/* scenes:start */', '/* scenes:end */'
