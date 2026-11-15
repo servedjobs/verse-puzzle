@@ -89,10 +89,11 @@ function openPerson(id){
   const slides = [
     `<section class="scn-slide ppd-intro"><div class="scn-art"><img class="bg" src="${art}" alt=""><img class="fg" src="${art}" alt=""></div><div class="scn-shade"></div>
       <div class="scn-info"><span class="scn-ref">${esc((PCATS.find(c => c.key === p.cat) || {}).title || "")}</span><h2 class="ppd-name">${esc(p.name)}</h2><p class="ppd-role">${esc(p.role)}</p>
-      <div class="ppd-facts">${p.facts.map(f => `<span>${esc(f)}</span>`).join("")}</div><p class="ppd-hint">${ic("back","sm")} Swipe up · ${p.cards.length} moments from ${esc(p.name.split(" (")[0])}’s life · about ${Math.max(1, Math.round(p.cards.reduce((n, c) => n + c.t.split(" ").length, 0) / 200))} min</p></div></section>`,
+      <div class="ppd-facts">${p.facts.map(f => `<span>${esc(f)}</span>`).join("")}</div><p class="ppd-hint">${ic("back","sm")} Swipe up · ${p.cards.length} moments from ${esc(p.name.split(" (")[0])}’s life · about ${Math.max(1, Math.round(p.cards.reduce((n, c) => n + c.t.split(" ").length, 0) / 200))} min</p>
+      <button class="ppd-morebtn" data-more="-1">${ic("book","sm")}<span>Read ${esc(p.name.split(" (")[0])}’s full story · ${artMin(p)} min</span></button></div></section>`,
     ...p.cards.map((c, i) => `<section class="scn-slide ppd-card"><div class="scn-art"><img class="bg" src="${art}" alt=""></div>
       <div class="ppd-box"><span class="ppd-step num">${i + 1} / ${p.cards.length}</span><h3>${esc(c.h)}</h3><p>${esc(c.t)}</p>
-        ${c.more ? `<div class="ppd-more" hidden><p>${esc(c.more)}</p></div><button class="ppd-morebtn" data-more>${ic("book","sm")}<span>Read the full story</span></button>` : ""}
+        ${c.more ? `<button class="ppd-morebtn" data-more="${i}">${ic("book","sm")}<span>Read the full story</span></button>` : ""}
         ${c.ref ? `<button class="ppd-ref" data-b="${esc(c.ref[0])}" data-c="${c.ref[1]}">Read it in the Bible · ${esc(c.ref[0] === "Psalms" ? "Psalm " + hebPs(c.ref[1]) : bookLabel(c.ref[0]) + " " + c.ref[1])}</button>` : ""}</div></section>`),
     `<section class="scn-slide ppd-card"><div class="scn-art"><img class="bg" src="${art}" alt=""></div>
       <div class="ppd-box ppd-end">
@@ -108,7 +109,35 @@ function openPerson(id){
   const done = () => { io.disconnect(); ov.remove(); };
   ov.querySelector("[data-close]").onclick = done;
   ov.querySelectorAll("[data-who]").forEach(b => b.onclick = () => { done(); if(!ppl) openPeople("who", b.dataset.who); else { ppl.mode = "who"; ppl.focus = b.dataset.who; ppl.q = ""; drawPeople(); } });
-  ov.querySelectorAll("[data-more]").forEach(b => b.onclick = () => { const m = b.previousElementSibling, open = m.hidden; m.hidden = !open; b.querySelector("span").textContent = open ? "Show less" : "Read the full story"; });
+  ov.querySelectorAll("[data-more]").forEach(b => b.onclick = () => openArticle(id, +b.dataset.more));
   ov.querySelectorAll("[data-next]").forEach(b => b.onclick = () => { done(); openPerson(b.dataset.next); });
   ov.querySelectorAll("[data-b]").forEach(b => b.onclick = () => { done(); if(ppl){ ppl.ov.remove(); ppl = null; } openChapter(b.dataset.b, +b.dataset.c); });
+}
+
+function artWords(p){ return [...(p.intro || []), ...(p.outro || [])].reduce((n, s) => n + s[1].split(" ").length, 0) + p.cards.reduce((n, c) => n + (c.more || c.t).split(" ").length, 0); }
+function artMin(p){ return Math.max(1, Math.round(artWords(p) / 220)); }
+const paras = t => t.split(/\n\n+/).map(x => `<p>${esc(x.trim())}</p>`).join("");
+function openArticle(id, at){
+  const p = PP[id]; if(!p) return;
+  const art = pArt(p) || "scenes/" + (PCATS.find(c => c.key === p.cat) || {}).art + ".jpg";
+  const ov = document.createElement("div"); ov.className = "overlay art"; ov.id = "article";
+  const refLink = r => r ? `<button class="art-ref" data-b="${esc(r[0])}" data-c="${r[1]}">${ic("book","sm")}Read it in the Bible · ${esc(r[0] === "Psalms" ? "Psalm " + hebPs(r[1]) : bookLabel(r[0]) + " " + r[1])}</button>` : "";
+  const toc = [...(p.intro || []).map(s => s[0]), ...p.cards.map(c => c.h), ...(p.outro || []).map(s => s[0])];
+  ov.innerHTML = `<div class="art-top"><button class="icon-btn" data-close aria-label="Close">${ic("back")}</button><span class="art-t">${esc(p.name)}</span><span class="art-min num">${artMin(p)} min read</span><i class="art-prog"></i></div>
+    <div class="art-body" id="artBody">
+      <header class="art-hero"><img src="${art}" alt=""><div><span class="label">${esc((PCATS.find(c => c.key === p.cat) || {}).title || "")}</span><h1>${esc(p.name)}</h1><p>${esc(p.role)}</p></div></header>
+      <details class="art-toc"><summary>In this story · ${toc.length} parts</summary><ol>${toc.map((t, i) => `<li><button data-go="${i}">${esc(t)}</button></li>`).join("")}</ol></details>
+      ${(p.intro || []).map((s, i) => `<section class="art-sec" data-s="${i}"><h2>${esc(s[0])}</h2>${paras(s[1])}${refLink(s[2])}</section>`).join("")}
+      ${p.cards.map((c, i) => `<section class="art-sec" data-s="${(p.intro || []).length + i}" data-card="${i}"><span class="art-n num">${i + 1} of ${p.cards.length}</span><h2>${esc(c.h)}</h2>${paras(c.more || c.t)}${refLink(c.ref)}</section>`).join("")}
+      ${(p.outro || []).map((s, i) => `<section class="art-sec" data-s="${(p.intro || []).length + p.cards.length + i}"><h2>${esc(s[0])}</h2>${paras(s[1])}${refLink(s[2])}</section>`).join("")}
+      <div class="art-end"><button class="btn primary block" data-close>Back to the cards</button></div>
+    </div>`;
+  app.appendChild(ov);
+  const body = ov.querySelector("#artBody"), bar = ov.querySelector(".art-prog");
+  body.onscroll = () => { bar.style.width = (body.scrollTop / Math.max(1, body.scrollHeight - body.clientHeight) * 100) + "%"; };
+  const go = s => { const el = body.querySelector(`[data-s="${s}"]`); if(el) body.scrollTop = el.offsetTop - body.offsetTop - 6; };
+  if(at >= 0) requestAnimationFrame(() => go((p.intro || []).length + at));
+  ov.querySelectorAll("[data-close]").forEach(b => b.onclick = () => ov.remove());
+  ov.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { b.closest("details").open = false; go(+b.dataset.go); });
+  ov.querySelectorAll("[data-b]").forEach(b => b.onclick = () => { ov.remove(); const per = document.getElementById("person"); if(per) per.remove(); if(ppl){ ppl.ov.remove(); ppl = null; } openChapter(b.dataset.b, +b.dataset.c); });
 }

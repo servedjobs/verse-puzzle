@@ -3,6 +3,16 @@ sys.path.insert(0, os.path.dirname(__file__))
 import full_a, full_b, full_c, full_d, full_e, full_f  # noqa: registers categories in order
 from full_a import CATS
 from relations import EXTRA, REL
+from long_peter import LONG as L1
+from long_twelve import LONG as L2
+LONG = {**L2, **L1}
+for c in CATS:
+    for pp in c["people"]:
+        x = LONG.get(pp["id"])
+        if not x: continue
+        if x.get("cards"): pp["cards"] = x["cards"]
+        pp["intro"] = [list(s) for s in x.get("intro", [])]
+        pp["outro"] = [list(s) for s in x.get("outro", [])]
 ids = {p["id"] for c in CATS for p in c["people"]}
 for a, r, b in REL:
     for x in (a, b):
