@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>PrayerChair</title><link rel="icon" href="favicon.png"><meta property="og:title" content="PrayerChair: free Bible &amp; prayer app"><meta property="og:image" content="https://prayerchair.app/cover.png">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>PrayerChair</title><link rel="icon" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta property="og:title" content="PrayerChair: free Bible &amp; prayer app"><meta property="og:image" content="https://prayerchair.app/cover.png">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="PrayerChair: a free Bible and prayer app. A short daily reading, what it means, a prayer for your day, and a plan to read the whole Bible.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,6 +27,7 @@ a{color:inherit}
 .top{display:flex; align-items:center; justify-content:space-between; gap:12px}
 .brand{display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px; letter-spacing:-.3px; text-decoration:none}
 .brand span{color:var(--amber)}
+.tile.logo{background:none; overflow:hidden; box-shadow:0 6px 18px rgba(59,130,246,.25)}.tile.logo img{width:100%;height:100%;display:block}
 .tile{width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#F59E0B,#B45309); display:grid; place-items:center; color:#fff; box-shadow:0 6px 18px rgba(245,158,11,.35)}
 .tile svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
 .top a.small{font-size:14px; color:var(--hero-muted); text-decoration:none}
@@ -99,7 +100,7 @@ a:focus-visible{outline:3px solid var(--amber); outline-offset:3px; border-radiu
 </head><body><header class="hero">
   <div class="wrap">
     <div class="top">
-      <a class="brand" href="#top" aria-label="PrayerChair"><span class="tile"><svg viewBox="0 0 24 24"><path d="M7 3h10v8H7z"/><path d="M5 11h14v3H5z"/><path d="M7 14v7M17 14v7M7 18h10"/></svg></span><span style="color:inherit">Prayer<span style="color:var(--amber)">Chair</span></span></a>
+      <a class="brand" href="#top" aria-label="PrayerChair"><span class="tile logo"><img src="logo-icon.png" alt=""></span><span style="color:inherit">Prayer<span style="color:var(--amber)">Chair</span></span></a>
       <a class="small" href="/privacy/" target="_blank" rel="noopener">Privacy</a>
     </div>
     <div class="hero-grid">
