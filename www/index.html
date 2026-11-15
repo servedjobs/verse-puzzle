@@ -982,7 +982,11 @@ function render(){
   else if(tab === "bible") renderBible();
   else if(tab === "saved") renderSaved();
 }
-document.querySelectorAll(".tab").forEach(t => t.onclick = () => { tab = t.dataset.tab; sub = null; if(tab === "play") S.pane = "vp"; render(); });
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => { tab = t.dataset.tab; sub = null;
+  if(tab === "play"){ S.pane = "vp"; if(TV.play){ clearInterval(TV.play.tick); TV.play = null; }
+    // tapping Games always returns to the games list, even from inside a game
+    try{ const w = vpFrame && vpFrame.contentWindow; if(w){ w.document.querySelectorAll(".sheet,.overlay,.modal,.backdrop").forEach(e => e.remove()); if(typeof w.__vpHome === "function") w.__vpHome(); } }catch(e){} }
+  render(); });
 
 /* ---------- TODAY ---------- */
 function greeting(){ const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; }
@@ -1653,7 +1657,7 @@ function mountVP(){
   let html = VP_HTML.replace("<h1>Verse Puzzle</h1>", "<h1>Games</h1>")
     .replace("<div class=\"section-h\">Puzzles</div>", "<div class=\"section-h\">All games</div>")
     .replace("<div class=\"modes\">${mode('order')}", "<div class=\"modes\"><button class=\"mode\" id=\"cwOpen\"><div class=\"ic\" style=\"background:#E0F2FE;color:#0369A1\">✚</div><b>Crossword</b><span>A new Bible crossword every day, alone or with someone</span></button><button class=\"mode\" id=\"tvOpen\"><div class=\"ic\" style=\"background:#EDE9FE;color:#6D28D9\">?</div><b>Bible Trivia</b><span>Play a friend: same 10 questions, highest score wins</span></button><button class=\"mode\" id=\"whOpen\"><div class=\"ic\" style=\"background:#FEF3C7;color:#B45309\">W</div><b>Bible Word Hunt</b><span>Swipe words on the same board as a friend</span></button>${mode('order')}")
-    .replace("$('#set').onclick=settings;", "$('#set').onclick=settings;$('#cwOpen').onclick=()=>{try{parent.__pcOpenCW();}catch(e){parent.postMessage({pc:'cw'},'*')}};$('#tvOpen').onclick=()=>{try{parent.__pcOpenTV('trivia');}catch(e){parent.postMessage({pc:'tv'},'*')}};$('#whOpen').onclick=()=>{try{parent.__pcOpenTV('wordhunt');}catch(e){parent.postMessage({pc:'wh'},'*')}};")
+    .replace("$('#set').onclick=settings;", "$('#set').onclick=settings;window.__vpHome=home;$('#cwOpen').onclick=()=>{try{parent.__pcOpenCW();}catch(e){parent.postMessage({pc:'cw'},'*')}};$('#tvOpen').onclick=()=>{try{parent.__pcOpenTV('trivia');}catch(e){parent.postMessage({pc:'tv'},'*')}};$('#whOpen').onclick=()=>{try{parent.__pcOpenTV('wordhunt');}catch(e){parent.postMessage({pc:'wh'},'*')}};")
     .replace("['Aa','Three kinds of puzzles','Verse Builder: tap the words in order.", "['Aa','Four games in one place','Crossword: fill in the missing words of Bible verses. Verse Builder: tap the words in order.").replace("</head>", fontLink + css + "</head>");
   vpFrame = document.createElement("iframe"); vpFrame.title = "Verse puzzles"; vpFrame.srcdoc = html;
   $("#vpPane").appendChild(vpFrame);
