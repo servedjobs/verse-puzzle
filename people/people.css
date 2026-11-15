@@ -62,3 +62,8 @@
 .ppd-btns .btn.quiet{color:#fff}
 .pp-card .scn-play .ico{transform:none}
 .pp-gn{font:700 17px var(--ui, system-ui); fill:#fff}
+.ppd-more{border-top:1px solid rgba(255,255,255,.14); padding-top:12px; animation:scnUp .35s both}
+.ppd-more p{font-size:17px!important; line-height:1.65!important; opacity:.95}
+.ppd-morebtn{justify-self:start; display:inline-flex; align-items:center; gap:8px; border:0; border-radius:999px; padding:10px 16px; background:#F59E0B; color:#1A1206; font:700 14px/1 var(--ui, system-ui); cursor:pointer}
+.ppd-ref{justify-self:start; border:0; background:none; color:#FBBF24; font:600 13px/1.3 var(--ui, system-ui); padding:2px 0; cursor:pointer; text-decoration:underline; text-underline-offset:3px}
+.ppd-box{max-height:calc(100% - 90px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}

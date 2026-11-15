@@ -1,7 +1,7 @@
 import json, sys, re, os
 sys.path.insert(0, os.path.dirname(__file__))
-import people_a, people_b, people_c, people_d  # noqa: registers categories in order
-from people_a import CATS
+import full_a, full_b, full_c, full_d, full_e, full_f  # noqa: registers categories in order
+from full_a import CATS
 from relations import EXTRA, REL
 ids = {p["id"] for c in CATS for p in c["people"]}
 for a, r, b in REL:

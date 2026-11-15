@@ -89,13 +89,15 @@ function openPerson(id){
   const slides = [
     `<section class="scn-slide ppd-intro"><div class="scn-art"><img class="bg" src="${art}" alt=""><img class="fg" src="${art}" alt=""></div><div class="scn-shade"></div>
       <div class="scn-info"><span class="scn-ref">${esc((PCATS.find(c => c.key === p.cat) || {}).title || "")}</span><h2 class="ppd-name">${esc(p.name)}</h2><p class="ppd-role">${esc(p.role)}</p>
-      <div class="ppd-facts">${p.facts.map(f => `<span>${esc(f)}</span>`).join("")}</div><p class="ppd-hint">${ic("back","sm")} Swipe up for the story</p></div></section>`,
-    ...p.cards.map(([h, t], i) => `<section class="scn-slide ppd-card"><div class="scn-art"><img class="bg" src="${art}" alt=""></div>
-      <div class="ppd-box"><span class="ppd-step num">${i + 1} / ${p.cards.length}</span><h3>${esc(h)}</h3><p>${esc(t)}</p></div></section>`),
+      <div class="ppd-facts">${p.facts.map(f => `<span>${esc(f)}</span>`).join("")}</div><p class="ppd-hint">${ic("back","sm")} Swipe up · ${p.cards.length} moments from ${esc(p.name.split(" (")[0])}’s life · about ${Math.max(1, Math.round(p.cards.reduce((n, c) => n + c.t.split(" ").length, 0) / 200))} min</p></div></section>`,
+    ...p.cards.map((c, i) => `<section class="scn-slide ppd-card"><div class="scn-art"><img class="bg" src="${art}" alt=""></div>
+      <div class="ppd-box"><span class="ppd-step num">${i + 1} / ${p.cards.length}</span><h3>${esc(c.h)}</h3><p>${esc(c.t)}</p>
+        ${c.more ? `<div class="ppd-more" hidden><p>${esc(c.more)}</p></div><button class="ppd-morebtn" data-more>${ic("book","sm")}<span>Read the full story</span></button>` : ""}
+        ${c.ref ? `<button class="ppd-ref" data-b="${esc(c.ref[0])}" data-c="${c.ref[1]}">Read it in the Bible · ${esc(c.ref[0] === "Psalms" ? "Psalm " + hebPs(c.ref[1]) : bookLabel(c.ref[0]) + " " + c.ref[1])}</button>` : ""}</div></section>`),
     `<section class="scn-slide ppd-card"><div class="scn-art"><img class="bg" src="${art}" alt=""></div>
       <div class="ppd-box ppd-end">
         ${conn.length ? `<h3>Connected to</h3><div class="ppd-conn">${conn.map(([g, o]) => `<button data-who="${o}" style="border-color:${PREL_COLOR[g]}">${esc(pName(o))}<small>${esc(g)}</small></button>`).join("")}</div>` : ""}
-        <h3>Read it in the Bible</h3><div class="ppd-reads">${p.read.map(([b, c, t]) => `<button data-b="${esc(b)}" data-c="${c}">${ic("book","sm")}<span><b>${esc(t)}</b><small>${esc(b === "Psalms" ? "Psalm " + hebPs(c) : bookLabel(b) + " " + c)}</small></span></button>`).join("")}</div>
+        <h3>Read it in the Bible</h3><div class="ppd-reads">${p.cards.filter((c, i, a) => c.ref && a.findIndex(x => x.ref && x.ref.join() === c.ref.join()) === i).map(c => `<button data-b="${esc(c.ref[0])}" data-c="${c.ref[1]}">${ic("book","sm")}<span><b>${esc(c.h)}</b><small>${esc(c.ref[0] === "Psalms" ? "Psalm " + hebPs(c.ref[1]) : bookLabel(c.ref[0]) + " " + c.ref[1])}</small></span></button>`).join("")}</div>
         <div class="ppd-btns"><button class="btn primary" data-who="${id}">See ${esc(p.name.split(" (")[0])} on the map</button><button class="btn quiet" data-next="${nx}">Next: ${esc(pName(nx))} ${ic("arrow","sm")}</button></div>
       </div></section>`];
   ov.innerHTML = `<div class="scn-top"><button class="icon-btn scn-x" data-close aria-label="Close">${ic("x")}</button><span class="scn-title">${esc(p.name)}</span></div><div class="scn-feed">${slides.join("")}</div>`;
@@ -106,6 +108,7 @@ function openPerson(id){
   const done = () => { io.disconnect(); ov.remove(); };
   ov.querySelector("[data-close]").onclick = done;
   ov.querySelectorAll("[data-who]").forEach(b => b.onclick = () => { done(); if(!ppl) openPeople("who", b.dataset.who); else { ppl.mode = "who"; ppl.focus = b.dataset.who; ppl.q = ""; drawPeople(); } });
+  ov.querySelectorAll("[data-more]").forEach(b => b.onclick = () => { const m = b.previousElementSibling, open = m.hidden; m.hidden = !open; b.querySelector("span").textContent = open ? "Show less" : "Read the full story"; });
   ov.querySelectorAll("[data-next]").forEach(b => b.onclick = () => { done(); openPerson(b.dataset.next); });
   ov.querySelectorAll("[data-b]").forEach(b => b.onclick = () => { done(); if(ppl){ ppl.ov.remove(); ppl = null; } openChapter(b.dataset.b, +b.dataset.c); });
 }
