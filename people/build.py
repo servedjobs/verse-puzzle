@@ -8,6 +8,8 @@ from long_twelve import LONG as L2
 from long_nt import LONG as L3
 from long_ot import LONG as L4
 LONG = {**L4, **L3, **L2, **L1}
+from long_twelve2 import CARDS as LC
+for k, v in LC.items(): LONG.setdefault(k, {})["cards"] = v
 for c in CATS:
     for pp in c["people"]:
         x = LONG.get(pp["id"])
