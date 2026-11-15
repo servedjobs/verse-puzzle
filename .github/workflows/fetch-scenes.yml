@@ -1,5 +1,8 @@
 name: Fetch Bible scene art
-on: workflow_dispatch
+on:
+  push:
+    branches: [prayerchair]
+    paths: [".github/workflows/fetch-scenes.yml"]
 permissions:
   contents: write
 jobs:
