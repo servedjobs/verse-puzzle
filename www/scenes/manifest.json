@@ -1,0 +1,497 @@
+{
+ "creation-light": {
+  "file": "001.The Creation of Light.jpg",
+  "w": 900,
+  "h": 1134
+ },
+ "creation-eve": {
+  "file": "002.The Creation of Eve.jpg",
+  "w": 900,
+  "h": 1121
+ },
+ "eden": {
+  "file": "003.Adam and Eve Are Driven out of Eden.jpg",
+  "w": 900,
+  "h": 1131
+ },
+ "cain-abel": {
+  "file": "005.Cain Slays Abel.jpg",
+  "w": 900,
+  "h": 1134
+ },
+ "flood": {
+  "file": "007.The Great Flood.jpg",
+  "w": 900,
+  "h": 1120
+ },
+ "dove": {
+  "file": "008.A Dove Is Sent Forth from the Ark.jpg",
+  "w": 900,
+  "h": 1122
+ },
+ "babel": {
+  "file": "010.The Tower of Babel.jpg",
+  "w": 900,
+  "h": 1135
+ },
+ "three-angels": {
+  "file": "012.Abraham and the Three Angels.jpg",
+  "w": 900,
+  "h": 1129
+ },
+ "sodom": {
+  "file": "013.Lot Flees as Sodom and Gomorrah Burn.jpg",
+  "w": 900,
+  "h": 1122
+ },
+ "hagar": {
+  "file": "015.Hagar and Ishmael in the Wilderness.jpg",
+  "w": 900,
+  "h": 1134
+ },
+ "jacob-dream": {
+  "file": "021.Jacob's Dream.jpg",
+  "w": 900,
+  "h": 1117
+ },
+ "jacob-wrestles": {
+  "file": "024.Jacob Wrestles with the Angel.jpg",
+  "w": 900,
+  "h": 1107
+ },
+ "jacob-esau": {
+  "file": "025.Jacob and Esau Meet.jpg",
+  "w": 900,
+  "h": 1115
+ },
+ "joseph-sold": {
+  "file": "026.Joseph Is Sold by His Brothers.jpg",
+  "w": 900,
+  "h": 1124
+ },
+ "joseph-reveals": {
+  "file": "028.Joseph Reveals Himself to His Brothers.jpg",
+  "w": 900,
+  "h": 1124
+ },
+ "moses-nile": {
+  "file": "030.The Child Moses on the Nile.jpg",
+  "w": 900,
+  "h": 716
+ },
+ "moses-found": {
+  "file": "031.The Finding of Moses.jpg",
+  "w": 900,
+  "h": 1118
+ },
+ "let-my-people-go": {
+  "file": "032.Moses and Aaron Appear before Pharaoh.jpg",
+  "w": 900,
+  "h": 1121
+ },
+ "darkness": {
+  "file": "034.The Ninth Plague. Darkness.jpg",
+  "w": 900,
+  "h": 727
+ },
+ "passover": {
+  "file": "035.The Firstborn of the Egyptians Are Slain.jpg",
+  "w": 900,
+  "h": 1133
+ },
+ "red-sea": {
+  "file": "037.The Egyptians Drown in the Sea.jpg",
+  "w": 900,
+  "h": 721
+ },
+ "sinai": {
+  "file": "038.The Giving of the Law on Mount Sinai.jpg",
+  "w": 900,
+  "h": 722
+ },
+ "tablets": {
+  "file": "041A.Moses Breaks the Tables of the Law.jpg",
+  "w": 900,
+  "h": 1131
+ },
+ "serpent": {
+  "file": "042.The Bronze Serpent.jpg",
+  "w": 900,
+  "h": 1138
+ },
+ "balaam": {
+  "file": "043.An Angel Appears to Balaam.jpg",
+  "w": 900,
+  "h": 1127
+ },
+ "jordan": {
+  "file": "044. The Israelites Cross the Jordan River.jpg",
+  "w": 900,
+  "h": 721
+ },
+ "jericho": {
+  "file": "046.The Walls of Jericho Fall Down.jpg",
+  "w": 900,
+  "h": 1134
+ },
+ "sun-stands": {
+  "file": "051.Joshua Commands the Sun to Stand Still.jpg",
+  "w": 900,
+  "h": 718
+ },
+ "gideon": {
+  "file": "054.Gideon Chooses 300 Soldiers.jpg",
+  "w": 900,
+  "h": 717
+ },
+ "samson-lion": {
+  "file": "060.Samson Slays a Lion.jpg",
+  "w": 900,
+  "h": 1118
+ },
+ "delilah": {
+  "file": "063.Samson and Delilah.jpg",
+  "w": 900,
+  "h": 1118
+ },
+ "samson-death": {
+  "file": "064.The Death of Samson.jpg",
+  "w": 900,
+  "h": 1133
+ },
+ "ruth-naomi": {
+  "file": "068.Naomi and Her Daughters-in-Law.jpg",
+  "w": 900,
+  "h": 1124
+ },
+ "ruth-boaz": {
+  "file": "069.Ruth and Boaz.jpg",
+  "w": 900,
+  "h": 1133
+ },
+ "goliath": {
+  "file": "071A.David Slays Goliath.jpg",
+  "w": 900,
+  "h": 1131
+ },
+ "jonathan": {
+  "file": "073A.David and Jonathan.jpg",
+  "w": 900,
+  "h": 1133
+ },
+ "spares-saul": {
+  "file": "074.David Shows Saul How He Spared His Life.jpg",
+  "w": 900,
+  "h": 1124
+ },
+ "absalom": {
+  "file": "081.David Mourns the Death of Absalom.jpg",
+  "w": 900,
+  "h": 1112
+ },
+ "solomon-judgment": {
+  "file": "084.The Judgment of Solomon.jpg",
+  "w": 900,
+  "h": 1108
+ },
+ "sheba": {
+  "file": "086.Solomon Receives the Queen of Sheba.jpg",
+  "w": 900,
+  "h": 1129
+ },
+ "widows-son": {
+  "file": "089.Elijah Raises the Son of the Widow of Zarephath.jpg",
+  "w": 900,
+  "h": 1126
+ },
+ "carmel": {
+  "file": "090.The Prophets of Baal Are Slaughtered.jpg",
+  "w": 900,
+  "h": 1142
+ },
+ "elijah-angel": {
+  "file": "091.Elijah Is Nourished by an Angel.jpg",
+  "w": 900,
+  "h": 1129
+ },
+ "chariot": {
+  "file": "095.Elijah Ascends to Heaven in a Chariot of Fire.jpg",
+  "w": 900,
+  "h": 1146
+ },
+ "sennacherib": {
+  "file": "101.Sennacherib's Army Is Destroyed.jpg",
+  "w": 900,
+  "h": 1140
+ },
+ "ezra": {
+  "file": "107.Ezra Kneels in Prayer.jpg",
+  "w": 900,
+  "h": 1143
+ },
+ "nehemiah": {
+  "file": "108.Nehemiah Views the Ruins of Jerusalem's Walls.jpg",
+  "w": 900,
+  "h": 1118
+ },
+ "esther": {
+  "file": "115.Esther Before the King.jpg",
+  "w": 900,
+  "h": 1128
+ },
+ "job": {
+  "file": "118.Job Hears of His Misfortunes.jpg",
+  "w": 900,
+  "h": 1131
+ },
+ "isaiah": {
+  "file": "120.The Prophet Isaiah.jpg",
+  "w": 900,
+  "h": 1125
+ },
+ "leviathan": {
+  "file": "122.The Destruction of Leviathan.jpg",
+  "w": 900,
+  "h": 1129
+ },
+ "jeremiah": {
+  "file": "123.The Prophet Jeremiah.jpg",
+  "w": 900,
+  "h": 1133
+ },
+ "ezekiel": {
+  "file": "126.The Prophet Ezekiel.jpg",
+  "w": 900,
+  "h": 1131
+ },
+ "furnace": {
+  "file": "129.Shadrach, Meshach and Abednego in the Furnace.jpg",
+  "w": 900,
+  "h": 1136
+ },
+ "writing-wall": {
+  "file": "130.Daniel Interprets the Writing on the Wall.jpg",
+  "w": 900,
+  "h": 1127
+ },
+ "lions-den": {
+  "file": "131.Daniel in the Lions' Den.jpg",
+  "w": 900,
+  "h": 1140
+ },
+ "jonah-whale": {
+  "file": "137.Jonah Is Spewed Forth by the Whale.jpg",
+  "w": 900,
+  "h": 1127
+ },
+ "nineveh": {
+  "file": "138.Jonah Preaches to the Ninevites.jpg",
+  "w": 900,
+  "h": 1129
+ },
+ "annunciation": {
+  "file": "Gustave Dore - The Annunciation.jpg",
+  "w": 480,
+  "h": 602
+ },
+ "nativity": {
+  "file": "The Birth of Jesus.jpg",
+  "w": 900,
+  "h": 1104
+ },
+ "temple-boy": {
+  "file": "Gustave Dore - Jesus converses with the learned ones in the Temple.jpg",
+  "w": 482,
+  "h": 602
+ },
+ "baptist": {
+  "file": "DoreJohntheBaptistPreachingintheWilderness.jpg",
+  "w": 564,
+  "h": 698
+ },
+ "baptism": {
+  "file": "Gustave Dore - John the Baptist baptizes Jesus.jpg",
+  "w": 475,
+  "h": 602
+ },
+ "cana": {
+  "file": "Marriage at Cana engraving by Gustave Doré.jpg",
+  "w": 771,
+  "h": 1000
+ },
+ "fishers": {
+  "file": "La pêche miraculeuse de Gustave Doré.jpg",
+  "w": 511,
+  "h": 639
+ },
+ "sermon": {
+  "file": "Dore Bible Sermon on the Mount.jpg",
+  "w": 890,
+  "h": 1200
+ },
+ "samaritan-woman": {
+  "file": "Jesus asks the Samaritan woman for a draft from the well.jpg",
+  "w": 482,
+  "h": 602
+ },
+ "tempest": {
+  "file": "JesusCalmingtheTempestDore.jpg",
+  "w": 481,
+  "h": 602
+ },
+ "walks-on-water": {
+  "file": "Jesus walks on the sea.jpg",
+  "w": 602,
+  "h": 478
+ },
+ "multitude": {
+  "file": "JesusFeedingMultitude.jpg",
+  "w": 558,
+  "h": 696
+ },
+ "jairus": {
+  "file": "Gustave Dore - Jesus raises the daughter of Jairus from the dead.jpg",
+  "w": 482,
+  "h": 602
+ },
+ "magdalene": {
+  "file": "DoréMaryMagdaleneRepentant.jpg",
+  "w": 400,
+  "h": 500
+ },
+ "adulteress": {
+  "file": "Dore adultress.jpg",
+  "w": 561,
+  "h": 696
+ },
+ "martha": {
+  "file": "Jesus talks with Mary and Martha in their house.jpg",
+  "w": 482,
+  "h": 602
+ },
+ "transfiguration": {
+  "file": "Gustave Dore - The Transfiguration.jpg",
+  "w": 497,
+  "h": 622
+ },
+ "prodigal-decides": {
+  "file": "Gustave Dore - The prodigal son decides to return to his father.jpg",
+  "w": 602,
+  "h": 479
+ },
+ "prodigal-return": {
+  "file": "Le retour de l'enfant prodigue, par Gustave Doré.jpg",
+  "w": 398,
+  "h": 499
+ },
+ "rich-man": {
+  "file": "Gustave Dore Lazarus and the Rich Man.jpg",
+  "w": 746,
+  "h": 973
+ },
+ "publican": {
+  "file": "The Pharisee and the publican.jpg",
+  "w": 476,
+  "h": 602
+ },
+ "palm-sunday": {
+  "file": "Gustave Dore - Jesus rides into Jerusalem on a donkey on Palm Sunday.jpg",
+  "w": 485,
+  "h": 602
+ },
+ "tribute": {
+  "file": "Gustave Dore - Jesus talks of the tribute money.jpg",
+  "w": 479,
+  "h": 602
+ },
+ "last-supper": {
+  "file": "Jesus and the disciples at the Last Supper.jpg",
+  "w": 475,
+  "h": 602
+ },
+ "gethsemane": {
+  "file": "Jesus suffers agony in the garden of Gethseman.jpg",
+  "w": 474,
+  "h": 602
+ },
+ "judas-kiss": {
+  "file": "Gustave Dore - Judas betrays Jesus with a kiss.jpg",
+  "w": 478,
+  "h": 602
+ },
+ "peter-denies": {
+  "file": "Gustave Doré, St Peter Denying Christ.jpg",
+  "w": 750,
+  "h": 1033
+ },
+ "thorns": {
+  "file": "TheCrownofThornsDore.jpg",
+  "w": 798,
+  "h": 1000
+ },
+ "ecce-homo": {
+  "file": "Christ Presented to the PeopleDore.jpg",
+  "w": 400,
+  "h": 500
+ },
+ "calvary": {
+  "file": "DoreArrivalatCalvary.jpg",
+  "w": 686,
+  "h": 548
+ },
+ "nailed": {
+  "file": "Gustave Dore - Jesus is nailed to the cross.jpg",
+  "w": 478,
+  "h": 602
+ },
+ "darkness-cross": {
+  "file": "Crucifixiondarkness.jpg",
+  "w": 556,
+  "h": 699
+ },
+ "dead-christ": {
+  "file": "DoreTheDeadchrist.jpg",
+  "w": 736,
+  "h": 900
+ },
+ "ascension": {
+  "file": "Gusta Dore - The Ascension.jpg",
+  "w": 478,
+  "h": 602
+ },
+ "stephen": {
+  "file": "The Death of Stephen by Gustave Doré.jpg",
+  "w": 512,
+  "h": 642
+ },
+ "cornelius": {
+  "file": "StPeterattheHouseofCornelius.jpg",
+  "w": 562,
+  "h": 700
+ },
+ "peter-escape": {
+  "file": "Peter'sEscapefromPrison.jpg",
+  "w": 559,
+  "h": 702
+ },
+ "paul-prison": {
+  "file": "St Paul in prison.jpg",
+  "w": 900,
+  "h": 622
+ },
+ "thessalonica": {
+  "file": "DoreStPaulPreachingtotheThessalonians.jpg",
+  "w": 565,
+  "h": 696
+ },
+ "patmos": {
+  "file": "St.JohnatPatmosDore.jpg",
+  "w": 750,
+  "h": 1028
+ },
+ "new-jerusalem": {
+  "file": "Dore nwe jeruzalem grt.jpg",
+  "w": 750,
+  "h": 930
+ }
+}
