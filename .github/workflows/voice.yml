@@ -8,6 +8,7 @@ permissions:
 jobs:
   voice:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng ffmpeg
