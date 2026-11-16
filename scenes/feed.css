@@ -78,3 +78,5 @@
 
 .scn-verse.open{white-space:pre-line}
 .sw-cap{overflow-y:auto; max-height:46vh}
+
+.scn-act.off{opacity:.55}

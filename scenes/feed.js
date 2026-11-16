@@ -27,7 +27,7 @@ function slideHTML(k, i){ const s = SCENES[k], x = scText(s), g = scG(s);
       <p class="scn-verse">${esc(s.story || x.t)}</p><span class="scn-more" hidden>Tap to read more</span>
     </div>
     <div class="scn-rail">
-      <button class="scn-act scn-watch-b" data-act="watch" aria-label="Watch the story" hidden><svg class="ico" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg><span>Watch</span></button>
+      <button class="scn-act scn-watch-b" data-act="sound" aria-label="Narration on or off" hidden><svg class="ico" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg><span>Sound</span></button>
       <button class="scn-act ${saved.has(g) ? "on" : ""}" data-act="save" aria-label="Save">${ic("heart")}<span>${saved.has(g) ? "Saved" : "Save"}</span></button>
       <button class="scn-act" data-act="read" aria-label="Read the chapter">${ic("book")}<span>Read</span></button>
       <button class="scn-act" data-act="share" aria-label="Share">${ic("share")}<span>Share</span></button>
@@ -43,7 +43,12 @@ function openScenes(){
     ${S.scnCoach ? "" : `<div class="scn-coach" id="scnCoach">${ic("back")}<span>Swipe up for the next scene</span></div>`}`;
   app.appendChild(ov);
   const feed = $("#scnFeed"), cnt = $("#scnCount");
-  wLoad().then(n => { if(n && scn) feed.querySelectorAll(".scn-slide").forEach(el => { const k = +el.dataset.k; if(!isNaN(k) && n[SCENES[k].id]) el.querySelector(".scn-watch-b").hidden = false; }); if(n && scn && !wn){ const f1 = feed.querySelector(".scn-slide"); if(f1 && n[SCENES[+f1.dataset.k].id]) openWatch(SCENES[+f1.dataset.k]); } });
+  scA = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="); scA.play().catch(() => {});
+  const soundUI = () => feed.querySelectorAll('[data-act="sound"]').forEach(b => { b.classList.toggle("off", !!S.scnMute); b.querySelector("span").textContent = S.scnMute ? "Muted" : "Sound"; });
+  const narrPlay = () => { const el = feed.querySelector(".scn-slide.on"); if(!el || isNaN(+el.dataset.k) || !WN) return; const id = SCENES[+el.dataset.k].id; if(!WN[id]) return;
+    if(S.scnMute){ scA.pause(); return; } scA.src = "scenes/v/" + id + ".mp3"; scA.currentTime = 0; scA.play().catch(() => {}); };
+  scn_narr = narrPlay;
+  wLoad().then(n => { if(n && scn){ feed.querySelectorAll(".scn-slide").forEach(el => { const k = +el.dataset.k; if(!isNaN(k) && n[SCENES[k].id]) el.querySelector('[data-act="sound"]').hidden = false; }); soundUI(); narrPlay(); } });
   scn = {ov, order};
   const load = el => { if(el) el.querySelectorAll("img[data-src]").forEach(im => { im.src = im.dataset.src; im.removeAttribute("data-src"); }); };
   const refresh = scn.refresh = el => { const k = +el.dataset.k; if(isNaN(k)) return; const s = SCENES[k], x = scText(s);
@@ -55,6 +60,7 @@ function openScenes(){
     const el = e.target, i = +el.dataset.i; if(i === cur) return; cur = i;
     feed.querySelectorAll(".scn-slide.on").forEach(x => x.classList.remove("on")); el.classList.add("on");
     load(el); load(el.nextElementSibling); load(el.nextElementSibling && el.nextElementSibling.nextElementSibling); load(el.previousElementSibling);
+    scA.pause(); if(i < order.length) narrPlay();
     if(i < order.length){ refresh(el); cnt.textContent = (i + 1) + " / " + order.length; S.scn.pos = (S0.order.indexOf(order[i]) + 1); save(); }
     else { cnt.textContent = ""; S.scn.pos = SCENES.length; save(); }
     if(i > 0 && $("#scnCoach")){ $("#scnCoach").remove(); S.scnCoach = true; save(); }
@@ -68,10 +74,11 @@ function openScenes(){
   feed.addEventListener("click", e => {
     const b = e.target.closest("[data-act]"), el = e.target.closest(".scn-slide"); if(!el || el.classList.contains("scn-end")) return;
     const s = SCENES[+el.dataset.k];
+    if(scA.paused && !S.scnMute && scA.currentSrc && /\/v\//.test(scA.currentSrc) && !scA.ended && !(b && b.dataset.act === "sound")) scA.play().catch(() => {});
     if(b){ e.stopPropagation(); const a = b.dataset.act;
       if(a === "save") like(el);
       else if(a === "share") shareVerse(scG(s));
-      else if(a === "watch") openWatch(s);
+      else if(a === "sound"){ S.scnMute = !S.scnMute; save(); soundUI(); if(S.scnMute) scA.pause(); else narrPlay(); }
       else if(a === "read"){ closeScenes(true); openChapter(s.r[0], s.r[1], scG(s)); }
       return; }
     const tb = e.target.closest(".scn-tabs button"); if(tb){ el.dataset.mode = tb.dataset.mode; el.querySelectorAll(".scn-tabs button").forEach(x => x.classList.toggle("on", x === tb)); el.querySelector(".scn-verse").classList.remove("open"); el.querySelector(".scn-more").textContent = "Tap to read more"; refresh(el); return; }
@@ -82,10 +89,10 @@ function openScenes(){
   $("#scnDone").onclick = () => closeScenes();
   $("#scnAgain").onclick = () => { S.scn.order = []; S.scn.pos = 0; scOrder(); closeScenes(true); openScenes(); };
 }
-function closeScenes(quiet){ closeWatch(); if(!scn) return; scn.io.disconnect(); scn.ov.remove(); scn = null; if(!quiet) render(); }
+function closeScenes(quiet){ closeWatch(); try{ scA.pause(); }catch(e){} if(!scn) return; scn.io.disconnect(); scn.ov.remove(); scn = null; if(!quiet) render(); }
 
 /* ---- Watch: narrated story with a slow camera over the picture ---- */
-let WN = null, wn = null;
+let WN = null, wn = null, scA = null, scn_narr = null;
 function wLoad(){ return WN ? Promise.resolve(WN) : fetch("scenes/narr.json").then(r => r.ok ? r.json() : null).then(j => (WN = j)).catch(() => null); }
 const W_SHOTS = [[.5,.5,1.06],[.28,.38,1.4],[.72,.5,1.45],[.42,.64,1.55],[.64,.34,1.35],[.34,.56,1.5],[.6,.6,1.4],[.5,.4,1.6]];
 function openWatch(s){
