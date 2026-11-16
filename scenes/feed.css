@@ -35,7 +35,7 @@
 .scn-slide.on .scn-info > *{animation:scnUp .5s both}
 .scn-slide.on .scn-info > :nth-child(2){animation-delay:.06s} .scn-slide.on .scn-info > :nth-child(3){animation-delay:.12s} .scn-slide.on .scn-info > :nth-child(4){animation-delay:.2s}
 @keyframes scnUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
-.scn-rail{position:absolute; right:10px; bottom:calc(30px + env(safe-area-inset-bottom,0px)); display:grid; gap:18px}
+.scn-rail{position:absolute; right:10px; bottom:calc(30px + env(safe-area-inset-bottom,0px)); display:grid; gap:10px}
 .scn-act{display:grid; justify-items:center; gap:4px; width:58px; border:0; background:none; color:#fff; font:600 11px/1 var(--ui, system-ui); cursor:pointer; text-shadow:0 1px 6px rgba(0,0,0,.6)}
 .scn-act .ico{width:30px; height:30px; padding:11px; box-sizing:content-box; border-radius:50%; background:rgba(255,255,255,.14); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)}
 .scn-act.on .ico{color:#F87171; fill:#F87171; background:rgba(248,113,113,.18)}
@@ -57,3 +57,21 @@
 .scn-tabs button{border:1px solid rgba(255,255,255,.28); background:rgba(0,0,0,.25); color:#fff; font:600 12px/1 var(--ui, system-ui); padding:7px 11px; border-radius:999px; cursor:pointer}
 .scn-tabs button.on{background:#F59E0B; border-color:#F59E0B; color:#1A1206}
 .scn-verse{font-family:var(--ui, system-ui)!important; font-size:16px!important}
+
+.scn-w{background:#0b0906; z-index:60}
+.scn-w .sw-art{position:absolute; inset:0; overflow:hidden}
+.scn-w .sw-art img{width:100%; height:100%; object-fit:cover; filter:sepia(.35) contrast(1.08) brightness(.9); transform-origin:50% 50%; will-change:transform}
+.sw-vig{position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 40%,transparent 35%,rgba(0,0,0,.55) 100%),linear-gradient(to bottom,rgba(0,0,0,.55),transparent 18%,transparent 52%,rgba(0,0,0,.92))}
+.sw-grain{position:absolute; inset:-50%; opacity:.07; pointer-events:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); animation:swg 1s steps(4) infinite}
+@keyframes swg{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+.sw-top{position:absolute; top:calc(8px + env(safe-area-inset-top,0px)); left:8px; right:14px; display:flex; align-items:center; gap:8px; color:#FBBF24; font:700 13px var(--ui,system-ui); letter-spacing:.05em; text-transform:uppercase; z-index:3}
+.sw-top .icon-btn{color:#fff; background:rgba(0,0,0,.35)}
+.sw-bar{position:absolute; left:16px; right:16px; top:calc(58px + env(safe-area-inset-top,0px)); height:3px; background:rgba(255,255,255,.2); border-radius:3px; overflow:hidden; z-index:3}
+.sw-bar i{display:block; height:100%; width:0; background:#F59E0B}
+.sw-cap{position:absolute; left:20px; right:20px; bottom:calc(36px + env(safe-area-inset-bottom,0px)); font:600 22px/1.45 "Source Serif 4",Georgia,serif; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.9); min-height:4.4em; z-index:3; display:flex; flex-wrap:wrap; align-content:flex-end; gap:0 .28em}
+.sw-cap span{opacity:.35; transition:opacity .15s}.sw-cap span.on{opacity:1}
+.sw-cap .btn{margin:6px 8px 0 0; font:600 16px var(--ui,system-ui)}
+.sw-play{position:absolute; inset:0; display:grid; place-items:end center; padding-bottom:34%; background:rgba(0,0,0,.35); border:0; color:#fff; cursor:pointer; z-index:5}
+.sw-play b{display:grid; place-items:center; width:84px; height:84px; border-radius:50%; background:#F59E0B; color:#1a1206; box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.sw-play b svg{width:38px; height:38px}
+.sw-play p{position:absolute; bottom:20%; margin:0; font-weight:600; opacity:.9}
