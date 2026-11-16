@@ -7,6 +7,10 @@ const pDesc = id => PP[id] ? PP[id].role : PEXTRA[id] ? PEXTRA[id][1] : "";
 const PREL_LABEL = {parent:["Children","Parents"], ancestor:["Descendants","Ancestors"], spouse:["Married to","Married to"], sibling:["Brothers & sisters","Brothers & sisters"], relative:["Family","Family"], family:["Family","Family"], mentor:["Taught / led","Learned from"], friend:["Friends & partners","Friends & partners"], rival:["Opponents","Opponents"]};
 const PREL_COLOR = {Parents:"#F59E0B", Children:"#F59E0B", Ancestors:"#D97706", Descendants:"#D97706", "Married to":"#EC4899", "Brothers & sisters":"#8B5CF6", Family:"#8B5CF6", "Taught / led":"#0EA5E9", "Learned from":"#0EA5E9", "Friends & partners":"#10B981", Opponents:"#EF4444"};
 function pLinks(id){ const out = {}; PREL.forEach(([a, r, b]) => { let lab, o; if(a === id){ lab = PREL_LABEL[r][0]; o = b; } else if(b === id){ lab = PREL_LABEL[r][1]; o = a; } else return; (out[lab] = out[lab] || []).includes(o) || out[lab].push(o); }); return out; }
+
+const P_ALIAS = {"John the Baptist":"john-baptist","Mary Magdalene":"mary-magdalene","Judas Iscariot":"judas","Judas":"judas","Pontius Pilate":"pilate","Pilate":"pilate","Joseph of Nazareth":"joseph-nazareth","Simon the Zealot":"simon-zealot","Herod the Great":"herod","Peter":"peter","Andrew":"andrew","John":"john","Philip":"philip","Bartholomew":"bartholomew","Nathanael":"bartholomew","Thomas":"thomas","Matthew":"matthew","Matthias":"matthias","Jesus":"jesus","Martha":"martha-mary","Lazarus":"lazarus","Nicodemus":"nicodemus","Zacchaeus":"zacchaeus","Paul":"paul","Stephen":"stephen","Barnabas":"barnabas","Timothy":"timothy","Lydia":"lydia","Priscilla":"priscilla-aquila","Aquila":"priscilla-aquila","Adam":"adam-eve","Eve":"adam-eve","Cain":"cain-abel","Abel":"cain-abel","Noah":"noah","Abraham":"abraham","Sarah":"sarah","Jacob":"jacob","Moses":"moses","Aaron":"aaron","Miriam":"miriam","Joshua":"joshua","Caleb":"caleb","Rahab":"rahab","Deborah":"deborah","Gideon":"gideon","Samson":"samson","Ruth":"ruth","Hannah":"hannah","Samuel":"samuel","David":"david","Solomon":"solomon","Esther":"esther","Hezekiah":"hezekiah","Josiah":"josiah","Elijah":"elijah","Elisha":"elisha","Isaiah":"isaiah","Jeremiah":"jeremiah","Daniel":"daniel","Shadrach":"shadrach","Meshach":"shadrach","Abednego":"shadrach","Jonah":"jonah","Job":"job","Goliath":"goliath","Jezebel":"jezebel","Haman":"haman"};
+const P_RE = new RegExp("\\b(" + Object.keys(P_ALIAS).sort((a, b) => b.length - a.length).join("|") + ")\\b", "g");
+function linkNames(h, seen, skip){ return h.replace(P_RE, (m, n) => { let id = P_ALIAS[n]; if(n === "John" && (seen.has("john-baptist") || seen.has("_jb"))) id = "john-baptist"; if(n === "John the Baptist") seen.add("_jb"); if(!PP[id] || id === skip || seen.has(id)) return m; seen.add(id); return `<a class="pl" data-p="${id}">${m}</a>`; }); }
 const pArt = p => p && p.art ? `scenes/${p.art}.jpg` : null;
 function pMono(id, cls=""){ const p = PP[id], a = pArt(p); const n = pName(id).replace(/^(King|The) /, ""); return a ? `<span class="pp-av ${cls}"><img src="${a}" alt="" loading="lazy"></span>` : `<span class="pp-av mono ${cls}">${esc(n[0])}</span>`; }
 function peopleCardHTML(){
@@ -90,6 +94,7 @@ function openPerson(id){
     `<section class="scn-slide ppd-intro"><div class="scn-art"><img class="bg" src="${art}" alt=""><img class="fg" src="${art}" alt=""></div><div class="scn-shade"></div>
       <div class="scn-info"><span class="scn-ref">${esc((PCATS.find(c => c.key === p.cat) || {}).title || "")}</span><h2 class="ppd-name">${esc(p.name)}</h2><p class="ppd-role">${esc(p.role)}</p>
       <div class="ppd-facts">${p.facts.map(f => `<span>${esc(f)}</span>`).join("")}</div><p class="ppd-hint">${ic("back","sm")} Swipe up · ${p.cards.length} moments from ${esc(p.name.split(" (")[0])}’s life · about ${Math.max(1, Math.round(p.cards.reduce((n, c) => n + c.t.split(" ").length, 0) / 200))} min</p>
+      <button class="ppd-morebtn" data-listen-p="${p.id}" id="lp-${p.id}" hidden>${SPK}<span>Listen to ${esc(p.name.split(" (")[0])}’s story</span></button>
       <button class="ppd-morebtn" data-more="-1">${ic("book","sm")}<span>Read ${esc(p.name.split(" (")[0])}’s full story · ${artMin(p)} min</span></button></div></section>`,
     ...p.cards.map((c, i) => `<section class="scn-slide ppd-card"><div class="scn-art"><img class="bg" src="${art}" alt=""></div>
       <div class="ppd-box"><span class="ppd-step num">${i + 1} / ${p.cards.length}</span><h3>${esc(c.h)}</h3><p>${esc(c.t)}</p>
@@ -110,20 +115,22 @@ function openPerson(id){
   ov.querySelector("[data-close]").onclick = done;
   ov.querySelectorAll("[data-who]").forEach(b => b.onclick = () => { done(); if(!ppl) openPeople("who", b.dataset.who); else { ppl.mode = "who"; ppl.focus = b.dataset.who; ppl.q = ""; drawPeople(); } });
   ov.querySelectorAll("[data-more]").forEach(b => b.onclick = () => openArticle(id, +b.dataset.more));
+  ov.querySelectorAll("[data-listen-p]").forEach(b => { pLoad().then(n => { if(n && n[id]) b.hidden = false; }); b.onclick = () => openArticle(id, -1, true); });
   ov.querySelectorAll("[data-next]").forEach(b => b.onclick = () => { done(); openPerson(b.dataset.next); });
   ov.querySelectorAll("[data-b]").forEach(b => b.onclick = () => { done(); if(ppl){ ppl.ov.remove(); ppl = null; } openChapter(b.dataset.b, +b.dataset.c); });
 }
 
 function artWords(p){ return [...(p.intro || []), ...(p.outro || [])].reduce((n, s) => n + s[1].split(" ").length, 0) + p.cards.reduce((n, c) => n + (c.more || c.t).split(" ").length, 0); }
 function artMin(p){ return Math.max(1, Math.round(artWords(p) / 220)); }
-const paras = t => t.split(/\n\n+/).map(x => `<p>${esc(x.trim())}</p>`).join("");
-function openArticle(id, at){
-  const p = PP[id]; if(!p) return;
+let _seenA = new Set(); const paras = t => t.split(/\n\n+/).map(x => `<p>${linkNames(esc(x.trim()), _seenA, _skipA)}</p>`).join(""); let _skipA = "";
+const SPK = `<svg class="ico" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`.replace("<svg","<svg class=\"ico sm\""); let _PN = null; const pLoad = () => _PN ? Promise.resolve(_PN) : fetch("people/narr.json").then(r => r.json()).then(d => (_PN = d)).catch(() => null);
+function openArticle(id, at, listen){
+  const p = PP[id]; if(!p) return; _seenA = new Set(); _skipA = id;
   const art = pArt(p) || "scenes/" + (PCATS.find(c => c.key === p.cat) || {}).art + ".jpg";
   const ov = document.createElement("div"); ov.className = "overlay art"; ov.id = "article";
   const refLink = r => r ? `<button class="art-ref" data-b="${esc(r[0])}" data-c="${r[1]}">${ic("book","sm")}Read it in the Bible · ${esc(r[0] === "Psalms" ? "Psalm " + hebPs(r[1]) : bookLabel(r[0]) + " " + r[1])}</button>` : "";
   const toc = [...(p.intro || []).map(s => s[0]), ...p.cards.map(c => c.h), ...(p.outro || []).map(s => s[0])];
-  ov.innerHTML = `<div class="art-top"><button class="icon-btn" data-close aria-label="Close">${ic("back")}</button><span class="art-t">${esc(p.name)}</span><span class="art-min num">${artMin(p)} min read</span><i class="art-prog"></i></div>
+  ov.innerHTML = `<div class="art-top"><button class="icon-btn" data-close aria-label="Close">${ic("back")}</button><span class="art-t">${esc(p.name)}</span><span class="art-min num">${artMin(p)} min read</span><button class="art-listen" data-listen hidden>${SPK}<span>Listen</span></button><i class="art-prog"></i></div>
     <div class="art-body" id="artBody">
       <header class="art-hero"><img src="${art}" alt=""><div><span class="label">${esc((PCATS.find(c => c.key === p.cat) || {}).title || "")}</span><h1>${esc(p.name)}</h1><p>${esc(p.role)}</p></div></header>
       <details class="art-toc"><summary>In this story · ${toc.length} parts</summary><ol>${toc.map((t, i) => `<li><button data-go="${i}">${esc(t)}</button></li>`).join("")}</ol></details>
@@ -137,7 +144,19 @@ function openArticle(id, at){
   body.onscroll = () => { bar.style.width = (body.scrollTop / Math.max(1, body.scrollHeight - body.clientHeight) * 100) + "%"; };
   const go = s => { const el = body.querySelector(`[data-s="${s}"]`); if(el) body.scrollTop = el.offsetTop - body.offsetTop - 6; };
   if(at >= 0) requestAnimationFrame(() => go((p.intro || []).length + at));
+  const lb = ov.querySelector("[data-listen]"); let pa = null, cur = -1, raf = 0, N = null;
+  const stop = () => { cancelAnimationFrame(raf); if(pa){ pa.pause(); pa = null; } lb.classList.remove("on"); lb.querySelector("span").textContent = "Listen"; };
+  const tick = () => { if(!pa) return; const t = pa.currentTime; let k = 0; for(let i = 0; i < N.times.length; i++) if(t >= N.times[i][0] - .05) k = i; const sc = N.sec[k];
+    if(sc !== cur){ cur = sc; body.querySelectorAll(".art-sec").forEach(s => s.classList.toggle("cur", +s.dataset.s === sc)); if(!body._u) go(sc); }
+    raf = requestAnimationFrame(tick); };
+  const play = () => { if(!N) return; if(!pa){ pa = new Audio("people/v/" + id + ".mp3"); pa.onended = stop; cur = -1; }
+    pa.play().catch(() => {}); lb.classList.add("on"); lb.querySelector("span").textContent = "Pause"; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); };
+  lb.onclick = () => { if(pa && !pa.paused){ pa.pause(); cancelAnimationFrame(raf); lb.querySelector("span").textContent = "Listen"; lb.classList.remove("on"); } else play(); };
+  body.addEventListener("touchstart", () => { body._u = 1; clearTimeout(body._ut); body._ut = setTimeout(() => body._u = 0, 4000); }, {passive: true});
+  pLoad().then(n => { if(n && n[id]){ N = n[id]; lb.hidden = false; if(listen) play(); } });
+  new MutationObserver(() => { if(!ov.isConnected) stop(); }).observe(app, {childList: true});
   ov.querySelectorAll("[data-close]").forEach(b => b.onclick = () => ov.remove());
+  ov.querySelectorAll(".pl").forEach(b => b.onclick = () => openPerson(b.dataset.p));
   ov.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { b.closest("details").open = false; go(+b.dataset.go); });
   ov.querySelectorAll("[data-b]").forEach(b => b.onclick = () => { ov.remove(); const per = document.getElementById("person"); if(per) per.remove(); if(ppl){ ppl.ov.remove(); ppl = null; } openChapter(b.dataset.b, +b.dataset.c); });
 }

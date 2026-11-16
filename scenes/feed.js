@@ -54,7 +54,7 @@ function openScenes(){
   const load = el => { if(el) el.querySelectorAll("img[data-src]").forEach(im => { im.src = im.dataset.src; im.removeAttribute("data-src"); }); };
   const refresh = scn.refresh = el => { const k = +el.dataset.k; if(isNaN(k)) return; const s = SCENES[k], x = scText(s);
     const pv = el.querySelector(".scn-verse"), nr = WN && WN[s.id] && el.dataset.mode !== "verse" && s.story; pv.classList.toggle("nar", !!nr);
-    if(nr){ pv.innerHTML = WN[s.id].lines.map(l => "<span>" + esc(l) + "</span>").join(" "); el._sp = [...pv.children]; } else pv.textContent = el.dataset.mode === "verse" || !s.story ? x.t : s.story;
+    if(nr){ const sn = new Set(); pv.innerHTML = WN[s.id].lines.map(l => "<span>" + (typeof linkNames === "function" ? linkNames(esc(l), sn) : esc(l)) + "</span>").join(" "); el._sp = [...pv.children]; } else if(el.dataset.mode === "verse" || !s.story) pv.textContent = x.t; else pv.innerHTML = typeof linkNames === "function" ? linkNames(esc(s.story), new Set()) : esc(s.story);
     requestAnimationFrame(() => { el.querySelector(".scn-more").hidden = nr ? true : !(pv.scrollHeight > pv.clientHeight + 2 || pv.classList.contains("open")); }); el.querySelector(".scn-ref").textContent = x.ref + (x.tr ? " · " + TR[x.tr].short : "");
     if(ONL[trCur()] && x.tr !== trCur()) ensureChapter(trCur(), s.r[0], s.r[1]).then(ok => { if(ok && scn) refresh(el); }); };
   let cur = -1;
@@ -85,6 +85,7 @@ function openScenes(){
       else if(a === "read"){ closeScenes(true); openChapter(s.r[0], s.r[1], scG(s)); }
       return; }
     const tb = e.target.closest(".scn-tabs button"); if(tb){ el.dataset.mode = tb.dataset.mode; el.querySelectorAll(".scn-tabs button").forEach(x => x.classList.toggle("on", x === tb)); el.querySelector(".scn-verse").classList.remove("open"); el.querySelector(".scn-more").textContent = "Tap to read more"; refresh(el); return; }
+    const pl = e.target.closest(".pl"); if(pl){ e.stopPropagation(); scA.pause(); openPerson(pl.dataset.p); return; }
     const vv = e.target.closest(".scn-verse, .scn-more"); if(vv && !vv.classList.contains("nar")){ const p = el.querySelector(".scn-verse"); p.classList.toggle("open"); el.querySelector(".scn-more").textContent = p.classList.contains("open") ? "Show less" : "Tap to read more"; return; }
     const now = Date.now(); if(el._t && now - el._t < 320){ el._t = 0; like(el, true); } else el._t = now; // double-tap to save, like Reels
   });

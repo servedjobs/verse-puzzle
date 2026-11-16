@@ -88,3 +88,9 @@
 .art-n{display:block; font-size:12px; font-weight:700; color:var(--brand-text); letter-spacing:.05em; margin-bottom:4px}
 .art-ref{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--brand-line); background:var(--brand-soft); color:var(--brand-text); border-radius:999px; padding:8px 12px; font:600 13px/1 var(--ui, system-ui); cursor:pointer; margin:2px 0 8px}
 .art-end{padding:20px 22px}
+
+.pl{color:var(--gold,#f59e0b); text-decoration:underline; text-decoration-style:dotted; text-underline-offset:3px; cursor:pointer}
+
+.art-listen{display:flex; align-items:center; gap:6px; border:0; border-radius:99px; padding:7px 12px; font:600 13px var(--ui,system-ui); background:var(--gold,#f59e0b); color:#1a1205; margin-left:8px}
+.art-listen.on{background:#fff}
+.art-sec{transition:opacity .3s}.art-body:has(.art-sec.cur) .art-sec:not(.cur){opacity:.45}
