@@ -43,7 +43,7 @@ function openScenes(){
     ${S.scnCoach ? "" : `<div class="scn-coach" id="scnCoach">${ic("back")}<span>Swipe up for the next scene</span></div>`}`;
   app.appendChild(ov);
   const feed = $("#scnFeed"), cnt = $("#scnCount");
-  wLoad().then(n => { if(n && scn) feed.querySelectorAll(".scn-slide").forEach(el => { const k = +el.dataset.k; if(!isNaN(k) && n[SCENES[k].id]) el.querySelector(".scn-watch-b").hidden = false; }); });
+  wLoad().then(n => { if(n && scn) feed.querySelectorAll(".scn-slide").forEach(el => { const k = +el.dataset.k; if(!isNaN(k) && n[SCENES[k].id]) el.querySelector(".scn-watch-b").hidden = false; }); if(n && scn && !wn){ const f1 = feed.querySelector(".scn-slide"); if(f1 && n[SCENES[+f1.dataset.k].id]) openWatch(SCENES[+f1.dataset.k]); } });
   scn = {ov, order};
   const load = el => { if(el) el.querySelectorAll("img[data-src]").forEach(im => { im.src = im.dataset.src; im.removeAttribute("data-src"); }); };
   const refresh = scn.refresh = el => { const k = +el.dataset.k; if(isNaN(k)) return; const s = SCENES[k], x = scText(s);
@@ -107,14 +107,19 @@ function openWatch(s){
       art.style.transform = tf(pv[0] + (c[0] - pv[0]) * e, pv[1] + (c[1] - pv[1]) * e, (pv[2] + (c[2] - pv[2]) * e) * (1 + .04 * p));
       if(k !== shown && t >= T[k][0] - .15){ shown = k; cap.innerHTML = n.lines[k].split(" ").map(w => "<span>" + esc(w) + "</span>").join(" "); spans = [...cap.children]; }
       if(shown === k){ const r = Math.min(1, (t - T[k][0]) / Math.max(.5, T[k][1] - T[k][0])); spans.forEach((x, j) => x.classList.toggle("on", j < Math.ceil(r * spans.length + .01))); }
-      if(a.ended){ cap.innerHTML = `<button class="btn primary" id="swAgain">Watch again</button><button class="btn quiet" id="swRead">Read the chapter</button>`; bar.style.width = "100%";
+      if(a.ended){ cap.innerHTML = `<button class="btn primary" id="swNext">Next story ▶</button><button class="btn quiet" id="swAgain">Watch again</button><button class="btn quiet" id="swRead">Read the chapter</button>`; bar.style.width = "100%";
+        cap.querySelector("#swNext").onclick = () => watchStep(s, 1);
         cap.querySelector("#swAgain").onclick = () => { shown = -1; cap.innerHTML = ""; a.currentTime = 0; a.play(); raf = requestAnimationFrame(frame); };
         cap.querySelector("#swRead").onclick = () => { closeWatch(); closeScenes(true); openChapter(s.r[0], s.r[1], scG(s)); }; return; }
       raf = requestAnimationFrame(frame); };
     wn = {ov, a, stop: () => { cancelAnimationFrame(raf); a.pause(); }};
     art.style.transform = tf(.5, .5, 1.06);
-    ov.querySelector("#swPlay").onclick = ev => { ev.currentTarget.remove(); a.play().then(() => { raf = requestAnimationFrame(frame); }).catch(() => {}); };
+    const go = () => a.play().then(() => { const b = ov.querySelector("#swPlay"); if(b) b.remove(); raf = requestAnimationFrame(frame); }).catch(() => {});
+    ov.querySelector("#swPlay").onclick = go; go();
+    let y0 = 0; ov.addEventListener("touchstart", ev => { y0 = ev.touches[0].clientY; }, {passive: true});
+    ov.addEventListener("touchend", ev => { const dy = ev.changedTouches[0].clientY - y0; if(Math.abs(dy) > 70) watchStep(s, dy < 0 ? 1 : -1); }, {passive: true});
     ov.addEventListener("click", ev => { if(ev.target.closest("#swPlay,#swX,.btn")) return; if(a.paused && !a.ended && a.currentTime > 0){ a.play(); raf = requestAnimationFrame(frame); } else if(!a.paused){ a.pause(); cancelAnimationFrame(raf); } });
     ov.querySelector("#swX").onclick = () => closeWatch();
   }); }
+function watchStep(s, d){ const sl = [...document.querySelectorAll(".scn-slide")]; const i = sl.findIndex(e => SCENES[+e.dataset.k] === s); const nx = sl[i + d]; if(!nx || !WN[SCENES[+nx.dataset.k].id]) return; closeWatch(); nx.scrollIntoView(); openWatch(SCENES[+nx.dataset.k]); }
 function closeWatch(){ if(!wn) return; wn.stop(); wn.ov.remove(); wn = null; }

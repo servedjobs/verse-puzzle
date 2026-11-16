@@ -75,3 +75,6 @@
 .sw-play b{display:grid; place-items:center; width:84px; height:84px; border-radius:50%; background:#F59E0B; color:#1a1206; box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .sw-play b svg{width:38px; height:38px}
 .sw-play p{position:absolute; bottom:20%; margin:0; font-weight:600; opacity:.9}
+
+.scn-verse.open{white-space:pre-line}
+.sw-cap{overflow-y:auto; max-height:46vh}
