@@ -46,13 +46,16 @@ function openScenes(){
   scA = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="); scA.play().catch(() => {});
   const soundUI = () => feed.querySelectorAll('[data-act="sound"]').forEach(b => { b.classList.toggle("off", !!S.scnMute); b.querySelector("span").textContent = S.scnMute ? "Muted" : "Sound"; });
   const narrPlay = () => { const el = feed.querySelector(".scn-slide.on"); if(!el || isNaN(+el.dataset.k) || !WN) return; const id = SCENES[+el.dataset.k].id; if(!WN[id]) return;
-    if(S.scnMute){ scA.pause(); return; } scA.src = "scenes/v/" + id + ".mp3"; scA.currentTime = 0; scA.play().catch(() => {}); };
+    if(S.scnMute){ scA.pause(); return; } scA.src = "scenes/v/" + id + ".mp3"; scA.currentTime = 0; scA.play().catch(() => {}); cancelAnimationFrame(scR); const T = WN[id].times, pvv = el.querySelector(".scn-verse"); let last = -1;
+    const tick = () => { if(!scn || !el.classList.contains("on")) return; if(el._sp && el.dataset.mode !== "verse"){ const t = scA.currentTime; let k = 0; for(let i = 0; i < T.length; i++) if(t >= T[i][0] - .05) k = i; if(k !== last && !scA.paused){ last = k; el._sp.forEach((q, i) => q.classList.toggle("cur", i === k)); const q = el._sp[k]; if(q) pvv.scrollTo({top: Math.max(0, q.offsetTop - pvv.offsetTop - 8), behavior: "smooth"}); } } scR = requestAnimationFrame(tick); }; scR = requestAnimationFrame(tick); };
   scn_narr = narrPlay;
   wLoad().then(n => { if(n && scn){ feed.querySelectorAll(".scn-slide").forEach(el => { const k = +el.dataset.k; if(!isNaN(k) && n[SCENES[k].id]) el.querySelector('[data-act="sound"]').hidden = false; }); soundUI(); narrPlay(); } });
   scn = {ov, order};
   const load = el => { if(el) el.querySelectorAll("img[data-src]").forEach(im => { im.src = im.dataset.src; im.removeAttribute("data-src"); }); };
   const refresh = scn.refresh = el => { const k = +el.dataset.k; if(isNaN(k)) return; const s = SCENES[k], x = scText(s);
-    const pv = el.querySelector(".scn-verse"); pv.textContent = el.dataset.mode === "verse" || !s.story ? x.t : s.story; requestAnimationFrame(() => { el.querySelector(".scn-more").hidden = !(pv.scrollHeight > pv.clientHeight + 2 || pv.classList.contains("open")); }); el.querySelector(".scn-ref").textContent = x.ref + (x.tr ? " · " + TR[x.tr].short : "");
+    const pv = el.querySelector(".scn-verse"), nr = WN && WN[s.id] && el.dataset.mode !== "verse" && s.story; pv.classList.toggle("nar", !!nr);
+    if(nr){ pv.innerHTML = WN[s.id].lines.map(l => "<span>" + esc(l) + "</span>").join(" "); el._sp = [...pv.children]; } else pv.textContent = el.dataset.mode === "verse" || !s.story ? x.t : s.story;
+    requestAnimationFrame(() => { el.querySelector(".scn-more").hidden = nr ? true : !(pv.scrollHeight > pv.clientHeight + 2 || pv.classList.contains("open")); }); el.querySelector(".scn-ref").textContent = x.ref + (x.tr ? " · " + TR[x.tr].short : "");
     if(ONL[trCur()] && x.tr !== trCur()) ensureChapter(trCur(), s.r[0], s.r[1]).then(ok => { if(ok && scn) refresh(el); }); };
   let cur = -1;
   const io = new IntersectionObserver(es => es.forEach(e => {
@@ -82,7 +85,7 @@ function openScenes(){
       else if(a === "read"){ closeScenes(true); openChapter(s.r[0], s.r[1], scG(s)); }
       return; }
     const tb = e.target.closest(".scn-tabs button"); if(tb){ el.dataset.mode = tb.dataset.mode; el.querySelectorAll(".scn-tabs button").forEach(x => x.classList.toggle("on", x === tb)); el.querySelector(".scn-verse").classList.remove("open"); el.querySelector(".scn-more").textContent = "Tap to read more"; refresh(el); return; }
-    const vv = e.target.closest(".scn-verse, .scn-more"); if(vv){ const p = el.querySelector(".scn-verse"); p.classList.toggle("open"); el.querySelector(".scn-more").textContent = p.classList.contains("open") ? "Show less" : "Tap to read more"; return; }
+    const vv = e.target.closest(".scn-verse, .scn-more"); if(vv && !vv.classList.contains("nar")){ const p = el.querySelector(".scn-verse"); p.classList.toggle("open"); el.querySelector(".scn-more").textContent = p.classList.contains("open") ? "Show less" : "Tap to read more"; return; }
     const now = Date.now(); if(el._t && now - el._t < 320){ el._t = 0; like(el, true); } else el._t = now; // double-tap to save, like Reels
   });
   $("#scnClose").onclick = () => closeScenes();
@@ -92,7 +95,7 @@ function openScenes(){
 function closeScenes(quiet){ closeWatch(); try{ scA.pause(); }catch(e){} if(!scn) return; scn.io.disconnect(); scn.ov.remove(); scn = null; if(!quiet) render(); }
 
 /* ---- Watch: narrated story with a slow camera over the picture ---- */
-let WN = null, wn = null, scA = null, scn_narr = null;
+let WN = null, wn = null, scA = null, scn_narr = null, scR = 0;
 function wLoad(){ return WN ? Promise.resolve(WN) : fetch("scenes/narr.json").then(r => r.ok ? r.json() : null).then(j => (WN = j)).catch(() => null); }
 const W_SHOTS = [[.5,.5,1.06],[.28,.38,1.4],[.72,.5,1.45],[.42,.64,1.55],[.64,.34,1.35],[.34,.56,1.5],[.6,.6,1.4],[.5,.4,1.6]];
 function openWatch(s){

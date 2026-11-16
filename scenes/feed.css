@@ -80,3 +80,6 @@
 .sw-cap{overflow-y:auto; max-height:46vh}
 
 .scn-act.off{opacity:.55}
+
+.scn-verse.nar{display:block !important; -webkit-line-clamp:unset !important; max-height:9.2em; overflow-y:auto; -webkit-overflow-scrolling:touch}
+.scn-verse.nar span{opacity:.5; transition:opacity .25s}.scn-verse.nar span.cur{opacity:1; color:#fff}
