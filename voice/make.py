@@ -4,7 +4,9 @@ S = json.load(open('voice/lines.json'))
 os.makedirs('voice/out/v', exist_ok=True)
 pipe = KPipeline(lang_code='a'); sr = 24000; meta = {}
 if os.path.exists('voice/out/narr.json'): meta = json.load(open('voice/out/narr.json'))
-for sid, lines in S.items():
+SH = int(os.environ.get('SHARD', 0)); NS = int(os.environ.get('NSHARD', 1)); mine = {}
+for n, (sid, lines) in enumerate(S.items()):
+    if n % NS != SH: continue
     if sid in meta and os.path.exists(f'voice/out/v/{sid}.mp3') and meta[sid]['lines'] == lines: continue
     parts = [np.zeros(int(sr*0.6))]; t = 0.6; times = []
     for line in lines:
@@ -13,6 +15,8 @@ for sid, lines in S.items():
         gap = 0.5 if line.rstrip().endswith(('.', '”', '!', '?')) else 0.3
         parts.append(np.zeros(int(sr*gap))); t += gap
     sf.write('/tmp/x.wav', np.concatenate(parts), sr)
-    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', '/tmp/x.wav', '-ac', '1', '-b:a', '48k', f'voice/out/v/{sid}.mp3'], check=True)
-    meta[sid] = {"lines": lines, "times": times, "dur": round(t, 1)}; print(sid, round(t, 1), flush=True)
-json.dump(meta, open('voice/out/narr.json', 'w'), ensure_ascii=False)
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', '/tmp/x.wav', '-ac', '1', '-b:a', '32k', f'voice/out/v/{sid}.mp3'], check=True)
+    meta[sid] = mine[sid] = {"lines": lines, "times": times, "dur": round(t, 1)}; print(sid, round(t, 1), flush=True)
+for sid in S:
+    if sid in meta and sid not in mine and list(S).index(sid) % NS == SH: mine[sid] = meta[sid]
+json.dump(mine, open(f'voice/out/narr_{SH}.json', 'w'), ensure_ascii=False)

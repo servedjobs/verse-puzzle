@@ -8,15 +8,48 @@ permissions:
 jobs:
   voice:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix: { shard: [0, 1, 2, 3, 4, 5] }
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng ffmpeg
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -q "kokoro>=0.9" soundfile
-      - run: python voice/make.py
+      - run: SHARD=${{ matrix.shard }} NSHARD=6 python voice/make.py
+      - uses: actions/upload-artifact@v4
+        with: { name: "shard-${{ matrix.shard }}", path: voice/out }
+  people:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng ffmpeg
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q "kokoro>=0.9" soundfile
       - run: python voice/make_people.py
+      - uses: actions/upload-artifact@v4
+        with: { name: "people", path: voice/pout }
+  merge:
+    needs: [voice, people]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: /tmp/art }
       - run: |
+          mkdir -p voice/out/v voice/pout
+          for d in /tmp/art/shard-*; do cp -r $d/v/* voice/out/v/ 2>/dev/null || true; done
+          cp -r /tmp/art/people/* voice/pout/
+          python3 - <<'PY'
+          import json,glob
+          m={}
+          for f in sorted(glob.glob('/tmp/art/shard-*/narr_*.json')): m.update(json.load(open(f)))
+          json.dump(m,open('voice/out/narr.json','w'),ensure_ascii=False)
+          print(len(m))
+          PY
           git config user.name "github-actions"; git config user.email "actions@github.com"
           git add voice/out voice/pout && git commit -m "Narration voices [skip ci]" && git pull --rebase -q && git push
