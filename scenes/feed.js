@@ -8,13 +8,16 @@ function scText(s){ const out = []; let tr = null, ref = null;
   return {t: out.join(" "), ref: (ref || "") + last, tr}; }
 function scOrder(){ // a fresh shuffle each time you finish the whole set, so it never feels like the same feed
   const S0 = S.scn || (S.scn = {order:[], pos:0});
-  if(!S0.order.length || S0.order.length !== SCENES.length || S0.pos >= SCENES.length){ const a = SCENES.map((_,i) => i); for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } S0.order = a; S0.pos = 0; save(); }
+  if(!S0.heard) S0.heard = [];
+  if(S0.heard.length >= SCENES.length){ S0.heard = []; S0.order = []; }
+  if(!S0.order.length || S0.order.length !== SCENES.length){ const a = SCENES.map((_,i) => i); for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } S0.order = a; S0.pos = 0; S0.last = null; save(); }
   return S0; }
+function scQueue(){ const S0 = scOrder(), hs = new Set(S0.heard), q = S0.order.filter(k => !hs.has(SCENES[k].id)); const i = q.findIndex(k => SCENES[k].id === S0.last); return i > 0 ? q.slice(i).concat(q.slice(0, i)) : q; }
 function scenesCardHTML(){
-  const S0 = scOrder(), s = SCENES[S0.order[S0.pos] ?? 0];
+  const s = SCENES[scQueue()[0] ?? 0];
   return `<button class="scn-card" id="openScenes" aria-label="Open Bible Scenes">
     <img src="scenes/${s.id}.jpg" alt="" loading="lazy">
-    <span class="scn-card-txt"><span class="label">New · Bible Scenes</span><b>Swipe through the Bible in pictures</b><span class="sub">${SCENES.length} scenes from Genesis to Revelation</span></span>
+    <span class="scn-card-txt"><span class="label">New · Bible Scenes</span><b>Swipe through the Bible in pictures</b><span class="sub">Genesis to Revelation</span></span>
     <span class="scn-play">${ic("arrow")}</span></button>`; }
 function slideHTML(k, i){ const s = SCENES[k], x = scText(s), g = scG(s);
   return `<section class="scn-slide" data-i="${i}" data-k="${k}">
@@ -35,10 +38,11 @@ function slideHTML(k, i){ const s = SCENES[k], x = scText(s), g = scG(s);
 function openScenes(){
   const S0 = scOrder();
   const ov = document.createElement("div"); ov.className = "overlay scn"; ov.id = "scenes";
-  const order = S0.order.slice(S0.pos).concat(S0.order.slice(0, S0.pos));
+  const order = scQueue();
   ov.innerHTML = `<div class="scn-top"><button class="icon-btn scn-x" id="scnClose" aria-label="Close">${ic("x")}</button><span class="scn-title">Bible Scenes</span><span class="scn-count num" id="scnCount"></span></div>
+    <div class="scn-prog" id="scnProg" aria-label="Story progress"><i id="scnProgFill"></i></div>
     <div class="scn-feed" id="scnFeed">${order.map((k, i) => slideHTML(k, i)).join("")}
-      <section class="scn-slide scn-end" data-i="${order.length}"><div class="scn-endbox">${ic("check","xl")}<h2>You’ve seen all ${SCENES.length}</h2><p>Every scene, Genesis to Revelation. Start again in a new order?</p><button class="btn primary" id="scnAgain">Shuffle and start over</button><button class="btn quiet" id="scnDone">Back to the Bible</button></div></section>
+      <section class="scn-slide scn-end" data-i="${order.length}"><div class="scn-endbox">${ic("check","xl")}<h2>You’ve heard every scene</h2><p>Genesis to Revelation, all the way through. Start again in a new order?</p><button class="btn primary" id="scnAgain">Shuffle and start over</button><button class="btn quiet" id="scnDone">Back to the Bible</button></div></section>
     </div>
     ${S.scnCoach ? "" : `<div class="scn-coach" id="scnCoach">${ic("back")}<span>Swipe up for the next scene</span></div>`}`;
   app.appendChild(ov);
@@ -57,6 +61,15 @@ function openScenes(){
     if(nr){ const sn = new Set(); pv.innerHTML = WN[s.id].lines.map(l => "<span>" + (typeof linkNames === "function" ? linkNames(esc(l), sn) : esc(l)) + "</span>").join(" "); el._sp = [...pv.children]; } else if(el.dataset.mode === "verse" || !s.story) pv.textContent = x.t; else pv.innerHTML = typeof linkNames === "function" ? linkNames(esc(s.story), new Set()) : esc(s.story);
     requestAnimationFrame(() => { el.querySelector(".scn-more").hidden = nr ? true : !(pv.scrollHeight > pv.clientHeight + 2 || pv.classList.contains("open")); }); el.querySelector(".scn-ref").textContent = x.ref + (x.tr ? " · " + TR[x.tr].short : "");
     if(ONL[trCur()] && x.tr !== trCur()) ensureChapter(trCur(), s.r[0], s.r[1]).then(ok => { if(ok && scn) refresh(el); }); };
+  const heardAdd = id => { const h = S.scn.heard || (S.scn.heard = []); if(!h.includes(id)){ h.push(id); save(); } };
+  const setProg = f => { const b = $("#scnProgFill"); if(b) b.style.width = (Math.max(0, Math.min(1, f)) * 100) + "%"; };
+  scA.onended = () => { if(!/\/v\//.test(scA.src)) return; const el = feed.querySelector(".scn-slide.on"); if(el && !isNaN(+el.dataset.k)){ heardAdd(SCENES[+el.dataset.k].id); setProg(1); } };
+  scA.ontimeupdate = () => { if(/\/v\//.test(scA.src) && scA.duration) setProg(scA.currentTime / scA.duration); };
+  const pg = $("#scnProg"); let seeking = false; const seek = e => { const r = pg.getBoundingClientRect(); const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); if(scA.duration && /\/v\//.test(scA.src)){ scA.currentTime = f * scA.duration; setProg(f); } };
+  pg.addEventListener("pointerdown", e => { seeking = true; pg.classList.add("on"); pg.setPointerCapture(e.pointerId); seek(e); e.stopPropagation(); });
+  pg.addEventListener("click", e => e.stopPropagation());
+  pg.addEventListener("pointermove", e => { if(seeking) seek(e); });
+  pg.addEventListener("pointerup", () => { seeking = false; pg.classList.remove("on"); });
   let cur = -1;
   const io = new IntersectionObserver(es => es.forEach(e => {
     if(!e.isIntersecting || e.intersectionRatio < .6) return;
@@ -64,8 +77,8 @@ function openScenes(){
     feed.querySelectorAll(".scn-slide.on").forEach(x => x.classList.remove("on")); el.classList.add("on");
     load(el); load(el.nextElementSibling); load(el.nextElementSibling && el.nextElementSibling.nextElementSibling); load(el.previousElementSibling);
     scA.pause(); if(i < order.length) narrPlay();
-    if(i < order.length){ refresh(el); cnt.textContent = (i + 1) + " / " + order.length; S.scn.pos = (S0.order.indexOf(order[i]) + 1); save(); }
-    else { cnt.textContent = ""; S.scn.pos = SCENES.length; save(); }
+    if(i < order.length){ refresh(el); cnt.textContent = ""; S.scn.last = SCENES[order[i]].id; if(S.scnMute) heardAdd(SCENES[order[i]].id); save(); setProg(0); }
+    else { cnt.textContent = ""; setProg(0); }
     if(i > 0 && $("#scnCoach")){ $("#scnCoach").remove(); S.scnCoach = true; save(); }
   }), {root: feed, threshold: [.6]});
   feed.querySelectorAll(".scn-slide").forEach(el => io.observe(el));
@@ -91,7 +104,7 @@ function openScenes(){
   });
   $("#scnClose").onclick = () => closeScenes();
   $("#scnDone").onclick = () => closeScenes();
-  $("#scnAgain").onclick = () => { S.scn.order = []; S.scn.pos = 0; scOrder(); closeScenes(true); openScenes(); };
+  $("#scnAgain").onclick = () => { S.scn.order = []; S.scn.heard = []; S.scn.last = null; scOrder(); closeScenes(true); openScenes(); };
 }
 function closeScenes(quiet){ closeWatch(); try{ scA.pause(); }catch(e){} if(!scn) return; scn.io.disconnect(); scn.ov.remove(); scn = null; if(!quiet) render(); }
 
