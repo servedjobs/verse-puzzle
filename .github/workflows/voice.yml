@@ -42,12 +42,14 @@ jobs:
         with: { path: /tmp/art }
       - run: |
           mkdir -p voice/out/v voice/pout
-          for d in /tmp/art/shard-*; do cp -r $d/v/* voice/out/v/ 2>/dev/null || true; done
           cp -r /tmp/art/people/* voice/pout/
           python3 - <<'PY'
           import json,glob
           m={}
-          for f in sorted(glob.glob('/tmp/art/shard-*/narr_*.json')): m.update(json.load(open(f)))
+          import shutil,os
+          for f in sorted(glob.glob('/tmp/art/shard-*/narr_*.json')):
+              d=os.path.dirname(f); n=json.load(open(f)); m.update(n)
+              for sid in n: shutil.copy(d+'/v/'+sid+'.mp3','voice/out/v/'+sid+'.mp3')
           json.dump(m,open('voice/out/narr.json','w'),ensure_ascii=False)
           print(len(m))
           PY

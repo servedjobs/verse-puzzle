@@ -7,7 +7,13 @@ if os.path.exists('voice/out/narr.json'): meta = json.load(open('voice/out/narr.
 SH = int(os.environ.get('SHARD', 0)); NS = int(os.environ.get('NSHARD', 1)); mine = {}
 for n, (sid, lines) in enumerate(S.items()):
     if n % NS != SH: continue
-    if sid in meta and os.path.exists(f'voice/out/v/{sid}.mp3') and meta[sid]['lines'] == lines: continue
+    def ok():
+        f = f'voice/out/v/{sid}.mp3'
+        if sid not in meta or not os.path.exists(f) or meta[sid]['lines'] != lines: return False
+        try: d = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).decode().strip())
+        except Exception: return False
+        return abs(d - meta[sid]['dur']) < 3
+    if ok(): continue
     parts = [np.zeros(int(sr*0.6))]; t = 0.6; times = []
     for line in lines:
         a = np.concatenate([np.asarray(c, dtype=np.float32) for _, _, c in pipe(line, voice='af_heart', speed=0.95)])
