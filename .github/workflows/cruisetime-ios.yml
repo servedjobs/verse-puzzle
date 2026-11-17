@@ -1,0 +1,64 @@
+name: CruiseTime iPhone upload
+# Builds the CruiseTime iPhone app (cruisetime-ios-src.zip on this branch) and uploads it to App Store Connect.
+# Uses the same App Store Connect API key secrets as PrayerChair (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8) - same Apple team.
+on:
+  push:
+    branches: [cruisetime-ios]
+  workflow_dispatch:
+jobs:
+  upload:
+    if: github.ref == 'refs/heads/cruisetime-ios'
+    runs-on: macos-26
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Xcode 26
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$X" ] || X=$(ls -d /Applications/Xcode.app)
+          sudo xcode-select -s "$X/Contents/Developer"
+          xcodebuild -version
+      - name: Check secrets
+        run: |
+          for v in ASC_KEY_ID ASC_ISSUER_ID; do [ -n "${!v}" ] || { echo "::error::Missing secret $v"; exit 1; }; done
+      - name: Unpack project
+        run: unzip -q cruisetime-ios-src.zip -d ct && ls ct
+      - name: Write API key
+        env: { ASC_KEY_P8: '${{ secrets.ASC_KEY_P8 }}' }
+        run: |
+          [ -n "$ASC_KEY_P8" ] || { echo "::error::Missing secret ASC_KEY_P8"; exit 1; }
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s\n' "$ASC_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+      - name: Archive
+        run: |
+          cd ct
+          xcodebuild -project CruiseTime.xcodeproj -scheme CruiseTime -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath $RUNNER_TEMP/CruiseTime.xcarchive \
+            DEVELOPMENT_TEAM=5UZ9C6T4V5 CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            MARKETING_VERSION=1.0 CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            archive | tail -80
+          test ${PIPESTATUS[0]} -eq 0
+      - name: Export and upload to App Store Connect
+        run: |
+          cat > $RUNNER_TEMP/export.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+          <key>method</key><string>app-store-connect</string>
+          <key>destination</key><string>upload</string>
+          <key>teamID</key><string>5UZ9C6T4V5</string>
+          <key>signingStyle</key><string>automatic</string>
+          <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/CruiseTime.xcarchive \
+            -exportOptionsPlist $RUNNER_TEMP/export.plist -exportPath $RUNNER_TEMP/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID | tail -60
+          test ${PIPESTATUS[0]} -eq 0
+      - name: Remove key
+        if: always()
+        run: rm -rf ~/.appstoreconnect
