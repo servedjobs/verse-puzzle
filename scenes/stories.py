@@ -100,3 +100,10 @@ ST = {
 "patmos": "John, the last living apostle, was exiled to the rocky island of Patmos for preaching about Jesus. One Sunday, while he was worshiping, he heard a loud voice behind him like a trumpet. He turned and saw the risen Jesus in blazing glory. Jesus showed him visions of the future, which John wrote down as the Book of Revelation.",
 "new-jerusalem": "At the end of the Bible, John sees a new heaven and a new earth, and a holy city coming down from God, beautiful like a bride. A loud voice says God will live with His people. He will wipe every tear from their eyes. There will be no more death, no more sadness, no more crying and no more pain. Everything will be made new.",
 }
+
+# Long-form stories (scenes/long_a*.py) override the short summaries above.
+import glob as _glob, importlib as _il, os as _os, sys as _sys
+_d = _os.path.dirname(_os.path.abspath(__file__))
+if _d not in _sys.path: _sys.path.insert(0, _d)
+for _f in sorted(_glob.glob(_os.path.join(_d, 'long_a*.py'))):
+    ST.update(_il.import_module(_os.path.basename(_f)[:-3]).L)
