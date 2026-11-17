@@ -7,7 +7,8 @@ from long_peter import LONG as L1
 from long_twelve import LONG as L2
 from long_nt import LONG as L3
 from long_ot import LONG as L4
-LONG = {**L4, **L3, **L2, **L1}
+from long_full import LONG as L0
+LONG = {**L4, **L3, **L2, **L1, **L0}
 from long_twelve2 import CARDS as LC
 for k, v in LC.items(): LONG.setdefault(k, {})["cards"] = v
 for c in CATS:
@@ -34,5 +35,7 @@ if '${peopleCardHTML()}' not in s:
     s = s.replace('    ${scenesCardHTML()}\n', '    ${scenesCardHTML()}\n    ${peopleCardHTML()}\n', 1)
 if 'openPeople").onclick' not in s:
     s = s.replace('  $("#openScenes").onclick = openScenes;\n', '  $("#openScenes").onclick = openScenes;\n  $("#openPeople").onclick = () => openPeople();\n', 1)
+if 'openPeopleMap").onclick' not in s:
+    s = s.replace('  $("#openPeople").onclick = () => openPeople();\n', '  $("#openPeople").onclick = () => openPeople();\n  $("#openPeopleMap").onclick = () => openPeople("who");\n', 1)
 open(p, 'w', encoding='utf-8').write(s)
 print(len(ids), "people with stories,", len(EXTRA), "more on the map,", len(REL), "connections")

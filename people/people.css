@@ -94,3 +94,14 @@
 .art-listen{display:flex; align-items:center; gap:6px; border:0; border-radius:99px; padding:7px 12px; font:600 13px var(--ui,system-ui); background:var(--gold,#f59e0b); color:#1a1205; margin-left:8px}
 .art-listen.on{background:#fff}
 .art-sec{transition:opacity .3s}.art-body:has(.art-sec.cur) .art-sec:not(.cur){opacity:.45}
+
+.pp-mapbtn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; margin:8px 0 0; padding:12px 14px; border-radius:16px; border:1px solid var(--gold,#f59e0b); background:color-mix(in srgb,var(--gold,#f59e0b) 12%,var(--canvas)); color:var(--ink); cursor:pointer}
+.pp-mapbtn .ico{width:26px; height:26px; flex:0 0 auto; color:var(--gold,#f59e0b)}
+.pp-mapbtn b{display:block; font-size:15px}
+.pp-mapbtn small{display:block; font-size:12px; color:var(--ink-2); margin-top:2px}
+.art-map{display:flex; align-items:center; border:0; background:transparent; color:inherit; padding:6px; margin-left:auto}
+.art-map .ico{width:22px; height:22px}
+
+.scn-map{margin-left:auto; pointer-events:auto; color:#fff}
+.scn-map .ico{width:22px; height:22px}
+.ppd-whobtn .ico{width:18px; height:18px}

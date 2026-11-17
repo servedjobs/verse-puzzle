@@ -7,7 +7,8 @@ from long_twelve import LONG as L2
 from long_nt import LONG as L3
 from long_ot import LONG as L4
 from long_twelve2 import CARDS as LC
-LONG = {**L4, **L3, **L2, **L1}
+from long_full import LONG as L0
+LONG = {**L4, **L3, **L2, **L1, **L0}
 for k, v in LC.items(): LONG.setdefault(k, {})["cards"] = v
 def split(t):
     m = re.split(r'(?<=[.!?”"])\s+(?=[A-Z“"‘\'])', t.strip()); out = []

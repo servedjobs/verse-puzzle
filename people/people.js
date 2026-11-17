@@ -17,7 +17,9 @@ function peopleCardHTML(){
   return `<button class="scn-card pp-card" id="openPeople" aria-label="Open Bible People">
     <img src="scenes/last-supper.jpg" alt="" loading="lazy">
     <span class="scn-card-txt"><span class="label">New · Bible People</span><b>Who’s who in the Bible</b><span class="sub">${Object.keys(PP).length} people in plain English · see how they’re connected</span></span>
-    <span class="scn-play">${ic("user")}</span></button>`; }
+    <span class="scn-play">${ic("user")}</span></button>
+  <button class="pp-mapbtn" id="openPeopleMap">${MAPIC}<span><b>Who’s Who map</b><small>Tap anyone to see who they’re connected to</small></span></button>`; }
+const MAPIC = `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 7l3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/></svg>`;
 let ppl = null;
 function openPeople(mode, focus){
   if(ppl) ppl.ov.remove();
@@ -37,11 +39,12 @@ function drawPeople(){
 }
 function drawBrowse(){
   const body = $("#ppBody");
-  body.innerHTML = `<div class="stack">${PCATS.map(c => `<section class="pp-cat">
+  body.innerHTML = `<div class="stack"><button class="pp-mapbtn" id="ppGoMap">${MAPIC}<span><b>See the Who’s Who map</b><small>How everyone in the Bible is connected</small></span></button>${PCATS.map(c => `<section class="pp-cat">
       <div class="pp-cat-h"><div><h3>${esc(c.title)}</h3><p class="muted small">${esc(c.blurb)}</p></div><span class="count num">${c.people.length}</span></div>
       <div class="pp-row">${c.people.map(p => `<button class="pp-tile" data-p="${p.id}">${pMono(p.id, "lg")}<b>${esc(p.name)}</b><span>${esc(p.role)}</span></button>`).join("")}</div>
     </section>`).join("")}</div>`;
   body.querySelectorAll("[data-p]").forEach(b => b.onclick = () => openPerson(b.dataset.p));
+  $("#ppGoMap").onclick = () => { ppl.mode = "who"; drawPeople(); };
 }
 function drawWho(){
   const P = ppl, body = $("#ppBody"), id = P.focus, L = pLinks(id), groups = Object.keys(L);
@@ -93,9 +96,10 @@ function openPerson(id){
   const slides = [
     `<section class="scn-slide ppd-intro"><div class="scn-art"><img class="bg" src="${art}" alt=""><img class="fg" src="${art}" alt=""></div><div class="scn-shade"></div>
       <div class="scn-info"><span class="scn-ref">${esc((PCATS.find(c => c.key === p.cat) || {}).title || "")}</span><h2 class="ppd-name">${esc(p.name)}</h2><p class="ppd-role">${esc(p.role)}</p>
-      <div class="ppd-facts">${p.facts.map(f => `<span>${esc(f)}</span>`).join("")}</div><p class="ppd-hint">${ic("back","sm")} Swipe up · ${p.cards.length} moments from ${esc(p.name.split(" (")[0])}’s life · about ${Math.max(1, Math.round(p.cards.reduce((n, c) => n + c.t.split(" ").length, 0) / 200))} min</p>
+      <div class="ppd-facts">${p.facts.map(f => `<span>${esc(f)}</span>`).join("")}</div><p class="ppd-hint">${ic("back","sm")} Swipe up · ${p.cards.length} moments from ${esc(p.name.split(" (")[0])}’s life · about ${artMin(p)} min</p>
       <button class="ppd-morebtn" data-listen-p="${p.id}" id="lp-${p.id}" hidden>${SPK}<span>Listen to ${esc(p.name.split(" (")[0])}’s story</span></button>
-      <button class="ppd-morebtn" data-more="-1">${ic("book","sm")}<span>Read ${esc(p.name.split(" (")[0])}’s full story · ${artMin(p)} min</span></button></div></section>`,
+      <button class="ppd-morebtn" data-more="-1">${ic("book","sm")}<span>Read ${esc(p.name.split(" (")[0])}’s full story · ${artMin(p)} min</span></button>
+      <button class="ppd-morebtn ppd-whobtn" data-who="${id}">${MAPIC}<span>See ${esc(p.name.split(" (")[0])} on the Who’s Who map</span></button></div></section>`,
     ...p.cards.map((c, i) => `<section class="scn-slide ppd-card"><div class="scn-art"><img class="bg" src="${art}" alt=""></div>
       <div class="ppd-box"><span class="ppd-step num">${i + 1} / ${p.cards.length}</span><h3>${esc(c.h)}</h3><p>${esc(c.t)}</p>
         ${c.more ? `<button class="ppd-morebtn" data-more="${i}">${ic("book","sm")}<span>Read the full story</span></button>` : ""}
@@ -106,7 +110,7 @@ function openPerson(id){
         <h3>Read it in the Bible</h3><div class="ppd-reads">${p.cards.filter((c, i, a) => c.ref && a.findIndex(x => x.ref && x.ref.join() === c.ref.join()) === i).map(c => `<button data-b="${esc(c.ref[0])}" data-c="${c.ref[1]}">${ic("book","sm")}<span><b>${esc(c.h)}</b><small>${esc(c.ref[0] === "Psalms" ? "Psalm " + hebPs(c.ref[1]) : bookLabel(c.ref[0]) + " " + c.ref[1])}</small></span></button>`).join("")}</div>
         <div class="ppd-btns"><button class="btn primary" data-who="${id}">See ${esc(p.name.split(" (")[0])} on the map</button><button class="btn quiet" data-next="${nx}">Next: ${esc(pName(nx))} ${ic("arrow","sm")}</button></div>
       </div></section>`];
-  ov.innerHTML = `<div class="scn-top"><button class="icon-btn scn-x" data-close aria-label="Close">${ic("x")}</button><span class="scn-title">${esc(p.name)}</span></div><div class="scn-feed">${slides.join("")}</div>`;
+  ov.innerHTML = `<div class="scn-top"><button class="icon-btn scn-x" data-close aria-label="Close">${ic("x")}</button><span class="scn-title">${esc(p.name)}</span><button class="icon-btn scn-map" data-who="${id}" aria-label="Who’s Who map">${MAPIC}</button></div><div class="scn-feed">${slides.join("")}</div>`;
   app.appendChild(ov);
   const feed = ov.querySelector(".scn-feed");
   const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting && e.intersectionRatio >= .6){ feed.querySelectorAll(".on").forEach(x => x.classList.remove("on")); e.target.classList.add("on"); } }), {root: feed, threshold: [.6]});
@@ -130,7 +134,7 @@ function openArticle(id, at, listen){
   const ov = document.createElement("div"); ov.className = "overlay art"; ov.id = "article";
   const refLink = r => r ? `<button class="art-ref" data-b="${esc(r[0])}" data-c="${r[1]}">${ic("book","sm")}Read it in the Bible · ${esc(r[0] === "Psalms" ? "Psalm " + hebPs(r[1]) : bookLabel(r[0]) + " " + r[1])}</button>` : "";
   const toc = [...(p.intro || []).map(s => s[0]), ...p.cards.map(c => c.h), ...(p.outro || []).map(s => s[0])];
-  ov.innerHTML = `<div class="art-top"><button class="icon-btn" data-close aria-label="Close">${ic("back")}</button><span class="art-t">${esc(p.name)}</span><span class="art-min num">${artMin(p)} min read</span><button class="art-listen" data-listen hidden>${SPK}<span>Listen</span></button><i class="art-prog"></i></div>
+  ov.innerHTML = `<div class="art-top"><button class="icon-btn" data-close aria-label="Close">${ic("back")}</button><span class="art-t">${esc(p.name)}</span><span class="art-min num">${artMin(p)} min read</span><button class="art-map" data-map aria-label="Show on the Who’s Who map">${MAPIC}</button><button class="art-listen" data-listen hidden>${SPK}<span>Listen</span></button><i class="art-prog"></i></div>
     <div class="art-body" id="artBody">
       <header class="art-hero"><img src="${art}" alt=""><div><span class="label">${esc((PCATS.find(c => c.key === p.cat) || {}).title || "")}</span><h1>${esc(p.name)}</h1><p>${esc(p.role)}</p></div></header>
       <details class="art-toc"><summary>In this story · ${toc.length} parts</summary><ol>${toc.map((t, i) => `<li><button data-go="${i}">${esc(t)}</button></li>`).join("")}</ol></details>
@@ -156,6 +160,7 @@ function openArticle(id, at, listen){
   pLoad().then(n => { if(n && n[id]){ N = n[id]; lb.hidden = false; if(listen) play(); } });
   new MutationObserver(() => { if(!ov.isConnected) stop(); }).observe(app, {childList: true});
   ov.querySelectorAll("[data-close]").forEach(b => b.onclick = () => ov.remove());
+  const mb = ov.querySelector("[data-map]"); if(mb) mb.onclick = () => { ov.remove(); if(ppl){ ppl.mode = "who"; ppl.focus = id; ppl.q = ""; drawPeople(); } else openPeople("who", id); };
   ov.querySelectorAll(".pl").forEach(b => b.onclick = () => openPerson(b.dataset.p));
   ov.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { b.closest("details").open = false; go(+b.dataset.go); });
   ov.querySelectorAll("[data-b]").forEach(b => b.onclick = () => { ov.remove(); const per = document.getElementById("person"); if(per) per.remove(); if(ppl){ ppl.ov.remove(); ppl = null; } openChapter(b.dataset.b, +b.dataset.c); });
