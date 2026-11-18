@@ -3,6 +3,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import full_a, full_b, full_c, full_d, full_e, full_f  # noqa: registers categories in order
 from full_a import CATS
 from relations import EXTRA, REL
+import lineage
 from long_peter import LONG as L1
 from long_twelve import LONG as L2
 from long_nt import LONG as L3
@@ -25,7 +26,8 @@ for a, r, b in REL:
 p = 'www/index.html'; s = open(p, encoding='utf-8').read()
 css = open('people/people.css').read()
 js = (open('people/people.js').read().replace('__PCATS__', json.dumps(CATS, ensure_ascii=False))
-      .replace('__PEXTRA__', json.dumps(EXTRA, ensure_ascii=False)).replace('__PREL__', json.dumps(REL)))
+      .replace('__PEXTRA__', json.dumps(EXTRA, ensure_ascii=False)).replace('__PREL__', json.dumps(REL))
+      .replace('__PLIN__', json.dumps(dict(UP=lineage.UP, NAMES=lineage.NAMES, DOWN=lineage.DOWN, JNOTE=lineage.JNOTE), ensure_ascii=False)))
 s = re.sub(re.escape('/* people-css:start */') + '.*?' + re.escape('/* people-css:end */\n'), '', s, flags=re.S)
 s = re.sub(re.escape('/* people-js:start */') + '.*?' + re.escape('/* people-js:end */\n'), '', s, flags=re.S)
 i = s.index('</style>'); s = s[:i] + '/* people-css:start */\n' + css + '/* people-css:end */\n' + s[i:]

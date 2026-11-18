@@ -105,3 +105,24 @@
 .scn-map{margin-left:auto; pointer-events:auto; color:#fff}
 .scn-map .ico{width:22px; height:22px}
 .ppd-whobtn .ico{width:18px; height:18px}
+
+.pp-fam{display:grid;gap:8px;padding:12px;border-radius:14px;border:1px solid var(--line,rgba(127,127,127,.25));background:var(--surface-2,rgba(127,127,127,.06));margin-top:12px;text-align:left;width:100%;font:inherit;color:inherit;cursor:pointer}
+.pp-fam-h{display:flex;justify-content:space-between;align-items:baseline}
+.pp-trail{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:14px;line-height:1.4}
+.pp-trail i{font-style:normal;opacity:.45}
+.pp-trail .me{font-weight:700;color:var(--brand)}
+.pp-fam p{margin:0}
+.pp-fam-go{display:flex;align-items:center;gap:4px;color:var(--brand);font-weight:600;font-size:14px}
+.pp-tree{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line,rgba(127,127,127,.3));display:grid;gap:2px}
+.pp-tree li{position:relative}
+.pp-tree li.far{border-left:2px dashed var(--line,rgba(127,127,127,.4));margin-left:-16px;padding-left:14px}
+.pp-tree li>button,.pp-tree li>div,.pp-tree li.pp-gen{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:7px 4px;background:none;border:0;color:inherit;font:inherit;border-radius:10px}
+.pp-tree li>button:active{background:var(--surface-2,rgba(127,127,127,.12))}
+.pp-tree li.me>button,.pp-tree li.me>div{background:color-mix(in srgb,var(--brand) 14%,transparent)}
+.pp-tree b{display:block;font-size:15px}
+.pp-tree .sub{display:block;font-size:13px;opacity:.7}
+.pp-gap{display:block;font-size:12.5px;font-style:italic;opacity:.75;margin-top:2px}
+.pp-dot{width:12px;height:12px;border-radius:50%;background:var(--brand);opacity:.5;flex:0 0 12px;margin:0 10px}
+.pp-dot.sm{width:8px;height:8px;flex-basis:8px;margin:0 12px}
+.pp-tojesus{display:grid;gap:10px}
+.pp-tojesus p{margin:0}

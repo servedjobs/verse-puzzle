@@ -1,5 +1,5 @@
 /* ---------- BIBLE PEOPLE + WHO'S WHO ---------- */
-const PCATS = __PCATS__, PEXTRA = __PEXTRA__, PREL = __PREL__;
+const PCATS = __PCATS__, PEXTRA = __PEXTRA__, PREL = __PREL__, PLIN = __PLIN__;
 const PP = {}; PCATS.forEach(c => c.people.forEach(p => { p.cat = c.key; PP[p.id] = p; }));
 const PALL = Object.keys(PP).concat(Object.keys(PEXTRA));
 const pName = id => PP[id] ? PP[id].name : PEXTRA[id] ? PEXTRA[id][0] : id;
@@ -65,6 +65,7 @@ function drawWho(){
     ${matches.length ? `<div class="list">${matches.map(x => `<button class="li" data-go="${x}">${pMono(x)}<div class="txt"><b>${esc(pName(x))}</b><span class="sub">${esc(pDesc(x))}</span></div></button>`).join("")}</div>` : ""}
     <div class="card pp-who">
       <div class="pp-who-h">${pMono(id, "lg")}<div><h2>${esc(pName(id))}</h2><p class="muted small">${esc(pDesc(id))}</p></div></div>
+      ${famCardHTML(id)}
       ${n ? svg : `<p class="muted">No connections mapped yet.</p>`}
       <div class="pp-legend">${groups.map(g => `<span><i style="background:${PREL_COLOR[g]}"></i>${esc(g)}</span>`).join("")}</div>
       ${PP[id] ? `<button class="btn primary block" id="ppStory">Read ${esc(pName(id))}’s story ${ic("arrow","sm")}</button>` : ""}
@@ -77,7 +78,55 @@ function drawWho(){
   body.querySelectorAll("[data-go], .pp-node:not(.pp-grp)").forEach(b => b.onclick = () => { P.focus = b.dataset.go || b.dataset.p; P.q = ""; drawWho(); body.scrollTop = 0; P.ov.querySelector(".pp-body").scrollTop = 0; });
   if($("#ppStory")) $("#ppStory").onclick = () => openPerson(id);
   $("#ppLine").onclick = drawLine;
+  body.querySelectorAll("[data-trace]").forEach(b => b.onclick = () => drawTrace(b.dataset.trace));
 }
+/* ---- family line: everyone back to Adam & Eve, and to Jesus ---- */
+const lName = x => PP[x] || PEXTRA[x] ? pName(x) : (PLIN.NAMES[x] || x);
+const lKnown = x => !!(PP[x] || PEXTRA[x]);
+function lUp(id){ const out = [id]; let x = id, n = 0; while(PLIN.UP[x] && n++ < 200){ x = PLIN.UP[x][0]; out.push(x); } return out.reverse(); } // Adam first
+const LJ = () => lUp("jesus");
+function lToJesus(id){ // [path from someone to Jesus, shared ancestor or null]
+  const J = LJ(); if(id === "jesus") return [["jesus"], null];
+  let i = J.indexOf(id); if(i >= 0) return [J.slice(i), null];
+  const d = PLIN.DOWN[id]; if(d){ i = J.indexOf(d); if(i >= 0) return [[id].concat(J.slice(i)), null]; }
+  const up = lUp(id).reverse(); for(const a of up.slice(1)){ i = J.indexOf(a); if(i >= 0) return [J.slice(i), a]; }
+  return [[], null];
+}
+function lMilestones(arr){ return arr.filter((x, i) => i === 0 || i === arr.length - 1 || lKnown(x)); }
+function famCardHTML(id){
+  const up = lUp(id), ms = lMilestones(up), [, ca] = lToJesus(id), note = PLIN.JNOTE[id];
+  const trail = ms.map((x, i) => `<span class="${x === id ? "me" : ""}">${esc(lName(x).replace(/ \(.*\)/, ""))}</span>`).join('<i>›</i>');
+  const link = id === "jesus" ? "" : ca ? `<p class="small"><b>Link to Jesus:</b> ${esc(pName(id))} and Jesus share the same ancestor, <b>${esc(lName(ca))}</b>.${note ? " " + esc(note) : ""}</p>` : `<p class="small"><b>Link to Jesus:</b> ${esc(note || "In Jesus’ own family line.")}</p>`;
+  return `<button class="pp-fam" data-trace="${id}"><div class="pp-fam-h"><span class="label">Family line</span><span class="muted small">back to Adam &amp; Eve</span></div>
+    <div class="pp-trail">${trail}</div>${link}<span class="pp-fam-go">See the whole family line ${ic("chev","sm")}</span></button>`;
+}
+function lRows(arr, me, quiet){ // arr top-down; collapse runs of 3+ unnamed links
+  let h = "", run = [];
+  const flush = () => { if(!run.length) return; if(run.length < 3) run.forEach(x => h += lRow(x, me)); else h += `<li class="pp-gen"><span class="pp-dot sm"></span><span><b>${run.length} generations</b><span class="sub">${run.map(x => esc(lName(x))).join(" → ")}</span></span></li>`; run = []; };
+  arr.forEach((x, i) => { const u = PLIN.UP[x]; if(!lKnown(x) && i && i < arr.length - 1 && !(u && u[2])) run.push(x); else { flush(); h += lRow(x, me, quiet && i === 0); } });
+  flush(); return h;
+}
+function lRow(x, me, quiet){
+  const u = quiet ? null : PLIN.UP[x], sub = u ? `${u[1]} of ${lName(u[0])}` : quiet ? "" : "The first man and woman";
+  const gap = u && u[2] ? `<span class="pp-gap">${esc(u[2])}</span>` : "";
+  const inner = `${lKnown(x) ? pMono(x) : `<span class="pp-dot"></span>`}<span><b>${esc(lName(x))}</b><span class="sub">${esc(sub)}</span>${gap}</span>`;
+  return `<li class="${x === me ? "me" : ""}${u && u[1] === "descendant" ? " far" : ""}">${lKnown(x) ? `<button data-go="${x}">${inner}</button>` : `<div>${inner}</div>`}</li>`;
+}
+function drawTrace(id){
+  const body = $("#ppBody"), up = lUp(id), [toJ, ca] = lToJesus(id), note = PLIN.JNOTE[id], nm = esc(pName(id));
+  let jh = "";
+  if(id === "jesus") jh = `<p>${esc(note)}</p>`;
+  else if(ca) jh = `<p>${nm} and Jesus share the same ancestor: <b>${esc(lName(ca))}</b>. From there, the line runs down to Jesus:</p>${note ? `<p class="muted">${esc(note)}</p>` : ""}<ol class="pp-tree">${lRows(toJ, "jesus", true)}</ol>`;
+  else jh = `<p>Jesus comes from ${nm}’s own family. ${note ? esc(note) : ""}</p><ol class="pp-tree">${lRows(toJ, "jesus", true)}</ol>`;
+  body.innerHTML = `<div class="stack"><button class="btn quiet sm" id="ppBack" style="justify-self:start">${ic("back","sm")}Back to ${nm}</button>
+    <div class="hello"><h1>${nm}’s family line</h1><p>From Adam and Eve, generation by generation. Tap a name to see that person.</p></div>
+    <ol class="pp-tree">${lRows(up, id)}</ol>
+    <div class="card pp-tojesus"><span class="label">How ${nm} connects to Jesus</span>${jh}</div></div>`;
+  $("#ppBack").onclick = () => { ppl.focus = id; drawWho(); };
+  body.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { ppl.focus = b.dataset.go; drawWho(); });
+  P_scrollTop();
+}
+function P_scrollTop(){ const b = ppl && ppl.ov && ppl.ov.querySelector(".pp-body"); if(b) b.scrollTop = 0; }
 const PLINE = [["adam-eve","The first people"],["seth","Their third son"],["noah","Ten generations later — survived the flood"],["abraham","God promised to bless the world through his family"],["isaac","The promised son"],["jacob","Renamed Israel; father of the 12 tribes"],["judah","One of Jacob’s sons — the tribe of kings"],["rahab","Married into Israel after Jericho"],["boaz","Rahab’s son; married Ruth"],["ruth","The loyal foreigner"],["obed","Son of Ruth and Boaz"],["jesse","Farmer in Bethlehem"],["david","The shepherd king"],["solomon","David’s son; built the Temple"],["hezekiah","A good king, generations later"],["josiah","The boy king"],["joseph-nazareth","From David’s line, about 1,000 years after him"],["mary","Mother of Jesus"],["jesus","The promised Son of David"]];
 function drawLine(){
   const body = $("#ppBody");
