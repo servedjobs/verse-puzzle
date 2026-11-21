@@ -6,13 +6,11 @@ const VS_SC = (() => {
 })();
 function vsNote(g){ const r = ALL[g]; const a = CHN[r.book]; return (a && a[r.ch - 1]) || ""; }
 function sevenCardHTML(){
-  const g = (S.vs && S.vs.g) || 0, pct = Math.max(2, g / ALL.length * 100);
-  return `<section class="card seven vs-card">
-      <div class="top"><h3>Scroll the Bible</h3><span class="count num">${esc(trV(g).ref)}</span></div>
-      <span class="vs-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>
-      <p class="muted small" style="margin:0">One verse at a time, Genesis to Revelation. Tap Meaning on any verse.</p>
-      <button class="btn primary block" id="openSeven">${g > 0 ? "Continue scrolling" : "Start scrolling"} ${ic("arrow","sm")}</button>
-    </section>`;
+  const g = (S.vs && S.vs.g) || 0;
+  return `<button class="scn-card" id="openSeven" aria-label="Scroll the Bible">
+    <img src="scenes/${VS_SC(g)}.jpg" alt="" loading="lazy">
+    <span class="scn-card-txt"><span class="label">Bible Verses</span><b>Scroll the Bible, one verse at a time</b><span class="sub">${g > 0 ? "Continue at " + esc(trV(g).ref) : "Genesis to Revelation"}</span></span>
+    <span class="scn-play">${ic("arrow")}</span></button>`;
 }
 function bindSeven(){ const b = $("#openSeven"); if(b) b.onclick = () => openVS(); }
 const vsCh = (b, c) => b === "Psalms" && trCur() !== "drb" ? hebPs(c) : c;

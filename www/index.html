@@ -1417,7 +1417,7 @@ function scenesCardHTML(){
   const s = SCENES[scQueue()[0] ?? 0];
   return `<button class="scn-card" id="openScenes" aria-label="Open Bible Scenes">
     <img src="scenes/${s.id}.jpg" alt="" loading="lazy">
-    <span class="scn-card-txt"><span class="label">New · Bible Scenes</span><b>Swipe through the Bible in pictures</b><span class="sub">Genesis to Revelation</span></span>
+    <span class="scn-card-txt"><span class="label">Bible Stories</span><b>Swipe through the Bible in pictures</b><span class="sub">Genesis to Revelation</span></span>
     <span class="scn-play">${ic("arrow")}</span></button>`; }
 function slideHTML(k, i){ const s = SCENES[k], x = scText(s), g = scG(s);
   return `<section class="scn-slide" data-i="${i}" data-k="${k}">
@@ -1557,13 +1557,11 @@ const VS_SC = (() => {
 })();
 function vsNote(g){ const r = ALL[g]; const a = CHN[r.book]; return (a && a[r.ch - 1]) || ""; }
 function sevenCardHTML(){
-  const g = (S.vs && S.vs.g) || 0, pct = Math.max(2, g / ALL.length * 100);
-  return `<section class="card seven vs-card">
-      <div class="top"><h3>Scroll the Bible</h3><span class="count num">${esc(trV(g).ref)}</span></div>
-      <span class="vs-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>
-      <p class="muted small" style="margin:0">One verse at a time, Genesis to Revelation. Tap Meaning on any verse.</p>
-      <button class="btn primary block" id="openSeven">${g > 0 ? "Continue scrolling" : "Start scrolling"} ${ic("arrow","sm")}</button>
-    </section>`;
+  const g = (S.vs && S.vs.g) || 0;
+  return `<button class="scn-card" id="openSeven" aria-label="Scroll the Bible">
+    <img src="scenes/${VS_SC(g)}.jpg" alt="" loading="lazy">
+    <span class="scn-card-txt"><span class="label">Bible Verses</span><b>Scroll the Bible, one verse at a time</b><span class="sub">${g > 0 ? "Continue at " + esc(trV(g).ref) : "Genesis to Revelation"}</span></span>
+    <span class="scn-play">${ic("arrow")}</span></button>`;
 }
 function bindSeven(){ const b = $("#openSeven"); if(b) b.onclick = () => openVS(); }
 const vsCh = (b, c) => b === "Psalms" && trCur() !== "drb" ? hebPs(c) : c;
@@ -1740,7 +1738,7 @@ function pMono(id, cls=""){ const p = PP[id], a = pArt(p); const n = pName(id).r
 function peopleCardHTML(){
   return `<button class="scn-card pp-card" id="openPeople" aria-label="Open Bible People">
     <img src="scenes/last-supper.jpg" alt="" loading="lazy">
-    <span class="scn-card-txt"><span class="label">New · Bible People</span><b>Who’s who in the Bible</b><span class="sub">${Object.keys(PP).length} people in plain English · see how they’re connected</span></span>
+    <span class="scn-card-txt"><span class="label">Bible People</span><b>Who’s who in the Bible</b><span class="sub">${Object.keys(PP).length} people · family lines back to Adam</span></span>
     <span class="scn-play">${ic("user")}</span></button>
   <button class="pp-mapbtn" id="openPeopleMap">${MAPIC}<span><b>Who’s Who map</b><small>Tap anyone to see who they’re connected to</small></span></button>`; }
 const MAPIC = `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 7l3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/></svg>`;
@@ -2082,9 +2080,9 @@ function renderBible(){
   const books = BOOK_ORDER.filter((_,i) => S.testament === "ot" ? i < OT : i >= OT);
   view.innerHTML = `<div class="stack">
     <div class="hello" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px"><div><h1>Bible</h1><p>${esc(TR[trCur()].name)} · ${ONL[trCur()] ? "needs internet to open a chapter" : "works offline"} · change it in any chapter</p></div><button class="btn quiet sm" id="goSaved" style="flex:none">${ic("bookmark","sm")}Saved${saved.size ? " · " + saved.size : ""}</button></div>
+    ${sevenCardHTML()}
     ${scenesCardHTML()}
     ${peopleCardHTML()}
-    ${sevenCardHTML()}
     ${planCardHTML()}
     <label class="search">${ic("search","sm")}<input id="q" type="search" placeholder="Search “John 3” or a word like “peace”" value="${esc(query)}" autocomplete="off" enterkeyhint="search"></label>
     <div id="results"></div>
