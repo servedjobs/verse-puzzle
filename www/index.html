@@ -406,6 +406,8 @@ input{font:inherit; color:inherit}
 .segctl button.on{background:var(--surface); color:var(--ink); box-shadow:var(--sh-1)}
 .grid-ch{display:grid; grid-template-columns:repeat(auto-fill,minmax(52px,1fr)); gap:8px}
 .grid-ch button{height:48px; border-radius:var(--r-md); border:1px solid var(--line); background:var(--surface); font-weight:600}
+.grid-v{grid-template-columns:repeat(auto-fill,minmax(46px,1fr))}
+.grid-v button{height:44px}
 .grid-ch button.read{background:var(--good-soft); border-color:var(--good-line); color:var(--good)}
 
 /* reader */
@@ -1923,7 +1925,16 @@ function renderBook(book){
   const n = BIBLE[book].length;
   view.innerHTML = `<div class="stack"><div class="hello"><h1>${esc(book)}</h1><p>${n} chapter${n > 1 ? "s" : ""} · ${bookRead(book)} read · tap a chapter</p></div>
     <div class="grid-ch">${BIBLE[book].map((_,i) => `<button class="num ${readSet.has(book+":"+(i+1)) ? "read" : ""}" data-c="${i+1}" aria-label="${esc(book)} chapter ${i+1}${readSet.has(book+":"+(i+1)) ? ", read" : ""}">${i+1}</button>`).join("")}</div></div>`;
-  view.querySelectorAll("[data-c]").forEach(b => b.onclick = () => openChapter(book, +b.dataset.c));
+  view.querySelectorAll("[data-c]").forEach(b => b.onclick = () => versePick(book, +b.dataset.c));
+}
+function versePick(book, ch){ // tap a chapter, then jump straight to a verse
+  const nv = BIBLE[book][ch-1].length;
+  sheet(`${bookLabel(book)} ${ch}`, `<button class="btn primary block" id="vpAll">${ic("book","sm")}Read the whole chapter</button>
+    <p class="muted small" style="margin:6px 0 0">Or jump to a verse</p>
+    <div class="grid-ch grid-v">${Array.from({length: nv}, (_, i) => `<button class="num" data-v="${i+1}" aria-label="Verse ${i+1}">${i+1}</button>`).join("")}</div>`, (sh, close) => {
+    sh.querySelector("#vpAll").onclick = () => { close(); openChapter(book, ch); };
+    sh.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { close(); openChapter(book, ch, IDX[book+":"+ch+":"+b.dataset.v]); });
+  });
 }
 function openChapter(book, ch, hl){
   if(deck){ deck.ov.remove(); deck = null; }
@@ -1948,7 +1959,7 @@ function renderChapter(book, ch, hl){
   view.innerHTML = `<article class="reader">
     <h1>${esc(bookLabel(book))} ${TC.num}</h1><div class="meta">${verses.length} verses · ${esc(TR[TC.tr].short)}${TC.fallback ? ` (this ${trCur() === "drb" ? "" : "book or chapter is not in the " + esc(TR[trCur()].short)})` : ""}${TC.offline && !TC.fallback ? ` (no internet, so this shows the KJV until the ${esc(TR[trCur()].short)} loads)` : ""}${book === "Psalms" && String(hebPs(ch)) !== String(ch) ? (drb ? ` · Psalm ${hebPs(ch)} in newer Bibles` : "") : ""} · tap a verse to ${drb ? "save or " : ""}share</div>
     <div style="margin:10px 0 6px">${trSeg("tr", trCur())}</div>
-    <div class="vtext">${verses.map((t,i) => drb ? `<span class="v ${gi0+i === hl ? "hl" : ""}" data-g="${gi0+i}" id="v${gi0+i}"><sup>${i+1}</sup>${esc(t)}</span> ` : `<span class="v" data-i="${i}"><sup>${i+1}</sup>${esc(t)}</span> `).join("")}</div>
+    <div class="vtext">${verses.map((t,i) => drb ? `<span class="v ${gi0+i === hl ? "hl" : ""}" data-g="${gi0+i}" id="v${gi0+i}"><sup>${i+1}</sup>${esc(t)}</span> ` : `<span class="v ${gi0+i === hl ? "hl" : ""}" data-i="${i}" id="v${gi0+i}"><sup>${i+1}</sup>${esc(t)}</span> `).join("")}</div>
     ${COPY[TC.tr] && ONL[TC.tr] ? `<p class="muted small" style="margin:14px 0 0">${esc(COPY[TC.tr])}</p>` : ""}
     <div class="reader-foot">
       <button class="btn ${isRead ? "ghost" : "primary"} block" id="markRead">${ic("check","sm")}${isRead ? "Read · tap to undo" : "Mark as read"}</button>
