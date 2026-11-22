@@ -5,6 +5,15 @@ const VS_SC = (() => {
   return g => { let lo = 0, hi = pts.length - 1, ans = 0; while(lo <= hi){ const m = (lo + hi) >> 1; if(pts[m].g <= g){ ans = m; lo = m + 1; } else hi = m - 1; } return pts[ans].id; };
 })();
 function vsNote(g){ const r = ALL[g]; const a = CHN[r.book]; return (a && a[r.ch - 1]) || ""; }
+function vsVoice(){ // the most natural English voice installed on the phone (Premium/Enhanced/Siri beat the default robot voice)
+  try{ const V = speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang)); if(!V.length) return null;
+    const bad = /compact|fred|albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|junior|kathy|ralph/i;
+    const score = v => { let n = 0; const nm = v.name + " " + (v.voiceURI || "");
+      if(bad.test(nm)) return -9; if(/premium/i.test(nm)) n += 50; if(/enhanced/i.test(nm)) n += 40; if(/siri/i.test(nm)) n += 35; if(/neural|natural|online/i.test(nm)) n += 30;
+      if(/en[-_]US/i.test(v.lang)) n += 6; else if(/en[-_](GB|AU|IE|CA)/i.test(v.lang)) n += 3;
+      if(/\b(ava|zoe|samantha|allison|nicky|evan|nathan|serena|daniel|karen|moira|tessa|oliver)\b/i.test(nm)) n += 8; if(!v.localService) n += 0; return n; };
+    return V.map(v => [score(v), v]).sort((a, b) => b[0] - a[0])[0][1]; }catch(e){ return null; } }
+try{ speechSynthesis.getVoices(); speechSynthesis.addEventListener && speechSynthesis.addEventListener("voiceschanged", () => {}); }catch(e){}
 function sevenCardHTML(){
   const g = (S.vs && S.vs.g) || 0;
   return `<button class="scn-card" id="openSeven" aria-label="Scroll the Bible">
@@ -62,7 +71,7 @@ function openVS(start){
     if(a === "s"){ toggleSave(pos); hud(); }
     if(a === "h") shareVerse(pos);
     if(a === "j") vsJump(goTo);
-    if(a === "l"){ if(speaking){ stopSpeak(); return; } try{ const u = new SpeechSynthesisUtterance(trV(pos).t); u.onend = () => stopSpeak(); speechSynthesis.cancel(); speechSynthesis.speak(u); speaking = true; b.classList.add("on"); }catch(e){} } };
+    if(a === "l"){ if(speaking){ stopSpeak(); return; } try{ const u = new SpeechSynthesisUtterance(trV(pos).t); const vv = vsVoice(); if(vv){ u.voice = vv; u.lang = vv.lang; } u.rate = 0.92; u.pitch = 1; u.onend = () => stopSpeak(); speechSynthesis.cancel(); speechSynthesis.speak(u); speaking = true; b.classList.add("on"); }catch(e){} } };
   build(); count(); save();
 }
 function vsMeaning(g, closeVS){
