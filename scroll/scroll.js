@@ -24,7 +24,6 @@ function openVS(start){
   ov.innerHTML = `<div class="vs-top"><button class="icon-btn" id="vsX" aria-label="Close">${ic("x")}</button><span style="flex:1" id="vsT"></span></div>
     <div class="vs-bar2"><i id="vsB"></i></div><div class="vs-feed" id="vsF"></div>
     <div class="vs-rail">
-      <button class="go" data-a="m" aria-label="What this means"><span>${ic("book")}</span>Meaning</button>
       ${canSpeak ? `<button data-a="l" aria-label="Listen"><span>${ic("bell")}</span>Listen</button>` : ""}
       <button data-a="s" aria-label="Save"><span>${ic("bookmark")}</span>Save</button>
       <button data-a="h" aria-label="Share"><span>${ic("share")}</span>Share</button>
@@ -34,7 +33,7 @@ function openVS(start){
   const f = $("#vsF", ov); let tmr = null, speaking = false;
   VS = {ov, close: closeVS, goTo};
   const mk = g => { const d = document.createElement("div"); d.className = "vs-slide"; d.dataset.g = g; const tv = trV(g);
-    d.innerHTML = `<img src="scenes/${VS_SC(g)}.jpg" alt=""><div class="vs-vig"></div><div class="vs-txt"><span class="ref">${esc(tv.ref)}</span><p class="${tv.t.length > 230 ? "long" : ""}">${esc(tv.t)}</p></div>`; return d; };
+    d.innerHTML = `<img src="scenes/${VS_SC(g)}.jpg" alt=""><div class="vs-vig"></div><div class="vs-txt"><span class="ref">${esc(tv.ref)}</span><p class="${tv.t.length > 230 ? "long" : ""}">${esc(tv.t)}</p></div><div class="vs-mean2"><span class="label">What this means</span><p>${esc(vsNote(g) || "Read the whole chapter to see how this verse fits.")}</p></div>`; return d; };
   const build = () => { f.innerHTML = ""; const a = Math.max(0, pos - 1), b = Math.min(N - 1, pos + 1); for(let g = a; g <= b; g++) f.appendChild(mk(g));
     f.style.scrollSnapType = "none"; requestAnimationFrame(() => { f.scrollTop = (pos - a) * f.clientHeight; f.style.scrollSnapType = ""; }); hud(); };
   const sync = () => { const a = Math.max(0, pos - 1), b = Math.min(N - 1, pos + 1), h = f.clientHeight;
