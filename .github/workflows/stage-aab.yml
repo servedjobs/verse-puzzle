@@ -1,0 +1,28 @@
+name: Stage AAB
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Android build run id"
+        required: true
+permissions:
+  contents: write
+  actions: read
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: dl
+      - name: Split and push
+        run: |
+          f=$(find dl -name prayerchair.aab | head -1)
+          ls -l "$f"; sha256sum "$f" > SHA256.txt
+          mkdir stage && split -b 45m -d "$f" stage/part-
+          cp SHA256.txt stage/
+          cd stage && git init -q -b aab-stage && git config user.email a@b.c && git config user.name stage
+          git add -A && git commit -qm "stage ${{ inputs.run_id }}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" aab-stage
