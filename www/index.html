@@ -286,6 +286,24 @@
 .pr-prayers summary{cursor:pointer;font-weight:600;padding:6px 0}
 .pr-prayers p{margin:6px 0 12px}
 
+.adv-card{border-color:var(--line)}
+.adv-grid{display:grid;gap:8px}
+.adv-week{display:grid;grid-template-columns:62px repeat(3,1fr);gap:8px;align-items:stretch}
+.adv-wl{align-self:center;font:600 13px var(--ui,system-ui);color:var(--ink-3,#64748B)}
+.adv-chip{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 4px;border-radius:12px;border:1px solid var(--line-2,#CBD5E1);background:var(--card,#fff);color:inherit;font:inherit;min-height:56px}
+.adv-chip b{font:600 14px var(--ui,system-ui)}
+.adv-chip small{font:500 11px var(--ui,system-ui);color:var(--ink-3,#64748B)}
+.adv-chip i{position:absolute;top:3px;right:6px;font-style:normal;font-size:12px;font-weight:700;color:var(--brand,#B45309)}
+.adv-chip.ok{background:var(--brand,#B45309);border-color:var(--brand,#B45309);color:#fff}
+.adv-chip.ok small,.adv-chip.ok i{color:#fff}
+.adv-chip.nx{border-color:var(--brand,#B45309);box-shadow:0 0 0 1px var(--brand,#B45309)}
+.adv-chip.sel{outline:2px solid var(--brand,#B45309);outline-offset:1px}
+.adv-steps{list-style:none;margin:0;padding:0}
+.adv-steps li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+.adv-steps li:last-child{border:0}
+.pr-pass{margin-top:12px;text-align:left;background:var(--card-2,rgba(0,0,0,.04));border-radius:14px;padding:12px 14px}
+.pr-pass p{margin:6px 0}
+
 /* scroll-css:end */
 </style>
 <title>PrayerChair</title>
@@ -1673,9 +1691,11 @@ const PR_LIST = {
   rosary: ["The Rosary", "5 decades, at your own pace", "hands"],
   exam: ["Daily Examen", "5 steps, 5 minutes", "sun"],
   lectio: ["Lectio Divina", "Read one verse slowly, 5 minutes", "book"],
+  acts: ["Daily ACTS", "Adoration, Contrition, Thanksgiving, Supplication, Listening. 2 minutes each, 10 minutes.", "hands"],
   quiet: ["Five quiet minutes", "Just sit. A bell rings at the end.", "bell"]
 };
 function prSteps(k){
+  if(k === "acts") return ADV_A.map(x => [x[0], x[1], 120]).concat([ADV_X.L(120)]);
   if(k === "exam") return [["Be still", "Sit down. Breathe slowly. Ask God to be with you.", 60], ["Give thanks", "Name three good things from today and thank God for them.", 60], ["Look back", "Go through your day. Where was God with you? Where did you drift from him?", 90], ["Say sorry", "Tell God what you did wrong. Ask to be forgiven.", 45], ["Look ahead", "Ask God for help with tomorrow. End with the Our Father.", 45]];
   if(k === "lectio"){ const vd = verseOfDay(new Date(), votdPick); return [["Settle", "Sit quietly and breathe. Ask the Holy Spirit to speak to you.", 45], ["Read", `Read this slowly: “${vd.text}” (${vd.ref}). Notice one word or phrase that stands out.`, 60], ["Think", "Repeat that word or phrase. What is God saying to you through it?", 90], ["Pray", "Answer God in your own words. Tell him what is on your heart.", 60], ["Rest", "Be quiet. Just be with him.", 45]]; }
   if(k === "quiet") return [["Sit", "Sit still and say nothing. A bell rings when the time is up.", 300]];
@@ -1684,6 +1704,106 @@ function prSteps(k){
     .concat(m.map((x, i) => ({t: `Decade ${i + 1}: ${x[0]}`, d: x[1], p: ["our", "hail", "glory"], dec: true})))
     .concat([{t: "Closing", d: "Say the Hail, Holy Queen. Then make the sign of the cross.", p: ["queen", "cross"]}]);
 }
+
+/* ---- Advent prayer plan (6-week plan from Fr. Gregg) ---- */
+const ADV_A = [["Adoration", "Praise God for who he is and for his goodness."], ["Contrition", "Be sorry. Repent, confess, and ask God to forgive you."], ["Thanksgiving", "Thank God for anything and everything."], ["Supplication", "Pray for yourself and for other people."]];
+const ADV_X = {
+  L: s => ["Listening", "Be silent. What is God saying to you, often through your thoughts and feelings?", s],
+  R: s => ["Responding", "What will you do now? What changes will you make?", s],
+  D: s => ["Declare", "Say out loud the truths you read or received. Believe them and trust them. You can write them down.", s]
+};
+// a = seconds for each of A, C, T, S · pick = stay with one for 5 min · br/bm = Bible reading and meditation · bb = reading and meditation together
+// L/R/D = seconds · x = the whole session twice in one day · sun = the upcoming Sunday Gospel
+const ADV_S = [
+  [{a: 60}, {a: 90, tip: 1}, {a: 60, pick: 1}],
+  [{a: 120, L: 60, R: 60, x: 1}, {a: 60, br: 1, bm: 60, L: 60, R: 60, x: 1, o: "p1"}, {a: 60, br: 3, bm: 180, L: 60, R: 60, o: "p3"}],
+  [{a: 60, pick: 1, br: 1, bm: 60, L: 60, R: 60, o: "g1"}, {a: 60, br: 3, bm: 180, L: 60, R: 60, o: "g3"}, {a: 60, br: 3, bm: 180, L: 120, R: 120, x: 1, o: "g3"}],
+  [{a: 60, bb: 600, L: 60, R: 60, o: "e"}, {a: 60, bb: 300, L: 60, R: 60, x: 1, o: "l"}, {a: 60, bb: 600, sun: 1, L: 60, R: 60, x: 1}],
+  [{a: 60, bb: 600, L: 120, R: 60, o: "m"}, {a: 60, bb: 900, L: 120, R: 60, D: 60, o: "l2"}, {a: 60, bb: 1200, sun: 1, L: 120, R: 60, D: 60}],
+  [{a: 60, bb: 600, L: 120, R: 120, D: 60, x: 1, o: "e2"}, {a: 60, bb: 900, L: 120, R: 60, D: 60, o: "l3"}, {a: 60, bb: 900, sun: 1, L: 120, R: 120, D: 60, x: 1}]
+];
+// passage choices: [label, book, chapter (Douay-Rheims numbering), first verse, last verse]
+const ADV_P = {
+  p1: [["Psalm 23:1", "Psalms", 22, 1, 1], ["Ephesians 1:3", "Ephesians", 1, 3, 3]],
+  p3: [["Ephesians 1:3–5", "Ephesians", 1, 3, 5], ["Psalm 23:1–3", "Psalms", 22, 1, 3]],
+  g1: [["Luke 1:38", "Luke", 1, 38, 38], ["Psalm 23:1", "Psalms", 22, 1, 1]],
+  g3: [["Matthew 1:20–22", "Matthew", 1, 20, 22], ["Luke 1:30–32", "Luke", 1, 30, 32], ["Ephesians 1:3–5", "Ephesians", 1, 3, 5], ["Psalm 23:1–3", "Psalms", 22, 1, 3]],
+  e: [["Ephesians 1:3–14", "Ephesians", 1, 3, 14], ["Matthew 1:18–25", "Matthew", 1, 18, 25], ["Luke 1:26–38", "Luke", 1, 26, 38]],
+  l: [["Luke 1:26–38", "Luke", 1, 26, 38], ["Ephesians 1:3–6", "Ephesians", 1, 3, 6], ["Matthew 1:18–21", "Matthew", 1, 18, 21]],
+  m: [["Matthew 1:18–25", "Matthew", 1, 18, 25], ["Ephesians 1:3–14", "Ephesians", 1, 3, 14], ["Luke 1:26–38", "Luke", 1, 26, 38]],
+  l2: [["Luke 1:39–56", "Luke", 1, 39, 56], ["Matthew 1:18–25", "Matthew", 1, 18, 25], ["Ephesians 1:15–23", "Ephesians", 1, 15, 23]],
+  e2: [["Ephesians 2:1–10", "Ephesians", 2, 1, 10], ["Luke 2:1–20", "Luke", 2, 1, 20], ["Matthew 2:1–12", "Matthew", 2, 1, 12]],
+  l3: [["Luke 2:1–20", "Luke", 2, 1, 20], ["Matthew 2:1–12", "Matthew", 2, 1, 12], ["Ephesians 3:14–21", "Ephesians", 3, 14, 21]]
+};
+// Sunday Gospels for Advent and Christmas 2026 (Year B)
+const ADV_SUN = [["2026-11-29", "Mark 13:33–37", "Mark", 13, [[33, 37]]], ["2026-12-06", "Mark 1:1–8", "Mark", 1, [[1, 8]]], ["2026-12-13", "John 1:6–8, 19–28", "John", 1, [[6, 8], [19, 28]]], ["2026-12-20", "Luke 1:26–38", "Luke", 1, [[26, 38]]], ["2026-12-27", "Luke 2:22–40", "Luke", 2, [[22, 40]]], ["2027-01-03", "Matthew 2:1–12", "Matthew", 2, [[1, 12]]], ["2027-01-10", "Mark 1:7–11", "Mark", 1, [[7, 11]]]];
+let ADV = {done: {}}; try{ ADV = Object.assign(ADV, JSON.parse(localStorage.getItem("pc_adv") || "{}")); }catch(e){}
+const advSave = () => { try{ localStorage.setItem("pc_adv", JSON.stringify(ADV)); }catch(e){} };
+let prAdvOn = false, advSel = null;
+function advSun(){ const d = new Date(), k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  return ADV_SUN.find(x => x[0] >= k) || ADV_SUN[ADV_SUN.length - 1]; }
+function advPass(label, book, ch, rs){
+  const t = []; rs.forEach(r => { for(let v = r[0]; v <= r[1]; v++){ const g = IDX[book + ":" + ch + ":" + v]; if(g != null) t.push(trV(g).t); } });
+  return t.length ? `<p><b>${esc(label)}</b><br>${esc(t.join(" "))}</p>` : `<p><b>${esc(label)}</b></p>`;
+}
+function advPassHtml(sx, ss){
+  if(ss.sun){ const u = advSun(); return `<p class="muted small" style="margin:0 0 6px">The Gospel for this coming Sunday</p>` + advPass(u[1], u[2], u[3], u[4]); }
+  const o = ADV_P[ss.o]; if(!o) return "";
+  return advPass(o[0][0], o[0][1], o[0][2], [[o[0][3], o[0][4]]]) + (o.length > 1 ? `<details class="pr-prayers"><summary>Other passages you can use</summary>${o.slice(1).map(x => advPass(x[0], x[1], x[2], [[x[3], x[4]]])).join("")}</details>` : "");
+}
+function advSteps(w, d){
+  const ss = ADV_S[w][d], out = [];
+  ADV_A.forEach((x, i) => out.push([x[0], x[1] + (ss.tip && i === 0 ? " Use your own words. Pray from your heart." : ""), ss.a]));
+  if(ss.pick) out.push(["Stay with one", "Pick the one that spoke to you most: praise, sorry, thanks or asking. Pray it for a full 5 minutes in all.", 300 - ss.a]);
+  const ph = (ss.br || ss.bm || ss.bb) ? advPassHtml(null, ss) : "";
+  if(ss.br) out.push(["Bible reading", `Read ${ss.br === 1 ? "one verse" : "three verses"} slowly. Pick one word or verse to keep.`, ss.br === 1 ? 45 : 90, ph]);
+  if(ss.bm) out.push(["Bible meditation", "Pray or think about what you read. Put yourself in the scene.", ss.bm, ph]);
+  if(ss.bb) out.push(["Read and think it over", "Read slowly. Then pray or think about it. Put yourself in the scene.", ss.bb, ph]);
+  ["L", "R", "D"].forEach(k => { if(ss[k]) out.push(ADV_X[k](ss[k])); });
+  return out;
+}
+const advId = (w, d) => w + "-" + d;
+const advNeed = (w, d) => ADV_S[w][d].x ? 2 : 1;
+const advGot = (w, d) => ADV.done[advId(w, d)] || 0;
+const advMin = (w, d) => Math.round(advSteps(w, d).reduce((n, x) => n + x[2], 0) / 60);
+function advNext(){ for(let w = 0; w < 6; w++) for(let d = 0; d < 3; d++) if(advGot(w, d) < advNeed(w, d)) return {w, d, lab: `Week ${w + 1}, Day ${d + 1}`}; return null; }
+function advDoneCount(){ let n = 0; for(let w = 0; w < 6; w++) for(let d = 0; d < 3; d++) if(advGot(w, d) >= advNeed(w, d)) n++; return n; }
+function advBegin(w, d){
+  const steps = advSteps(w, d), round = Math.min(advGot(w, d) + 1, advNeed(w, d)), x2 = advNeed(w, d) === 2;
+  PR = {key: "acts", title: "Advent prayer plan", adv: {w, d, lab: `Week ${w + 1}, Day ${d + 1}${x2 ? ", round " + round + " of 2" : ""}`}, steps, i: 0, rosary: false, paused: false, beads: 0, left: steps[0][2], tm: null, wl: null};
+  try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(w => { if(PR) PR.wl = w; else w.release(); }).catch(() => {}); }catch(e){}
+  prBell(); PR.tm = setInterval(prTick, 1000); renderPray();
+}
+function advFinish(){
+  const {w, d} = PR.adv, id = advId(w, d), need = advNeed(w, d), got = Math.min((ADV.done[id] || 0) + 1, need);
+  ADV.done[id] = got; advSave();
+  PR.msg = got < need ? "Round 1 is done. Come back later today for round 2." : `Week ${w + 1}, Day ${d + 1} is done.`;
+}
+function renderAdvent(){
+  bar(); view.scrollTop = 0;
+  const nx = advNext(), n = advDoneCount();
+  let det = "";
+  if(advSel){ const [w, d] = advSel, st = advSteps(w, d), tot = advMin(w, d), x2 = advNeed(w, d) === 2;
+    det = `<section class="card stack"><span class="label">Week ${w + 1}, Day ${d + 1}</span><h3 style="margin:0;font:600 20px var(--read)">About ${tot} minutes${x2 ? ", twice today" : ""}</h3>
+      ${x2 ? `<p class="muted small" style="margin:0">Do the whole session two times in one day. For example, once in the morning and once at night.</p>` : ""}
+      <ul class="adv-steps">${st.map(x => `<li><span>${esc(x[0])}</span><b>${prFmt(x[2])}</b></li>`).join("")}</ul>
+      <button class="btn primary block" id="advGo">Begin</button></section>`; }
+  view.innerHTML = `<div class="stack"><button class="btn quiet" id="advBack" style="align-self:flex-start;width:auto;padding-left:14px;padding-right:14px">‹ Pray</button>
+    <div class="hello"><h1>Advent prayer plan</h1><p>6 weeks, from Fr. Gregg. Pray at least 3 days a week. ${n} of 18 done.</p></div>
+    ${det || (nx ? `<button class="card pr-opt adv-card" id="advNext"><div style="flex:1;min-width:0"><span class="label">Up next</span><h3>${esc(nx.lab)}</h3><p class="muted small" style="margin:2px 0 0">About ${advMin(nx.w, nx.d)} minutes${advNeed(nx.w, nx.d) === 2 ? ", twice today" : ""}. Every step has a timer.</p></div><b style="color:var(--brand,#B45309)">Begin ›</b></button>` : `<section class="card"><p class="prose" style="margin:0">All 18 sessions are done. Keep going.</p></section>`)}
+    <div class="adv-grid">${ADV_S.map((wk, w) => `<div class="adv-week"><span class="adv-wl">Week ${w + 1}</span>${wk.map((ss, d) => { const got = advGot(w, d), need = advNeed(w, d), full = got >= need;
+      return `<button class="adv-chip ${full ? "ok" : got ? "half" : ""} ${advSel && advSel[0] === w && advSel[1] === d ? "sel" : ""} ${nx && nx.w === w && nx.d === d ? "nx" : ""}" data-s="${w}-${d}"><b>Day ${d + 1}</b><small>${advMin(w, d)} min${ss.x ? " · ×2" : ""}</small><i>${full ? "✓" : got ? "½" : ""}</i></button>`; }).join("")}</div>`).join("")}</div>
+    <details class="card pr-prayers"><summary>What the letters mean</summary>
+      <p><b>A. Adoration.</b> Praise God for who he is and for his goodness.</p><p><b>C. Contrition.</b> Repent, confess, and ask God to forgive you.</p><p><b>T. Thanksgiving.</b> Thank God for anything and everything.</p><p><b>S. Supplication.</b> Pray for yourself and for others.</p>
+      <p><b>BR. Bible reading.</b> At least one word or verse from Scripture.</p><p><b>BM. Bible meditation.</b> Pray or think about what you read, or put yourself in the scene.</p>
+      <p><b>L. Listening.</b> Be silent. What is God saying to you, often through your thoughts and feelings?</p><p><b>R. Responding.</b> What will you do now? What changes will you make?</p><p><b>D. Declare.</b> Say the truths you read or received. Believe and trust them. Write them down.</p>
+      <p class="muted small">×2 means do the whole session twice in one day.</p></details>
+    <p class="muted small" style="text-align:center;margin:0">A prayer plan from Fr. Gregg. Finishing a session counts as your day.</p></div>`;
+  $("#advBack").onclick = () => { prAdvOn = false; advSel = null; renderPray(); };
+  const g = $("#advGo"); if(g) g.onclick = () => advBegin(advSel[0], advSel[1]);
+  const nb = $("#advNext"); if(nb) nb.onclick = () => advBegin(nx.w, nx.d);
+  view.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { const [w, d] = b.dataset.s.split("-").map(Number); advSel = advSel && advSel[0] === w && advSel[1] === d ? null : [w, d]; renderAdvent(); });
+}
 let PR = null;
 function prStop(){ if(PR){ clearInterval(PR.tm); try{ PR.wl && PR.wl.release(); }catch(e){} } PR = null; }
 function prBell(){ try{ const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.type = "sine"; o.frequency.value = 660; g.gain.setValueAtTime(.25, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + 2); o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + 2); }catch(e){} }
@@ -1691,14 +1811,15 @@ const prFmt = s => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
 let prSel = "rosary";
 function renderPray(){
   bar(); view.scrollTop = 0;
-  if(PR && PR.done){ view.innerHTML = `<div class="stack"><div class="hello"><h1>Amen.</h1><p>${PR.rosary ? "You prayed the Rosary." : "Prayer time is done."}${PR.streakLine ? " " + esc(PR.streakLine) : ""}</p></div><button class="btn primary block" id="prDone">Done</button></div>`; $("#prDone").onclick = () => { prStop(); renderPray(); }; return; }
+  if(PR && PR.done){ view.innerHTML = `<div class="stack"><div class="hello"><h1>Amen.</h1><p>${PR.msg || (PR.rosary ? "You prayed the Rosary." : "Prayer time is done.")}${PR.streakLine ? " " + esc(PR.streakLine) : ""}</p></div><button class="btn primary block" id="prDone">Done</button></div>`; $("#prDone").onclick = () => { prStop(); renderPray(); }; return; }
+  if(!PR && prAdvOn) return renderAdvent();
   if(PR){
     const st = PR.steps[PR.i], n = PR.steps.length, timed = !PR.rosary;
-    const head = `<div class="hello"><h1>${esc(PR_LIST[PR.key][0])}</h1><p>${PR.rosary ? esc(MYST[prMyst()][0]) + " · " : ""}Step ${PR.i + 1} of ${n}</p></div>`;
+    const head = `<div class="hello"><h1>${esc(PR.title || PR_LIST[PR.key][0])}</h1><p>${PR.rosary ? esc(MYST[prMyst()][0]) + " · " : ""}${PR.adv ? esc(PR.adv.lab) + " · " : ""}Step ${PR.i + 1} of ${n}</p></div>`;
     const segs = `<div class="seg" aria-hidden="true">${PR.steps.map((_, k) => `<i class="${k < PR.i ? "on" : k === PR.i ? "cur" : ""}"></i>`).join("")}</div>`;
     let mid;
     if(timed) mid = `<div class="pr-ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="44"/><circle class="fg" id="prArc" cx="50" cy="50" r="44" stroke-dasharray="276.5" stroke-dashoffset="${276.5 * (1 - PR.left / st[2])}"/></svg><div><span><span id="prClk">${prFmt(PR.left)}</span><small>${n > 1 ? "this step" : "total"}</small></span></div></div>
-      <div class="pr-step"><h3>${esc(st[0])}</h3><p class="prose">${esc(st[1])}</p></div>`;
+      <div class="pr-step"><h3>${esc(st[0])}</h3><p class="prose">${esc(st[1])}</p>${st[3] ? `<div class="pr-pass">${st[3]}</div>` : ""}</div>`;
     else mid = `<section class="card stack pr-step"><span class="label">${esc(st.t)}</span><p class="prose">${esc(st.d)}</p>
       ${st.dec ? `<div class="pr-beads" aria-label="${PR.beads} of 10 Hail Marys">${Array.from({length: 10}, (_, k) => `<i class="${k < PR.beads ? "on" : ""}"></i>`).join("")}</div>
         ${PR.beads < 10 ? `<button class="btn primary block" id="prBead">Hail Mary ${PR.beads + 1} of 10</button>` : `<p class="muted small" style="margin:0">Now say the Glory Be.</p>`}` : ""}
@@ -1710,11 +1831,14 @@ function renderPray(){
     $("#prNext").onclick = prAdvance; $("#prEnd").onclick = () => { prStop(); renderPray(); };
     return;
   }
+  const ad = advNext(), adn = advDoneCount();
   view.innerHTML = `<div class="stack"><div class="hello"><h1>Pray</h1><p>Sit in your chair. Pick one.</p></div>
+    <button class="card pr-opt adv-card" id="prAdv"><div class="logo-tile" style="width:44px;height:44px;border-radius:12px">${ic("sun")}</div><div style="flex:1;min-width:0"><span class="label">Advent and Christmas</span><h3>Advent prayer plan</h3><p class="muted small" style="margin:2px 0 0">6 weeks, from Fr. Gregg. ${ad ? "Up next: " + esc(ad.lab) + "." : "All 18 sessions done."}</p></div></button>
     ${Object.keys(PR_LIST).map(k => `<button class="card pr-opt ${k === prSel ? "sel" : ""}" data-p="${k}"><div class="logo-tile" style="width:44px;height:44px;border-radius:12px">${ic(PR_LIST[k][2])}</div><div style="flex:1;min-width:0"><h3>${esc(PR_LIST[k][0])}</h3><p class="muted small" style="margin:2px 0 0">${k === "rosary" ? esc(MYST[prMyst()][0]) + " today. " : ""}${esc(PR_LIST[k][1])}</p></div></button>`).join("")}
     <button class="btn primary block" id="prBegin">Begin</button>
     <p class="muted small" style="text-align:center;margin:0">Finishing a prayer counts as your day.</p></div>`;
   view.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { prSel = b.dataset.p; renderPray(); });
+  $("#prAdv").onclick = () => { prAdvOn = true; advSel = null; renderPray(); };
   $("#prBegin").onclick = () => { const steps = prSteps(prSel), rosary = prSel === "rosary";
     PR = {key: prSel, steps, i: 0, rosary, paused: false, beads: 0, left: rosary ? 0 : steps[0][2], tm: null, wl: null};
     try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(w => { if(PR) PR.wl = w; else w.release(); }).catch(() => {}); }catch(e){}
@@ -1725,6 +1849,7 @@ function prTick(){ if(!PR || PR.paused || tab !== "pray") return; PR.left--; if(
   const c = $("#prClk"); if(c) c.textContent = prFmt(PR.left); const a = $("#prArc"); if(a) a.style.strokeDashoffset = 276.5 * (1 - PR.left / PR.steps[PR.i][2]); }
 function prAdvance(){ if(!PR) return; if(!PR.rosary) prBell(); PR.i++; PR.beads = 0;
   if(PR.i >= PR.steps.length){ clearInterval(PR.tm); try{ PR.wl && PR.wl.release(); }catch(e){} PR.done = true;
+    if(PR.adv) advFinish();
     if(completeDay()){ const s = liveStreak(); PR.streakLine = s > 1 ? `Day ${s} in a row.` : "Day one is on the board."; }
     renderPray(); return; }
   if(!PR.rosary) PR.left = PR.steps[PR.i][2]; renderPray(); }

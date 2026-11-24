@@ -42,3 +42,21 @@
 .pr-beads i.on{background:var(--brand,#B45309);border-color:var(--brand,#B45309)}
 .pr-prayers summary{cursor:pointer;font-weight:600;padding:6px 0}
 .pr-prayers p{margin:6px 0 12px}
+
+.adv-card{border-color:var(--line)}
+.adv-grid{display:grid;gap:8px}
+.adv-week{display:grid;grid-template-columns:62px repeat(3,1fr);gap:8px;align-items:stretch}
+.adv-wl{align-self:center;font:600 13px var(--ui,system-ui);color:var(--ink-3,#64748B)}
+.adv-chip{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 4px;border-radius:12px;border:1px solid var(--line-2,#CBD5E1);background:var(--card,#fff);color:inherit;font:inherit;min-height:56px}
+.adv-chip b{font:600 14px var(--ui,system-ui)}
+.adv-chip small{font:500 11px var(--ui,system-ui);color:var(--ink-3,#64748B)}
+.adv-chip i{position:absolute;top:3px;right:6px;font-style:normal;font-size:12px;font-weight:700;color:var(--brand,#B45309)}
+.adv-chip.ok{background:var(--brand,#B45309);border-color:var(--brand,#B45309);color:#fff}
+.adv-chip.ok small,.adv-chip.ok i{color:#fff}
+.adv-chip.nx{border-color:var(--brand,#B45309);box-shadow:0 0 0 1px var(--brand,#B45309)}
+.adv-chip.sel{outline:2px solid var(--brand,#B45309);outline-offset:1px}
+.adv-steps{list-style:none;margin:0;padding:0}
+.adv-steps li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+.adv-steps li:last-child{border:0}
+.pr-pass{margin-top:12px;text-align:left;background:var(--card-2,rgba(0,0,0,.04));border-radius:14px;padding:12px 14px}
+.pr-pass p{margin:6px 0}
