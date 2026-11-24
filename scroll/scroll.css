@@ -60,3 +60,16 @@
 .adv-steps li:last-child{border:0}
 .pr-pass{margin-top:12px;text-align:left;background:var(--card-2,rgba(0,0,0,.04));border-radius:14px;padding:12px 14px}
 .pr-pass p{margin:6px 0}
+
+.adc-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.adc-wreath{display:flex;gap:7px;align-items:flex-end}
+.adc-wreath i{width:7px;height:22px;border-radius:3px;background:var(--line-2,#CBD5E1);position:relative}
+.adc-wreath i.on{background:#F4E7C8;box-shadow:0 0 0 1px #D9A648}
+.adc-wreath i.on::before{content:"";position:absolute;left:50%;top:-9px;width:7px;height:9px;margin-left:-3.5px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#F59E0B;box-shadow:0 0 8px #F59E0B}
+.adc-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+.adc-d{aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line-2,#CBD5E1);background:transparent;color:var(--ink-3,#64748B);font:600 12px var(--ui,system-ui);padding:0;display:grid;place-items:center}
+.adc-d.fut{opacity:.45}
+.adc-d.now{border-color:var(--brand,#B45309);color:var(--brand,#B45309)}
+.adc-d.lit{background:#F59E0B;border-color:#F59E0B;color:#1A1206;box-shadow:0 0 8px rgba(245,158,11,.55)}
+.adc-d.xm{font-size:14px}
+.adc-v{margin:0;font:400 16px/1.5 var(--read)}

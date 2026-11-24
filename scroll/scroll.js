@@ -232,6 +232,30 @@ function renderAdvent(){
   const nb = $("#advNext"); if(nb) nb.onclick = () => advBegin(nx.w, nx.d);
   view.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { const [w, d] = b.dataset.s.split("-").map(Number); advSel = advSel && advSel[0] === w && advSel[1] === d ? null : [w, d]; renderAdvent(); });
 }
+
+/* ---- Advent calendar tracker ---- */
+const ADC_START = "2026-11-29";
+const ADC = [["Isaiah",40,3],["Isaiah",2,5],["Romans",13,11],["Isaiah",64,8],["Isaiah",35,4],["Isaiah",7,14],["Micah",5,2],["Isaiah",9,2],["Zephaniah",3,17],["Isaiah",40,5],["Malachi",3,1],["Isaiah",11,1],["Isaiah",52,7],["1 Thessalonians",5,16],["Isaiah",61,1],["Jeremiah",33,15],["Titus",2,11],["Isaiah",60,1],["Luke",1,30],["Luke",1,35],["Luke",1,38],["Luke",1,46],["Luke",1,78],["Matthew",1,23],["Isaiah",9,6],["Luke",2,10]];
+let ADD = {days: {}}; try{ ADD = Object.assign(ADD, JSON.parse(localStorage.getItem("pc_adc") || "{}")); }catch(e){}
+let adcOpen = null;
+function adcMark(){ const k = todayKey(); if(!ADD.days[k]){ ADD.days[k] = 1; try{ localStorage.setItem("pc_adc", JSON.stringify(ADD)); }catch(e){} } }
+const _cd0 = completeDay; completeDay = function(){ const r = _cd0.apply(this, arguments); adcMark(); return r; };
+function adcDate(i){ const d = new Date(ADC_START + "T12:00:00"); d.setDate(d.getDate() + i); return d; }
+function adcHTML(){
+  if(S.lastDone === todayKey()) adcMark();
+  const tk = todayKey(), cells = [];
+  for(let i = 0; i < 27; i++){ const d = adcDate(i), k = todayKey(d), lit = !!ADD.days[k], now = k === tk, fut = k > tk, xmas = i === 26;
+    cells.push(`<button class="adc-d ${lit ? "lit" : ""} ${now ? "now" : ""} ${fut ? "fut" : ""} ${xmas ? "xm" : ""}" data-adc="${i}" aria-label="${d.toLocaleDateString(undefined, {month: "long", day: "numeric"})}${lit ? ", prayed" : ""}"><span>${xmas ? "★" : d.getDate()}</span></button>`); }
+  const done = cells.length && Object.keys(ADD.days).filter(k => k >= ADC_START && k <= todayKey(adcDate(26))).length;
+  const sundays = [0, 7, 14, 21].map(i => todayKey(adcDate(i)) <= tk);
+  let det = "";
+  if(adcOpen != null && ADC[adcOpen]){ const [b, c, v] = ADC[adcOpen], g = IDX[b + ":" + c + ":" + v], d = adcDate(adcOpen);
+    det = `<p class="adc-v"><b>${d.toLocaleDateString(undefined, {weekday: "long", month: "long", day: "numeric"})}</b><br>${g != null ? esc(trV(g).t) + " <span class=\"muted\">(" + esc(b + " " + c + ":" + v) + ")</span>" : ""}</p>`; }
+  else if(adcOpen === 26) det = `<p class="adc-v"><b>Christmas Day</b><br>Today a Savior is born for you. (Luke 2:11)</p>`;
+  return `<section class="card stack adc"><div class="adc-top"><div><span class="label">Advent calendar</span><h3 style="margin:2px 0 0">${tk < ADC_START ? "Starts November 29" : done + " day" + (done === 1 ? "" : "s") + " prayed"}</h3></div>
+    <div class="adc-wreath" aria-label="Advent candles">${sundays.map(on => `<i class="${on ? "on" : ""}"></i>`).join("")}</div></div>
+    <div class="adc-grid">${cells.join("")}</div>${det || `<p class="muted small" style="margin:0">A door lights up when you finish a prayer or scroll your verses. Tap a door to see its verse.</p>`}</section>`;
+}
 let PR = null;
 function prStop(){ if(PR){ clearInterval(PR.tm); try{ PR.wl && PR.wl.release(); }catch(e){} } PR = null; }
 function prBell(){ try{ const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.type = "sine"; o.frequency.value = 660; g.gain.setValueAtTime(.25, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + 2); o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + 2); }catch(e){} }
@@ -262,10 +286,12 @@ function renderPray(){
   const ad = advNext(), adn = advDoneCount();
   view.innerHTML = `<div class="stack"><div class="hello"><h1>Pray</h1><p>Sit in your chair. Pick one.</p></div>
     <button class="card pr-opt adv-card" id="prAdv"><div class="logo-tile" style="width:44px;height:44px;border-radius:12px">${ic("sun")}</div><div style="flex:1;min-width:0"><span class="label">Advent and Christmas</span><h3>Advent prayer plan</h3><p class="muted small" style="margin:2px 0 0">6 weeks, from Fr. Gregg. ${ad ? "Up next: " + esc(ad.lab) + "." : "All 18 sessions done."}</p></div></button>
+    ${adcHTML()}
     ${Object.keys(PR_LIST).map(k => `<button class="card pr-opt ${k === prSel ? "sel" : ""}" data-p="${k}"><div class="logo-tile" style="width:44px;height:44px;border-radius:12px">${ic(PR_LIST[k][2])}</div><div style="flex:1;min-width:0"><h3>${esc(PR_LIST[k][0])}</h3><p class="muted small" style="margin:2px 0 0">${k === "rosary" ? esc(MYST[prMyst()][0]) + " today. " : ""}${esc(PR_LIST[k][1])}</p></div></button>`).join("")}
     <button class="btn primary block" id="prBegin">Begin</button>
     <p class="muted small" style="text-align:center;margin:0">Finishing a prayer counts as your day.</p></div>`;
   view.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { prSel = b.dataset.p; renderPray(); });
+  view.querySelectorAll("[data-adc]").forEach(b => b.onclick = () => { const i = +b.dataset.adc; if(todayKey(adcDate(i)) > todayKey()) return; adcOpen = adcOpen === i ? null : i; renderPray(); });
   $("#prAdv").onclick = () => { prAdvOn = true; advSel = null; renderPray(); };
   $("#prBegin").onclick = () => { const steps = prSteps(prSel), rosary = prSel === "rosary";
     PR = {key: prSel, steps, i: 0, rosary, paused: false, beads: 0, left: rosary ? 0 : steps[0][2], tm: null, wl: null};
