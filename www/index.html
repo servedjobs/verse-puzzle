@@ -688,7 +688,7 @@ html,body,button{touch-action:manipulation}
   <aside class="pitch">
     <div class="logo"><div class="logo-tile brand"><img src="img/logo-icon.png" alt=""></div><div class="wordmark">Prayer<span>Chair</span></div></div>
     <h1>Sit with God for <em>one minute</em> a day.</h1>
-    <p>Seven verses, one prayer, one small step for today. Then a puzzle that helps the words stay with you.</p>
+    <p>A verse, what it means, a prayer, and one small step for today. Then a puzzle that helps the words stay with you.</p>
     <ul>
       <li><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg>The whole Bible, all 73 books, offline</li>
       <li><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg>Verses picked for what you are carrying</li>
@@ -2575,10 +2575,10 @@ function renderSaved(){
   const keys = [...saved].reverse();
   view.innerHTML = `<div class="stack"><div class="hello"><h1>Saved</h1><p>${keys.length ? `${keys.length} verse${keys.length > 1 ? "s" : ""}, kept on this device` : "Verses you keep"}</p></div>
     ${keys.length ? keys.map(g => `<button class="card" data-g="${g}" style="text-align:left; display:grid; gap:8px; width:100%"><span class="ref">${esc(trV(g).ref)}</span><span class="verse" style="font-size:calc(18px * var(--rs)); display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden">${esc(trV(g).t)}</span></button>`).join("")
-    : `<div class="empty">${ic("bookmark")}<b>Nothing saved yet</b><span>Swipe right on a verse, or tap Save, and it stays here.</span><button class="btn primary" id="startS" style="margin-top:8px">Read today’s seven</button></div>`}
+    : `<div class="empty">${ic("bookmark")}<b>Nothing saved yet</b><span>Tap Save on a verse and it stays here.</span><button class="btn primary" id="startS" style="margin-top:8px">Scroll the Bible</button></div>`}
   </div>`;
   view.querySelectorAll("[data-g]").forEach(b => b.onclick = () => verseSheet(+b.dataset.g));
-  if($("#startS")) $("#startS").onclick = () => openDeck("seven");
+  if($("#startS")) $("#startS").onclick = () => openVS();
 }
 
 /* ---------- ONLINE 2-PLAYER (Supabase, through pc_ functions only) ---------- */
@@ -3207,14 +3207,14 @@ function onboard(pos, single){
   const segs = `<div class="seg">${OB_FLOW.map((_,i) => `<i class="${i < pos ? "on" : i === pos ? "cur" : ""}"></i>`).join("")}</div>`;
   let body = single ? "" : segs;
   if(step === 0) body += `<p class="muted" style="margin:0">So PrayerChair can greet you by name. It stays on this phone.</p><input class="input" id="obName" value="${esc(obDraft.name || "")}" placeholder="First name" autocomplete="given-name" enterkeyhint="next">`;
-  if(step === 1) body += `<p class="muted" style="margin:0">Pick the closest. Three of your seven verses each day, and part of your prayer, will come from it. Change it any time.</p><div class="need-grid">${NEEDS.map(n => `<button class="need ${obDraft.need === n.key ? "on" : ""}" data-k="${n.key}"><b>${esc(n.label)}</b><span>${esc(n.sub)}</span></button>`).join("")}</div>`;
+  if(step === 1) body += `<p class="muted" style="margin:0">Pick the closest. Your daily verse and part of your prayer will lean toward it. Change it any time.</p><div class="need-grid">${NEEDS.map(n => `<button class="need ${obDraft.need === n.key ? "on" : ""}" data-k="${n.key}"><b>${esc(n.label)}</b><span>${esc(n.sub)}</span></button>`).join("")}</div>`;
   if(step === 2) body += `<p class="muted" style="margin:0">Your daily step and prayer are written for your life. This picks yours.</p><div class="list">${Object.keys(STATUS).map(k => `<button class="li" data-s="${k}"><div class="txt"><b>${STATUS[k]}</b></div>${obDraft.status === k ? ic("check") : ""}</button>`).join("")}</div>`;
   if(step === 3) body += `<p class="muted" style="margin:0">Add up to three people. They’ll be named in your prayer each day. Optional, and it stays on this phone.</p>
     ${[0,1,2].map(i => `<input class="input" id="obP${i}" value="${esc(obDraft.people[i] || "")}" placeholder="${["e.g. Mom","e.g. my husband Dan","e.g. Ana, who is sick"][i]}" maxlength="40" autocomplete="off">`).join("")}
     <div class="field"><label for="obHope">Something you’re hoping for or working toward (optional)</label><input class="input" id="obHope" value="${esc(obDraft.hope || "")}" placeholder="e.g. a new job, healing for my dad" maxlength="80" autocomplete="off"></div>`;
   if(step === 4) body += `<p class="prose" style="margin:0">A few gentle reminders through the day help you keep God with you, not just in the morning.</p>
     <div class="card flat setrow"><div style="min-width:0"><b>Daily reminders</b><p class="muted small" style="margin:2px 0 0">Four one-line reminders, like “Give God one small struggle right now.” Turn them off anytime in your profile.</p></div><button class="switch" id="obNudge" role="switch" aria-checked="${obDraft.nudges ? "true" : "false"}" aria-label="Daily reminders"></button></div>
-    <p class="muted small" style="margin:0">Your seven verses will be waiting each morning at:</p><div class="chips" style="flex-wrap:wrap">${["06:00","07:00","08:00","12:00","21:00"].map(t => `<button class="chip ${obDraft.remind === t ? "on" : ""}" data-t="${t}">${fmtTime(t)}</button>`).join("")}</div>`;
+    <p class="muted small" style="margin:0">Your daily verse will be waiting each morning at:</p><div class="chips" style="flex-wrap:wrap">${["06:00","07:00","08:00","12:00","21:00"].map(t => `<button class="chip ${obDraft.remind === t ? "on" : ""}" data-t="${t}">${fmtTime(t)}</button>`).join("")}</div>`;
   const last = single || pos === OB_FLOW.length - 1;
   const blocked = (step === 0 && !(obDraft.name || "").trim()) || (step === 1 && !obDraft.need) || (step === 2 && !obDraft.status);
   body += `<div class="row-btns" style="margin-top:4px">${!single && pos > 0 ? `<button class="btn quiet" id="obBack">${ic("back","sm")}Back</button>` : ""}<button class="btn primary" id="obNext" style="flex:1" ${blocked ? "disabled" : ""}>${last ? (single ? "Save" : "Start today’s seven") : "Continue"}</button></div>`;
