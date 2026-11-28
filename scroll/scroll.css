@@ -73,3 +73,29 @@
 .adc-d.lit{background:#F59E0B;border-color:#F59E0B;color:#1A1206;box-shadow:0 0 8px rgba(245,158,11,.55)}
 .adc-d.xm{font-size:14px}
 .adc-v{margin:0;font:400 16px/1.5 var(--read)}
+.com-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.com-dot{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand,#B45309);color:#fff;font:700 11px var(--ui,system-ui);margin-left:6px}
+.com-item{display:grid;gap:8px}
+.com-item.ans{border-color:var(--good,#15803D)}
+.com-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.com-more{margin-left:auto;border:0;background:transparent;color:var(--ink-3,#64748B);font-size:14px;letter-spacing:1px;padding:6px 8px;min-width:44px;min-height:32px}
+.com-body{margin:0;font:400 17px/1.5 var(--read);overflow-wrap:anywhere}
+.com-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.com-count{display:inline-flex;align-items:center;gap:6px;font:600 13px var(--ui,system-ui);color:var(--ink-2);margin-right:auto}
+.btn.sm{height:38px;padding:0 14px;font-size:14px;width:auto;display:inline-flex;align-items:center;gap:6px}
+.com-new{gap:10px}
+.com-ta{height:auto;min-height:76px;padding:12px 14px;resize:vertical;font:inherit;line-height:1.45;width:100%;box-sizing:border-box}
+.com-row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.com-chk{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
+.com-chk input{width:18px;height:18px}
+.com-rules{margin:0;padding-left:20px;display:grid;gap:8px;font:400 16px/1.45 var(--read)}
+.com-ginfo{margin:-4px 0 0}
+.lnk{border:0;background:transparent;padding:0;font:inherit;color:var(--brand-text,#B45309);text-decoration:underline}
+.com-quote{margin:0;padding:10px 14px;border-left:3px solid var(--brand-line,#F1C27D);background:var(--brand-soft,rgba(245,158,11,.1));border-radius:0 10px 10px 0;font:400 15px/1.45 var(--read);overflow-wrap:anywhere}
+.com-thr{display:block;text-align:left;width:100%;color:inherit;font:inherit}
+.com-msgs{display:grid;gap:10px}
+.com-msg{max-width:86%;justify-self:start}
+.com-msg.me{justify-self:end;text-align:right}
+.com-msg p{margin:0;padding:10px 14px;border-radius:16px;background:var(--surface,#fff);border:1px solid var(--line);font:400 16px/1.45 var(--read);text-align:left;overflow-wrap:anywhere}
+.com-msg.me p{background:var(--brand-soft,rgba(245,158,11,.14));border-color:var(--brand-line,#F1C27D)}
+.com-msg span{font-size:12px}

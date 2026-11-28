@@ -6,7 +6,7 @@ N = {}
 for f in sorted(glob.glob('scroll/notes/n*.py')):
     spec = importlib.util.spec_from_file_location('m', f); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
     for b, arr in m.N.items(): N[b] = arr
-js = open('scroll/scroll.js').read().replace('__CHN__', json.dumps(N, ensure_ascii=False))
+js = (open('scroll/scroll.js').read() + '\n' + open('scroll/community.js').read()).replace('__CHN__', json.dumps(N, ensure_ascii=False))
 css = open('scroll/scroll.css').read()
 s = re.sub(re.escape('/* scroll-css:start */') + '.*?' + re.escape('/* scroll-css:end */\n'), '', s, flags=re.S)
 s = re.sub(re.escape('/* scroll-js:start */') + '.*?' + re.escape('/* scroll-js:end */\n'), '', s, flags=re.S)

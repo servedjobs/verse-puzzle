@@ -216,7 +216,7 @@ function renderAdvent(){
       ${x2 ? `<p class="muted small" style="margin:0">Do the whole session two times in one day. For example, once in the morning and once at night.</p>` : ""}
       <ul class="adv-steps">${st.map(x => `<li><span>${esc(x[0])}</span><b>${prFmt(x[2])}</b></li>`).join("")}</ul>
       <button class="btn primary block" id="advGo">Begin</button></section>`; }
-  view.innerHTML = `<div class="stack"><button class="btn quiet" id="advBack" style="align-self:flex-start;width:auto;padding-left:14px;padding-right:14px">‹ Pray</button>
+  view.innerHTML = `<div class="stack"><button class="btn quiet" id="advBack" style="justify-self:start;align-self:flex-start;width:auto;padding-left:14px;padding-right:14px">‹ Pray</button>
     <div class="hello"><h1>Advent prayer plan</h1><p>6 weeks, from Fr. Gregg. Pray at least 3 days a week. ${n} of 18 done.</p></div>
     ${det || (nx ? `<button class="card pr-opt adv-card" id="advNext"><div style="flex:1;min-width:0"><span class="label">Up next</span><h3>${esc(nx.lab)}</h3><p class="muted small" style="margin:2px 0 0">About ${advMin(nx.w, nx.d)} minutes${advNeed(nx.w, nx.d) === 2 ? ", twice today" : ""}. Every step has a timer.</p></div><b style="color:var(--brand,#B45309)">Begin ›</b></button>` : `<section class="card"><p class="prose" style="margin:0">All 18 sessions are done. Keep going.</p></section>`)}
     <div class="adv-grid">${ADV_S.map((wk, w) => `<div class="adv-week"><span class="adv-wl">Week ${w + 1}</span>${wk.map((ss, d) => { const got = advGot(w, d), need = advNeed(w, d), full = got >= need;
@@ -264,6 +264,7 @@ let prSel = "rosary";
 function renderPray(){
   bar(); view.scrollTop = 0;
   if(PR && PR.done){ view.innerHTML = `<div class="stack"><div class="hello"><h1>Amen.</h1><p>${PR.msg || (PR.rosary ? "You prayed the Rosary." : "Prayer time is done.")}${PR.streakLine ? " " + esc(PR.streakLine) : ""}</p></div><button class="btn primary block" id="prDone">Done</button></div>`; $("#prDone").onclick = () => { prStop(); renderPray(); }; return; }
+  if(!PR && COM.on){ if(!COM.tm) comStart(); return renderCom(); }
   if(!PR && prAdvOn) return renderAdvent();
   if(PR){
     const st = PR.steps[PR.i], n = PR.steps.length, timed = !PR.rosary;
@@ -286,12 +287,14 @@ function renderPray(){
   const ad = advNext(), adn = advDoneCount();
   view.innerHTML = `<div class="stack"><div class="hello"><h1>Pray</h1><p>Sit in your chair. Pick one.</p></div>
     <button class="card pr-opt adv-card" id="prAdv"><div class="logo-tile" style="width:44px;height:44px;border-radius:12px">${ic("sun")}</div><div style="flex:1;min-width:0"><span class="label">Advent and Christmas</span><h3>Advent prayer plan</h3><p class="muted small" style="margin:2px 0 0">6 weeks, from Fr. Gregg. ${ad ? "Up next: " + esc(ad.lab) + "." : "All 18 sessions done."}</p></div></button>
+    ${comCardHTML()}
     ${adcHTML()}
     ${Object.keys(PR_LIST).map(k => `<button class="card pr-opt ${k === prSel ? "sel" : ""}" data-p="${k}"><div class="logo-tile" style="width:44px;height:44px;border-radius:12px">${ic(PR_LIST[k][2])}</div><div style="flex:1;min-width:0"><h3>${esc(PR_LIST[k][0])}</h3><p class="muted small" style="margin:2px 0 0">${k === "rosary" ? esc(MYST[prMyst()][0]) + " today. " : ""}${esc(PR_LIST[k][1])}</p></div></button>`).join("")}
     <button class="btn primary block" id="prBegin">Begin</button>
     <p class="muted small" style="text-align:center;margin:0">Finishing a prayer counts as your day.</p></div>`;
   view.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { prSel = b.dataset.p; renderPray(); });
   view.querySelectorAll("[data-adc]").forEach(b => b.onclick = () => { const i = +b.dataset.adc; if(todayKey(adcDate(i)) > todayKey()) return; adcOpen = adcOpen === i ? null : i; renderPray(); });
+  $("#prCom").onclick = comOpen; comBadge();
   $("#prAdv").onclick = () => { prAdvOn = true; advSel = null; renderPray(); };
   $("#prBegin").onclick = () => { const steps = prSteps(prSel), rosary = prSel === "rosary";
     PR = {key: prSel, steps, i: 0, rosary, paused: false, beads: 0, left: rosary ? 0 : steps[0][2], tm: null, wl: null};
